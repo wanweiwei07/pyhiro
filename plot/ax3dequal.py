@@ -1,5 +1,4 @@
 import numpy as np
-
 # Input a matplotlib axis to this function to make it euqalized at all axis
 # copied from http://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to
 #
