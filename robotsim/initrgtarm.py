@@ -1,7 +1,8 @@
 import numpy as np
 
+
 def initrgtarm():
-    '''
+    """
     Init the structure of hiro's rgt arm
 
     :return:
@@ -27,7 +28,7 @@ def initrgtarm():
 
     author: weiwei
     date: 20160615
-    '''
+    """
 
     # create a arm with six joints
     rgtarm = [None]*6
@@ -46,17 +47,17 @@ def initrgtarm():
     rgtarm[0]['linkend'] = np.dot(rgtarm[0]['rotmat'], rgtarm[0]['linkvec'].reshape((-1,1))).reshape((1,-1))+rgtarm[0]['linkpos']
 
     # the second link
-    rgtarm[0]['name'] = 'link1'
-    rgtarm[0]['mother'] = 0
-    rgtarm[0]['child'] = 1
-    rgtarm[0]['linkpos'] = np.array([0,0,0])
-    rgtarm[0]['linkvec'] = np.array([0,-0.145,0.370296])
-    rgtarm[0]['rotmat'] = np.array([[1,0,0],
+    rgtarm[1]['name'] = 'link1'
+    rgtarm[1]['mother'] = 0
+    rgtarm[1]['child'] = 1
+    rgtarm[1]['linkpos'] = np.array([0,0,0])
+    rgtarm[1]['linkvec'] = np.array([0,-0.145,0.370296])
+    rgtarm[1]['rotmat'] = np.array([[1,0,0],
                                     [0,1,0],
                                     [0,0,1]])
-    rgtarm[0]['rotax'] = np.array([0,0,1])
-    rgtarm[0]['rotangle'] = 0
-    rgtarm[0]['linkend'] = np.dot(rgtarm[0]['rotmat'], rgtarm[0]['linkvec'].reshape((-1,1))).reshape((1,-1))+rgtarm[0]['linkpos']
+    rgtarm[1]['rotax'] = np.array([0,0,1])
+    rgtarm[1]['rotangle'] = 0
+    rgtarm[1]['linkend'] = np.dot(rgtarm[1]['rotmat'], rgtarm[1]['linkvec'].reshape((-1,1))).reshape((1,-1))+rgtarm[1]['linkpos']
 
     # the third link
     rgtarm[0]['name'] = 'link1'
