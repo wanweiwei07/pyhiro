@@ -26,11 +26,14 @@ def packpandageom(vertices, facenormals, triangles, name=''):
     date: 20160613
     """
 
-    format = GeomVertexFormat.getV3n3()
-    vertexData = GeomVertexData(name, format, Geom.UHStatic)
-    vertexData.setNumRows(vertices.shape[0])
-    vertwritter = GeomVertexWriter(vertexData, 'vertex')
-    normalwritter = GeomVertexWriter(vertexData, 'normal')
+    # vertformat = GeomVertexFormat.getV3()
+    vertformat = GeomVertexFormat.getV3n3()
+    # vertformat = GeomVertexFormat.getV3n3c4()
+    vertexdata = GeomVertexData(name, vertformat, Geom.UHStatic)
+    vertexdata.setNumRows(triangles.shape[0]*3)
+    vertwritter = GeomVertexWriter(vertexdata, 'vertex')
+    normalwritter = GeomVertexWriter(vertexdata, 'normal')
+    # colorwritter = GeomVertexWriter(vertexdata, 'color')
     primitive = GeomTriangles(Geom.UHStatic)
     for i,fvidx in enumerate(triangles):
         vert0 = vertices[fvidx[0],:]
@@ -38,20 +41,27 @@ def packpandageom(vertices, facenormals, triangles, name=''):
         vert2 = vertices[fvidx[2],:]
         vertwritter.addData3f(vert0[0], vert0[1], vert0[2])
         normalwritter.addData3f(facenormals[i,0], facenormals[i,1], facenormals[i,2])
+        # print vert0[0], vert0[1], vert0[2]
+        # print facenormals[i,0], facenormals[i,1], facenormals[i,2]
+        # colorwritter.addData4f(1,1,1,1)
         vertwritter.addData3f(vert1[0], vert1[1], vert1[2])
         normalwritter.addData3f(facenormals[i,0], facenormals[i,1], facenormals[i,2])
+        # print vert1[0], vert1[1], vert1[2]
+        # print facenormals[i,0], facenormals[i,1], facenormals[i,2]
+        # colorwritter.addData4f(1,1,1,1)
         vertwritter.addData3f(vert2[0], vert2[1], vert2[2])
         normalwritter.addData3f(facenormals[i,0], facenormals[i,1], facenormals[i,2])
-        primitive.addVertex(i*3)
-        primitive.addVertex(i*3+1)
-        primitive.addVertex(i*3+2)
-    geom = Geom(vertexData)
+        # print vert2[0], vert2[1], vert2[2]
+        # print facenormals[i,0], facenormals[i,1], facenormals[i,2]
+        # colorwritter.addData4f(1,1,1,1)
+        primitive.addVertices(i*3, i*3+1, i*3+2)
+    geom = Geom(vertexdata)
     geom.addPrimitive(primitive)
 
     return geom
 
 
-def _genArrow(pandabase, length, thickness = 0.005):
+def _genArrow(pandabase, length, thickness = 0.5):
     """
     Generate a arrow node for plot
     This function should not be called explicitly
@@ -86,7 +96,7 @@ def _genArrow(pandabase, length, thickness = 0.005):
     return arrow
 
 
-def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.01, rgba=None):
+def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
     """
     plot an arrow to nodepath
 
@@ -131,6 +141,93 @@ def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = Non
     arrow.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
 
     arrow.reparentTo(nodepath)
+
+def _genDumbbell(pandabase, length, thickness = 0.5):
+    """
+    Generate a dumbbell node for plot
+    This function should not be called explicitly
+
+    ## input
+    pandabase:
+        the panda direct.showbase.ShowBase object
+    length:
+        length of the dumbbell
+    thickness:
+        thickness of the dumbbell, set to 0.005 as default
+
+    ## output
+
+    """
+
+    this_dir, this_filename = os.path.split(__file__)
+    cylinderpath = os.path.join(this_dir, "geomprim", "cylinder.egg")
+    conepath = os.path.join(this_dir, "geomprim", "sphere.egg")
+
+    dumbbell = NodePath("dumbbell")
+    dumbbellbody = pandabase.loader.loadModel(cylinderpath)
+    dumbbellhead = pandabase.loader.loadModel(conepath)
+    dumbbellbody.setPos(0,0,0)
+    dumbbellbody.setScale(thickness, length, thickness)
+    dumbbellbody.reparentTo(dumbbell)
+    dumbbellhead0 = NodePath("dumbbellhead0")
+    dumbbellhead1 = NodePath("dumbbellhead1")
+    dumbbellhead0.setPos(dumbbellbody.getX(), length, dumbbellbody.getZ())
+    dumbbellhead1.setPos(dumbbellbody.getX(), dumbbellbody.getY(), dumbbellbody.getZ())
+    dumbbellhead.instanceTo(dumbbellhead0)
+    dumbbellhead.instanceTo(dumbbellhead1)
+    # set scale (consider relativitly)
+    dumbbellhead0.setScale(thickness*2, thickness*2, thickness*2)
+    dumbbellhead1.setScale(thickness*2, thickness*2, thickness*2)
+    dumbbellhead0.reparentTo(dumbbell)
+    dumbbellhead1.reparentTo(dumbbell)
+
+    return dumbbell
+
+def plotDumbbell(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
+    """
+    plot a dumbbell to nodepath
+
+    ## input:
+    pandabase:
+        the panda direct.showbase.ShowBase object
+        will be sent to _genArrow
+    nodepath:
+        defines which parent should the arrow be attached to
+    spos:
+        1-by-3 nparray or list, starting position of the arrow
+    epos:
+        1-by-3 nparray or list, goal position of the arrow
+    length:
+        will be sent to _genArrow, if length is None, its value will be computed using np.linalg.norm(epos-spos)
+    thickness:
+        will be sent to _genArrow
+    rgba:
+        1-by-3 nparray or list
+
+    author: weiwei
+    date: 20160616
+    """
+
+    if nodepath is None:
+        nodepath = pandabase.render
+    if spos is None:
+        spos = np.array([0,0,0])
+    if epos is None:
+        epos = np.array([0,0,1])
+    if length is None:
+        length = np.linalg.norm(epos-spos)
+    if rgba is None:
+        rgba = np.array([1,1,1,1])
+
+    dumbbell = _genDumbbell(pandabase, length, thickness)
+    dumbbell.setPos(spos[0], spos[1], spos[2])
+    dumbbell.lookAt(epos[0], epos[1], epos[2])
+    # lookAt points y+ to epos, use the following command to point x+ to epos
+    # http://stackoverflow.com/questions/15126492/panda3d-how-to-rotate-object-so-that-its-x-axis-points-to-a-location-in-space
+    # arrow.setHpr(arrow, Vec3(0,0,90))
+    dumbbell.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+
+    dumbbell.reparentTo(nodepath)
 
 
 def plotFrame(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.01, rgba=None):
@@ -178,6 +275,74 @@ def plotFrame(pandabase, nodepath = None, spos = None, epos = None, length = Non
     arrow.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
 
     arrow.reparentTo(nodepath)
+
+
+def _genSphere(pandabase, radius = None):
+    """
+    Generate a sphere for plot
+    This function should not be called explicitly
+
+    ## input
+    pandabase:
+        the panda direct.showbase.ShowBase object
+    radius:
+        the radius of the sphere
+
+    ## output
+    sphere: pathnode
+
+    author: weiwei
+    date: 20160620 ann arbor
+    """
+
+    if radius is None:
+        radius = 0.05
+
+    this_dir, this_filename = os.path.split(__file__)
+    spherepath = os.path.join(this_dir, "geomprim", "sphere.egg")
+
+    spherepnd = NodePath("arrow")
+    spherend = pandabase.loader.loadModel(spherepath)
+    spherend.setPos(0,0,0)
+    spherend.setScale(radius, radius, radius)
+    spherend.reparentTo(spherepnd)
+
+    return spherepnd
+
+
+def plotSphere(pandabase, nodepath = None, pos = None, radius=None, rgba=None):
+    """
+    plot a sphere to nodepath
+
+    ## input:
+    pandabase:
+        the panda direct.showbase.ShowBase object
+        will be sent to _genSphere
+    nodepath:
+        defines which parent should the arrow be attached to
+    pos:
+        1-by-3 nparray or list, position of the sphere
+    radius:
+        will be sent to _genSphere
+    rgba:
+        1-by-3 nparray or list
+
+    author: weiwei
+    date: 20160620 ann arbor
+    """
+
+    if nodepath is None:
+        nodepath = pandabase.render
+    if pos is None:
+        pos = np.array([0,0,0])
+    if rgba is None:
+        rgba = np.array([1,1,1,1])
+
+    spherend = _genSphere(pandabase, radius)
+    spherend.setPos(pos[0], pos[1], pos[2])
+    spherend.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+
+    spherend.reparentTo(nodepath)
 
 if __name__=="__main__":
 

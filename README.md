@@ -14,3 +14,4 @@ The program follows these common sense:
 TODO:
 (1) when creating a panda geom from trimesh, the points are added following
 faces. They are repeated.
+(2) nodepath setcolor doesnt seem to affect its children (representto@star)

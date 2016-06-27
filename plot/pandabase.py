@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-``scenesim.display.viewer``
-===========================
+a self-implemented panda3d showbase
 
-Viewer for SSOs.
+author: weiwei
+date: 20160627
 
 """
 ##
@@ -15,32 +15,34 @@ from panda3d.core import AntialiasAttrib, BitMask32, PerspectiveLens, Point3, Ve
 from numpy import array
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.core import ConfigVariableBool, WindowProperties
-from pandac.PandaModules import AmbientLight, NodePath, Spotlight
-# from path import path
-# ##
-# from scenesim.display.geometry import (extrude, get_projection_mat,
-#                                        plane_intersection, project)
-# from scenesim.display.lightbase import Loader
-# from scenesim.objects.gso import GSO
-# from scenesim.objects.pso import PSO
-# from scenesim.objects.sso import SSO
-# from scenesim.physics.bulletbase import BulletBase
-##
+from pandac.PandaModules import AmbientLight, PointLight, NodePath
+
 from pdb import set_trace as BP
 
 
 class Viewer(ShowBase, object):
-    """ Viewer for SSOs."""
-
     def __init__(self):
         ShowBase.__init__(self)
         resize_window = ConfigVariableBool('viewer-resize-window', '#t')
         if resize_window.getValue():
             self.win_size = (800, 800)
         # Black background
-        self.win.setClearColor((0.0, 0.0, 0.0, 1.0))
+        self.win.setClearColor((1,1,1,1))
         # Set up lights.
-        self.lights = NodePath("lights")
+        ablight = AmbientLight("ambientlight")
+        ablight.setColor(Vec4(0.5, 0.5, 0.5, 1))
+        ablightnode = self.render.attachNewNode(ablight)
+        self.render.setLight(ablightnode)
+        ptlight0 = PointLight("pointlight0")
+        ptlight0.setColor(VBase4(1, 1, 1, 1))
+        ptlightnode0 = self.render.attachNewNode(ptlight0)
+        ptlightnode0.setPos(500, 0, 500)
+        base.render.setLight(ptlightnode0)
+        ptlight1 = PointLight("pointlight1")
+        ptlight1.setColor(VBase4(1, 1, 1, 1))
+        ptlightnode1 = base.render.attachNewNode(ptlight1)
+        ptlightnode1.setPos(0, 500, 500)
+        base.render.setLight(ptlightnode1)
         # Spotlight. Casts shadows.
         slight = Spotlight("slight")
         slight.setScene(self.render)

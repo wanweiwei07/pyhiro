@@ -50,3 +50,33 @@ def rodmat(axis, theta, mat = None):
     weave.inline(code, ['axis', 'theta', 'mat'], support_code = support, libraries = ['m'])
 
     return mat
+
+
+def rotmatfacet(facetnormal, facetfirstpoint, facetsecondpoint):
+    '''
+    Compute the rotation matrix of a 3D facet using
+    facetnormal and the first two points on the facet
+    The function uses the concepts defined by Trimesh
+
+    ## input:
+    facetnormal:
+        the normal of a facet
+    facetfirstpoint:
+        the first point of the first triangle on the facet
+    facetsecondpoint:
+        the second point of the first triangle on the facet
+
+    ## output:
+    mat:
+        a (3,3) numpy matrix
+
+    date: 20160624
+    author: weiwei
+    '''
+    mat = np.eye(3,3)
+    mat[2,:] = facetnormal
+    mat[0,:] = facetsecondpoint-facetfirstpoint
+    mat[0,:] = mat[:,0]/np.linalg.norm(mat[:,0])
+    mat[1,:] = np.cross(mat[2,:],mat[0,:])
+
+    return mat
