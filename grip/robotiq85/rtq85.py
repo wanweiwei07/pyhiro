@@ -240,23 +240,22 @@ if __name__=='__main__':
 
     def updateworld(world, task):
         world.doPhysics(globalClock.getDt())
-        result = base.world.contactTestPair(bcollidernp.node(), lftcollidernp.node())
-        result1 = base.world.contactTestPair(bcollidernp.node(), ilkcollidernp.node())
-        result2 = base.world.contactTestPair(lftcollidernp.node(), ilkcollidernp.node())
-        print result
-        print result.getContacts()
-        print result1
-        print result1.getContacts()
-        print result2
-        print result2.getContacts()
-        for contact in result.getContacts():
-            cp = contact.getManifoldPoint()
-            print cp.getLocalPointA()
+        # result = base.world.contactTestPair(bcollidernp.node(), lftcollidernp.node())
+        # result1 = base.world.contactTestPair(bcollidernp.node(), ilkcollidernp.node())
+        # result2 = base.world.contactTestPair(lftcollidernp.node(), ilkcollidernp.node())
+        # print result
+        # print result.getContacts()
+        # print result1
+        # print result1.getContacts()
+        # print result2
+        # print result2.getContacts()
+        # for contact in result.getContacts():
+        #     cp = contact.getManifoldPoint()
+        #     print cp.getLocalPointA()
         return task.cont
 
     base = ShowBase()
     rtq85hnd = designpattern.singleton(Rtq85)
-    # rtq85hnd.rtq85hnd.reparentTo(base.render)
     hndpos = Vec3(0,0,0)
     ydirect = Vec3(0,1,0)
     zdirect = Vec3(0,0,1)
@@ -283,7 +282,6 @@ if __name__=='__main__':
     bbullnode = BulletRigidBodyNode('gb')
     bbullnode.addShape(BulletTriangleMeshShape(gbmesh, dynamic=True), gbts)
     bcollidernp=bullcldrnp.attachNewNode(bbullnode)
-    # bcollidernp.setPos(0,1,0)
     base.world.attachRigidBody(bbullnode)
     bcollidernp.setCollideMask(BitMask32.allOn())
 
@@ -293,11 +291,11 @@ if __name__=='__main__':
     glftts = glftnp.getTransform(base.render)
     glftmesh = BulletTriangleMesh()
     glftmesh.addGeom(glft)
-    lftbullnode = BulletRigidBodyNode('glft')
-    lftbullnode.addShape(BulletTriangleMeshShape(glftmesh, dynamic=True), glftts)
-    lftcollidernp=bullcldrnp.attachNewNode(lftbullnode)
-    base.world.attachRigidBody(lftbullnode)
-    lftcollidernp.setCollideMask(BitMask32.allOn())
+    # lftbullnode = BulletRigidBodyNode('glft')
+    # lftbullnode.addShape(BulletTriangleMeshShape(glftmesh, dynamic=True), glftts)
+    # lftcollidernp=bullcldrnp.attachNewNode(lftbullnode)
+    # base.world.attachRigidBody(lftbullnode)
+    # lftcollidernp.setCollideMask(BitMask32.allOn())
     # base.world.attachRigidBody(glftbullnode)
 
     # rtq85hnd.rtq85np.find("**/rtq85ilknuckle").showTightBounds()
@@ -308,29 +306,15 @@ if __name__=='__main__':
     gilkmesh.addGeom(gilk)
     ilkbullnode = BulletRigidBodyNode('gilk')
     ilkbullnode.addShape(BulletTriangleMeshShape(gilkmesh, dynamic=True), gilkts)
+    ilkbullnode.addShape(BulletTriangleMeshShape(glftmesh, dynamic=True), glftts)
     ilkcollidernp=bullcldrnp.attachNewNode(ilkbullnode)
     base.world.attachRigidBody(ilkbullnode)
     ilkcollidernp.setCollideMask(BitMask32.allOn())
     # rtq85hnd.rtq85np.find("**/rtq85ilknuckle").showTightBounds()
     # rtq85hnd.rtq85np.showTightBounds()
 
-    # from pandac.PandaModules import CollisionHandlerQueue, CollisionNode, CollisionSphere, CollisionTraverser
-    # base.cTrav = CollisionTraverser()
-    # collisionHandler = CollisionHandlerQueue()
-    # rtq85collider = rtq85hnd.rtq85np
-    # base.cTrav.addCollider(rtq85collider, collisionHandler)
-    # base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
-
-    # result = base.world.contactTestPair(bbullnode, ilkbullnode)
-    # print result
-    # print result.getContacts()
-    # import plot.pandageom as pandageom
-    # for contact in result.getContacts():
-    #     cp = contact.getManifoldPoint()
-    #     print cp.getLocalPointA()
-    #     pandageom.plotSphere(base, pos=cp.getLocalPointA(), radius=0.7, rgba=Vec4(1,0,0,1))
-
-    result = base.world.contactTestPair(lftbullnode, ilkbullnode)
+    base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
+    result = base.world.contactTestPair(bbullnode, ilkbullnode)
     print result
     print result.getContacts()
     import plot.pandageom as pandageom
@@ -340,9 +324,9 @@ if __name__=='__main__':
         pandageom.plotSphere(base, pos=cp.getLocalPointA(), radius=1, rgba=Vec4(1,0,0,1))
 
     debugNode = BulletDebugNode('Debug')
-    debugNode.showWireframe(False)
+    debugNode.showWireframe(True)
     debugNode.showConstraints(True)
-    debugNode.showBoundingBoxes(True)
+    debugNode.showBoundingBoxes(False)
     debugNode.showNormals(False)
     debugNP = bullcldrnp.attachNewNode(debugNode)
     debugNP.show()
