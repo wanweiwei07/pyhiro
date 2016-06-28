@@ -61,14 +61,12 @@ def packpandageom(vertices, facenormals, triangles, name=''):
     return geom
 
 
-def _genArrow(pandabase, length, thickness = 0.5):
+def _genArrow(length, thickness = 0.5):
     """
     Generate a arrow node for plot
     This function should not be called explicitly
 
     ## input
-    pandabase:
-        the panda direct.showbase.ShowBase object
     length:
         length of the arrow
     thickness:
@@ -83,8 +81,8 @@ def _genArrow(pandabase, length, thickness = 0.5):
     conepath = os.path.join(this_dir, "geomprim", "cone.egg")
 
     arrow = NodePath("arrow")
-    arrowbody = pandabase.loader.loadModel(cylinderpath)
-    arrowhead = pandabase.loader.loadModel(conepath)
+    arrowbody = loader.loadModel(cylinderpath)
+    arrowhead = loader.loadModel(conepath)
     arrowbody.setPos(0,0,0)
     arrowbody.setScale(thickness, length, thickness)
     arrowbody.reparentTo(arrow)
@@ -142,14 +140,12 @@ def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = Non
 
     arrow.reparentTo(nodepath)
 
-def _genDumbbell(pandabase, length, thickness = 0.5):
+def _genDumbbell(length, thickness = 0.5):
     """
     Generate a dumbbell node for plot
     This function should not be called explicitly
 
     ## input
-    pandabase:
-        the panda direct.showbase.ShowBase object
     length:
         length of the dumbbell
     thickness:
@@ -164,8 +160,8 @@ def _genDumbbell(pandabase, length, thickness = 0.5):
     conepath = os.path.join(this_dir, "geomprim", "sphere.egg")
 
     dumbbell = NodePath("dumbbell")
-    dumbbellbody = pandabase.loader.loadModel(cylinderpath)
-    dumbbellhead = pandabase.loader.loadModel(conepath)
+    dumbbellbody = loader.loadModel(cylinderpath)
+    dumbbellhead = loader.loadModel(conepath)
     dumbbellbody.setPos(0,0,0)
     dumbbellbody.setScale(thickness, length, thickness)
     dumbbellbody.reparentTo(dumbbell)
