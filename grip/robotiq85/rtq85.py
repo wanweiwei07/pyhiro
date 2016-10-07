@@ -256,6 +256,7 @@ if __name__=='__main__':
 
     base = ShowBase()
     rtq85hnd = designpattern.singleton(Rtq85)
+    rtq85hnd.setJawwidth(50)
     hndpos = Vec3(0,0,0)
     ydirect = Vec3(0,1,0)
     zdirect = Vec3(0,0,1)
@@ -329,7 +330,7 @@ if __name__=='__main__':
     debugNode.showBoundingBoxes(False)
     debugNode.showNormals(False)
     debugNP = bullcldrnp.attachNewNode(debugNode)
-    debugNP.show()
+    # debugNP.show()
 
     base.world.setDebugNode(debugNP.node())
 

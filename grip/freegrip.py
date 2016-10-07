@@ -105,20 +105,26 @@ class freegrip:
                     dbnds.append(apntpnt.distance(fpinter))
                 dbnd = min(dbnds)
                 if dbnd < mindist or dbnd > maxdist:
-                    plt.plot(apntpnt.x, apntpnt.y, 'bo')
+                    pass
                 else:
                     selectedele.append(j)
             self.objsamplepnts_grp[i] = np.asarray([self.objsamplepnts[i][j] for j in selectedele])
             self.objsamplenrmls_grp[i] = np.asarray([self.objsamplenrmls[i][j] for j in selectedele])
-            # for j, apnt in enumerate([samplepntsp[j] for j in selectedele]):
-            #     plt.plot(apnt[0], apnt[1], 'ro')
-            # ftpx, ftpy = facetp.exterior.xy
-            # plt.plot(ftpx, ftpy)
-            # for fpinters in facetp.interiors:
-            #     ftpxi, ftpyi = fpinters.xy
-            #     plt.plot(ftpxi, ftpyi)
-            # plt.axis('equal')
-            # plt.show()
+
+            # if i is 3:
+            #     for j, apntp in enumerate(samplepntsp):
+            #         apntpnt = Point(apntp[0], apntp[1])
+            #         plt.plot(apntpnt.x, apntpnt.y, 'bo')
+            #     for j, apnt in enumerate([samplepntsp[j] for j in selectedele]):
+            #         plt.plot(apnt[0], apnt[1], 'ro')
+            #     ftpx, ftpy = facetp.exterior.xy
+            #     plt.plot(ftpx, ftpy)
+            #     for fpinters in facetp.interiors:
+            #         ftpxi, ftpyi = fpinters.xy
+            #         plt.plot(ftpxi, ftpyi)
+            #     plt.axis('equal')
+            #     plt.show()
+            #     pass
 
                 # old code for concatenating in 3d space
                 # boundaryedges = []
@@ -151,37 +157,37 @@ class freegrip:
                 # return boundaryedges, boundarypolygon
 
     def tstShow(self, base, togglesamples=False, togglenormals=False, togglesamples_grp=False, togglenormals_grp=False):
-        try:
-            for i, faces in enumerate(self.objtrimesh.facets()):
-                rgba = [np.random.random(), np.random.random(), np.random.random(), 1]
-                geom = ppg.packpandageom(self.objtrimesh.vertices, self.objtrimesh.face_normals[faces],
-                                         self.objtrimesh.faces[faces])
-                node = GeomNode('piece')
-                node.addGeom(geom)
-                star = NodePath('piece')
-                star.attachNewNode(node)
-                star.setColor(Vec4(rgba[0], rgba[1], rgba[2], rgba[3]))
-                star.setTwoSided(True)
-                star.reparentTo(base.render)
-                # sampledpnts = samples[sample_idxes[i]]
-                # for apnt in sampledpnts:
-                #     pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
-                if togglesamples:
-                    for j, apnt in enumerate(self.objsamplepnts[i]):
-                        pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
-                if togglenormals:
-                    for j, apnt in enumerate(self.objsamplepnts[i]):
-                        pandageom.plotArrow(base, star, spos=apnt, epos=apnt + freegriptst.objsamplenrmls[i][j],
-                                            rgba=[1, 0, 0, 1], length=10)
-                if togglesamples_grp:
-                    for j, apnt in enumerate(self.objsamplepnts_grp[i]):
-                        pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
-                if togglenormals_grp:
-                    for j, apnt in enumerate(self.objsamplepnts_grp[i]):
-                        pandageom.plotArrow(base, star, spos=apnt, epos=apnt + freegriptst.objsamplenrmls_grp[i][j],
-                                            rgba=[1, 0, 0, 1], length=10)
-        except:
-            print "You might need to loadmodel first!"
+        # try:
+        for i, faces in enumerate(self.objtrimesh.facets()):
+            rgba = [np.random.random(), np.random.random(), np.random.random(), 1]
+            geom = ppg.packpandageom(self.objtrimesh.vertices, self.objtrimesh.face_normals[faces],
+                                     self.objtrimesh.faces[faces])
+            node = GeomNode('piece')
+            node.addGeom(geom)
+            star = NodePath('piece')
+            star.attachNewNode(node)
+            star.setColor(Vec4(rgba[0], rgba[1], rgba[2], rgba[3]))
+            star.setTwoSided(True)
+            star.reparentTo(base.render)
+            # sampledpnts = samples[sample_idxes[i]]
+            # for apnt in sampledpnts:
+            #     pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
+            if togglesamples:
+                for j, apnt in enumerate(self.objsamplepnts[i]):
+                    pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
+            if togglenormals:
+                for j, apnt in enumerate(self.objsamplepnts[i]):
+                    pandageom.plotArrow(base, star, spos=apnt, epos=apnt + freegriptst.objsamplenrmls[i][j],
+                                        rgba=[1, 0, 0, 1], length=10)
+            if togglesamples_grp:
+                for j, apnt in enumerate(self.objsamplepnts_grp[i]):
+                    pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
+            if togglenormals_grp:
+                for j, apnt in enumerate(self.objsamplepnts_grp[i]):
+                    pandageom.plotArrow(base, star, spos=apnt, epos=apnt + freegriptst.objsamplenrmls_grp[i][j],
+                                        rgba=[1, 0, 0, 1], length=10)
+        # except:
+        #     print "You might need to loadmodel first!"
 
 if __name__=='__main__':
     import matplotlib.pyplot as plt
@@ -206,7 +212,7 @@ if __name__=='__main__':
     # freegriptst.objtrimesh.show()
 
     base = ShowBase()
-    freegriptst.removeBadSamples()
+    freegriptst.removeBadSamples(mindist=0.01)
     freegriptst.tstShow(base, togglesamples_grp=True, togglenormals_grp=True)
     # freegriptst.tstShow(base)
 

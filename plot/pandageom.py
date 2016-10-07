@@ -130,7 +130,7 @@ def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = Non
     if rgba is None:
         rgba = np.array([1,1,1,1])
 
-    arrow = _genArrow(pandabase, length, thickness)
+    arrow = _genArrow(length, thickness)
     arrow.setPos(spos[0], spos[1], spos[2])
     arrow.lookAt(epos[0], epos[1], epos[2])
     # lookAt points y+ to epos, use the following command to point x+ to epos
