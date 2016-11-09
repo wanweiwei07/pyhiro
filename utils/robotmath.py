@@ -2,7 +2,7 @@ import numpy as np
 from scipy import weave
 
 
-def rodmat(axis, theta, mat = None):
+def rodrigues(axis, theta, mat = None):
     '''
     Compute the rodrigues matrix using the given axis and theta
 
@@ -26,24 +26,28 @@ def rodmat(axis, theta, mat = None):
 
     support = "#include <math.h>"
     code = """
-        theta = theta * 3.1415926/180;
+        double dth = static_cast<double>(theta);
+        dth = dth * 3.1415926/180.0;
 
-        double x = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
-        double a = cos(theta / 2.0);
-        double b = -(axis[0] / x) * sin(theta / 2.0);
-        double c = -(axis[1] / x) * sin(theta / 2.0);
-        double d = -(axis[2] / x) * sin(theta / 2.0);
+        int axis0 = static_cast<int>(axis[0]);
+        int axis1 = static_cast<int>(axis[1]);
+        int axis2 = static_cast<int>(axis[2]);
+        double x = sqrt(axis0*axis0 + axis1*axis1 + axis2*axis2);
+        double a = cos(dth / 2.0);
+        double b = -(axis0 / x) * sin(dth / 2.0);
+        double c = -(axis1 / x) * sin(dth / 2.0);
+        double d = -(axis2 / x) * sin(dth / 2.0);
 
         mat[0] = a*a + b*b - c*c - d*d;
-        mat[1] = 2 * (b*c - a*d);
-        mat[2] = 2 * (b*d + a*c);
+        mat[3*1 + 0] = 2 * (b*c - a*d);
+        mat[3*2 + 0] = 2 * (b*d + a*c);
 
-        mat[3*1 + 0] = 2*(b*c+a*d);
+        mat[1] = 2*(b*c+a*d);
         mat[3*1 + 1] = a*a+c*c-b*b-d*d;
-        mat[3*1 + 2] = 2*(c*d-a*b);
+        mat[3*2 + 1] = 2*(c*d-a*b);
 
-        mat[3*2 + 0] = 2*(b*d-a*c);
-        mat[3*2 + 1] = 2*(c*d+a*b);
+        mat[2] = 2*(b*d-a*c);
+        mat[3*1+ 2] = 2*(c*d+a*b);
         mat[3*2 + 2] = a*a+d*d-b*b-c*c;
     """
 

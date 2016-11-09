@@ -22,13 +22,13 @@ def setRenderEffect(base):
 
         # base.render.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.4))
         # base.render.setShaderAuto()
-        # base.separation = 1 # Pixels
-        # base.filters = CommonFilters(base.win, base.cam)
-        # base.filters.setCartoonInk(separation=base.separation)
+        base.separation = 1 # Pixels
+        base.filters = CommonFilters(base.win, base.cam)
+        base.filters.setCartoonInk(separation=base.separation)
 
-        base.loadPrcFileData("", "framebuffer-multisample 1")
-        base.loadPrcFileData('', 'multisamples 4')
-        base.render.setAntialias(AntialiasAttrib.MAuto)
+        # base.loadPrcFileData("", "framebuffer-multisample 2")
+        # base.loadPrcFileData('', 'multisamples 8')
+        # base.render.setAntialias(AntialiasAttrib.MMultisample+AntialiasAttrib.MAuto)
     except:
         pass
 
@@ -74,18 +74,41 @@ def setLight(base):
 
     try:
         ablight = AmbientLight("ambientlight")
-        ablight.setColor(Vec4(0.3, 0.3, 0.3, 1))
+        ablight.setColor(Vec4(0.2, 0.2, 0.2, 1))
         ablightnode = base.render.attachNewNode(ablight)
         base.render.setLight(ablightnode)
-        ptlight0 = PointLight("pointlight0")
-        ptlight0.setColor(VBase4(0.2, 0.2, 0.2, 1))
+
+        # dlight0 = DirectionalLight("dlight0")
+        # dlight0.setColor(VBase4(.6, .6, .6, 1))
+        # dlightnp0 = base.render.attachNewNode(dlight0)
+        # dlightnp0.setHpr(600,0,900)
+        # base.render.setLight(dlight0)
+        #
+        # dlight1 = DirectionalLight("dlight1")
+        # dlight1.setColor(VBase4(.6, .6, .6, 1))
+        # dlightnp1 = base.render.attachNewNode(dlight1)
+        # dlightnp1.setHpr(0,0,150)
+        # base.render.setLight(dlight1)
+
+        # slight = Spotlight('slight')
+        # slight.setColor(VBase4(1, 1, 1, 1))
+        # lens = PerspectiveLens()
+        # slight.setLens(lens)
+        # slnp = base.render.attachNewNode(slight)
+        # slnp.setPos(100, 200, 0)
+        # slnp.lookAt([0,0,0])
+        # base.render.setLight(slnp)
+
+        ptlight0 = PointLight("pointlight1")
+        ptlight0.setColor(VBase4(1, 1, 1, 1))
         ptlightnode0 = base.render.attachNewNode(ptlight0)
-        ptlightnode0.setPos(500, 0, 500)
+        ptlightnode0.setPos(0, 5000, 2500)
         base.render.setLight(ptlightnode0)
+
         ptlight1 = PointLight("pointlight1")
-        ptlight1.setColor(VBase4(0.2, 0.2, 0.2, 1))
+        ptlight1.setColor(VBase4(1, 1, 1, 1))
         ptlightnode1 = base.render.attachNewNode(ptlight1)
-        ptlightnode1.setPos(0, 500, 500)
+        ptlightnode1.setPos(5000, 0, 2500)
         base.render.setLight(ptlightnode1)
     except:
         pass
@@ -127,7 +150,7 @@ def setCam(base, posx, posy, posz, view=None):
                 if rotateangle > 2 or rotateangle < -2:
                     # print base.camera.getHpr()
                     base.camera.setPos(Mat3.rotateMat(rotateangle, rotatevec).xform(base.camera.getPos()))
-                    base.camera.lookAt(0,0,0)
+                    base.camera.lookAt(0,0,250)
         return task.cont
 
     def mouse1Down(ispressdown, base, params):
@@ -151,13 +174,13 @@ def setCam(base, posx, posy, posz, view=None):
         forward.normalize()
         if isrollup:
             # zoom in\
-            if base.camera.getPos().length() > 100:
+            if base.camera.getPos().length() > 1000:
                 newpos = base.camera.getPos() + forward*35
                 base.camera.setPos(newpos[0], newpos[1], newpos[2])
             pass
         else:
             # zoom out
-            if base.camera.getPos().length() < 500:
+            if base.camera.getPos().length() < 5000:
                 newpos = base.camera.getPos() - forward*35
                 base.camera.setPos(newpos[0], newpos[1], newpos[2])
 
@@ -167,6 +190,8 @@ def setCam(base, posx, posy, posz, view=None):
             lens = OrthographicLens()
         elif view is 'perspective':
             lens = PerspectiveLens()
+        lens.setFilmSize(1500, 1500)
+        lens.setNearFar(1, 50000)
 
         # base.cam.setPos(posx, posy, posz)
         # base.cam.lookAt(0,0,0)
@@ -175,8 +200,7 @@ def setCam(base, posx, posy, posz, view=None):
         # own implementation
         base.disableMouse()
         base.camera.setPos(posx, posy, posz)
-        base.camera.lookAt(0,0,0)
-        lens.setNear(0.01)
+        base.camera.lookAt(0,0,250)
         base.cam.node().setLens(lens)
 
         params = {'m1down':False, 'm1downpos':Vec2(0,0), 'm1downposinworld':Vec3(0,0,0)}

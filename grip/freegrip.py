@@ -1,17 +1,18 @@
 #!/usr/bin/python
 
 import numpy as np
-import trimesh
-import sample
-import plot.pandageom as ppg
+
+import robotsim.nextage.nxtplot.pandactrl as pandactrl
+import robotsim.nextage.nxtplot.pandageom as pandageom
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import *
-import plot.pandactrl as pandactrl
-import plot.pandageom as pandageom
-from utils import robotmath
-from shapely.geometry import Polygon
 from shapely.geometry import Point
-import matplotlib.pyplot as plt
+from shapely.geometry import Polygon
+
+import sample
+import trimesh
+from robotsim.nextage import nxtplot as ppg
+from utils import robotmath
 
 
 class freegrip:
@@ -190,9 +191,6 @@ class freegrip:
         #     print "You might need to loadmodel first!"
 
 if __name__=='__main__':
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D as ax3d
-    from mpl_toolkits.mplot3d import art3d
     # fig = plt.figure()
     # ax1 = fig.add_subplot(121, projection='3d')
     #
@@ -207,19 +205,18 @@ if __name__=='__main__':
     #     sample_idxes[i]=sample_idx
     #
 
-
     freegriptst = freegrip('./wheelmeter.stl')
     # freegriptst.objtrimesh.show()
 
     base = ShowBase()
-    freegriptst.removeBadSamples(mindist=0.01)
-    freegriptst.tstShow(base, togglesamples_grp=True, togglenormals_grp=True)
+    freegriptst.removeBadSamples()
+    freegriptst.tstShow(base)
     # freegriptst.tstShow(base)
 
     # geom = None
     # for i, faces in enumerate(freegriptst.objtrimesh.facets()):
     #     rgba = [np.random.random(),np.random.random(),np.random.random(),1]
-    #     geom = ppg.packpandageom(freegriptst.objtrimesh.vertices, freegriptst.objtrimesh.face_normals[faces], freegriptst.objtrimesh.faces[faces])
+    #     geom = ppg.packpandageom(freegriptst.objtrimesh.vertices, freegriptst.objtrimesh.face_normals[faces], freegrip tst.objtrimesh.faces[faces])
     #     node = GeomNode('piece')
     #     node.addGeom(geom)
     #     star = NodePath('piece')

@@ -1,8 +1,6 @@
-from panda3d.core import *
-from direct.showbase.ShowBase import ShowBase
-import os
 import numpy as np
-
+import os
+from panda3d.core import *
 
 def packpandageom(vertices, facenormals, triangles, name=''):
     """
@@ -94,7 +92,7 @@ def _genArrow(length, thickness = 0.5):
     return arrow
 
 
-def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
+def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
     """
     plot an arrow to nodepath
 
@@ -119,8 +117,6 @@ def plotArrow(pandabase, nodepath = None, spos = None, epos = None, length = Non
     date: 20160616
     """
 
-    if nodepath is None:
-        nodepath = pandabase.render
     if spos is None:
         spos = np.array([0,0,0])
     if epos is None:
@@ -179,14 +175,11 @@ def _genDumbbell(length, thickness = 0.5):
 
     return dumbbell
 
-def plotDumbbell(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
+def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
     """
     plot a dumbbell to nodepath
 
     ## input:
-    pandabase:
-        the panda direct.showbase.ShowBase object
-        will be sent to _genArrow
     nodepath:
         defines which parent should the arrow be attached to
     spos:
@@ -198,14 +191,12 @@ def plotDumbbell(pandabase, nodepath = None, spos = None, epos = None, length = 
     thickness:
         will be sent to _genArrow
     rgba:
-        1-by-3 nparray or list
+        1-by-4 nparray or list
 
     author: weiwei
     date: 20160616
     """
 
-    if nodepath is None:
-        nodepath = pandabase.render
     if spos is None:
         spos = np.array([0,0,0])
     if epos is None:
@@ -215,7 +206,7 @@ def plotDumbbell(pandabase, nodepath = None, spos = None, epos = None, length = 
     if rgba is None:
         rgba = np.array([1,1,1,1])
 
-    dumbbell = _genDumbbell(pandabase, length, thickness)
+    dumbbell = _genDumbbell(length, thickness)
     dumbbell.setPos(spos[0], spos[1], spos[2])
     dumbbell.lookAt(epos[0], epos[1], epos[2])
     # lookAt points y+ to epos, use the following command to point x+ to epos
@@ -225,15 +216,11 @@ def plotDumbbell(pandabase, nodepath = None, spos = None, epos = None, length = 
 
     dumbbell.reparentTo(nodepath)
 
-
-def plotFrame(pandabase, nodepath = None, spos = None, epos = None, length = None, thickness = 0.01, rgba=None):
+def plotFrame(nodepath, spos = None, epos = None, length = None, thickness = 0.01, rgba=None):
     """
     plot an arrow to nodepath
 
     ## input:
-    pandabase:
-        the panda direct.showbase.ShowBase object
-        will be sent to _genArrow
     nodepath:
         defines which parent should the arrow be attached to
     spos:
@@ -251,8 +238,6 @@ def plotFrame(pandabase, nodepath = None, spos = None, epos = None, length = Non
     date: 20160616
     """
 
-    if nodepath is None:
-        nodepath = pandabase.render
     if spos is None:
         spos = np.array([0,0,0])
     if epos is None:
@@ -262,7 +247,7 @@ def plotFrame(pandabase, nodepath = None, spos = None, epos = None, length = Non
     if rgba is None:
         rgba = np.array([1,1,1,1])
 
-    arrow = _genArrow(pandabase, length, thickness)
+    arrow = _genArrow(length, thickness)
     arrow.setPos(spos[0], spos[1], spos[2])
     arrow.lookAt(epos[0], epos[1], epos[2])
     # lookAt points y+ to epos, use the following command to point x+ to epos
@@ -271,7 +256,6 @@ def plotFrame(pandabase, nodepath = None, spos = None, epos = None, length = Non
     arrow.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
 
     arrow.reparentTo(nodepath)
-
 
 def _genSphere(pandabase, radius = None):
     """
@@ -304,7 +288,6 @@ def _genSphere(pandabase, radius = None):
     spherend.reparentTo(spherepnd)
 
     return spherepnd
-
 
 def plotSphere(pandabase, nodepath = None, pos = None, radius=None, rgba=None):
     """
@@ -340,6 +323,49 @@ def plotSphere(pandabase, nodepath = None, pos = None, radius=None, rgba=None):
 
     spherend.reparentTo(nodepath)
 
+def cvtMat3(npmat3):
+    """
+    convert numpy.2darray to LMatrix3f defined in Panda3d
+
+    :param npmat3: a 3x3 numpy ndarray
+    :return: a LMatrix3f object, see panda3d
+
+    author: weiwei
+    date: 20161107, tsukuba
+    """
+    return Mat3(npmat3[0, 0], npmat3[0, 1], npmat3[0, 2], npmat3[1, 0], npmat3[1, 1], npmat3[1, 2], npmat3[2, 0], npmat3[2, 1], npmat3[2, 2])
+
+def cvtMat4(npmat3, npvec3=np.array([0,0,0])):
+    """
+    convert numpy.2darray to LMatrix3f defined in Panda3d
+
+    :param npmat3: a 3x3 numpy ndarray
+    :param npvec3: a 1x3 numpy ndarray
+    :return: a LMatrix3f object, see panda3d
+
+    author: weiwei
+    date: 20161107, tsukuba
+    """
+    return Mat4(npmat3[0, 0], npmat3[1, 0], npmat3[2, 0], 0, npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], 0, npmat3[0, 2], npmat3[1, 2], npmat3[2, 2], 0, npvec3[0], npvec3[1], npvec3[2], 1)
+
+def plotAxis(nodepath, npmat4=Mat4.identMat()):
+    """
+    plot an axis to the scene
+
+    :param npmat4: a panda3d LMatrix4f matrix
+    :return: null
+
+    author: weiwei
+    date: 20161109, tsukuba
+    """
+
+    dbgaxisnp = NodePath("debugaxis")
+    dbgaxis = loader.loadModel('zup-axis.egg')
+    dbgaxis.instanceTo(dbgaxisnp)
+    dbgaxis.setScale(5)
+    dbgaxisnp.setMat(npmat4)
+    dbgaxisnp.reparentTo(nodepath)
+
 if __name__=="__main__":
 
     # show in panda3d
@@ -365,7 +391,8 @@ if __name__=="__main__":
     # print base.camera.getPos()
     # base.oobe()'
 
-    import plot.pandactrl as pandactrl
+    from robotsim.nextage import nxtplot as pandactrl
+
     # pandactrl.setRenderEffect(base)
     pandactrl.setLight(base)
 

@@ -1,26 +1,21 @@
-#!/usr/bin/python
+# TODO: reduce the dependency on panda3d
 
-import os
 import math
-import numpy as np
-import trimesh
-import plot.pandageom as ppg
+import os
+
+import utils.robotmath as rm
+import pandaplotutils.pandactrl as pandactrl
+import pandaplotutils.pandageom as pandageom
 from direct.showbase.ShowBase import ShowBase
-from direct.showbase.Loader import Loader
-from panda3d.core import *
-import plot.pandactrl as pandactrl
-import plot.pandageom as pandageom
-from utils import robotmath
-from utils import designpattern
-from shapely.geometry import Polygon
-from shapely.geometry import Point
-import matplotlib.pyplot as plt
-from panda3d.bullet import BulletConvexHullShape
+from panda3d.bullet import BulletDebugNode
+from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletTriangleMesh
 from panda3d.bullet import BulletTriangleMeshShape
 from panda3d.bullet import BulletWorld
-from panda3d.bullet import BulletRigidBodyNode
-from panda3d.bullet import BulletDebugNode
+from panda3d.core import *
+
+from utils import designpattern
+
 
 class Rtq85():
     '''
@@ -51,11 +46,11 @@ class Rtq85():
         self.jawwidth = jawwidth
 
         this_dir, this_filename = os.path.split(__file__)
-        rtq85basepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_base_link.egg")
-        rtq85fingerpath = os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_link.egg")
-        rtq85fingertippath = os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_tip_link.egg")
-        rtq85innerknucklepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_inner_knuckle_link.egg")
-        rtq85knucklepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_knuckle_link.egg")
+        rtq85basepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_base_link_mm.egg")
+        rtq85fingerpath = os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_link_mm.egg")
+        rtq85fingertippath = os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_tip_link_mm.egg")
+        rtq85innerknucklepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_inner_knuckle_link_mm.egg")
+        rtq85knucklepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_knuckle_link_mm.egg")
 
         rtq85base = NodePath("rtq85base")
         rtq85lknuckle = NodePath("rtq85lknuckle")
@@ -77,62 +72,64 @@ class Rtq85():
         # base
         rtq85_basel.instanceTo(rtq85base)
         rtq85base.setPos(0,0,0)
-        # rtq85base.setColor(1,1,1,1)
-        rtq85base.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85base.setColor(.2,.2,.2,1)
+        # rtq85base.setTransparency(TransparencyAttrib.MAlpha)
 
         # left and right outer knuckle
         rtq85_knucklel.instanceTo(rtq85lknuckle)
-        rtq85lknuckle.setPos(-3.060114443, 5.490451627, 0)
+        rtq85lknuckle.setPos(-30.60114443, 54.90451627, 0)
         rtq85lknuckle.setHpr(0, 0, 180)
-        # rtq85lknuckle.setColor(1,1,1,1)
-        rtq85lknuckle.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85lknuckle.setColor(.5,.5,.5,1)
+        # rtq85lknuckle.setTransparency(TransparencyAttrib.MAlpha)
         rtq85lknuckle.reparentTo(rtq85base)
         rtq85_knucklel.instanceTo(rtq85rknuckle)
-        rtq85rknuckle.setPos(3.060114443, 5.490451627, 0)
+        rtq85rknuckle.setPos(30.60114443, 54.90451627, 0)
         rtq85rknuckle.setHpr(0, 0, 0)
-        # rtq85rknuckle.setColor(1,1,1,1)
-        rtq85rknuckle.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85rknuckle.setColor(.5,.5,.5,1)
+        # rtq85rknuckle.setTransparency(TransparencyAttrib.MAlpha)
         rtq85rknuckle.reparentTo(rtq85base)
 
         # left and right finger
         rtq85_fingerl.instanceTo(rtq85lfgr)
-        rtq85lfgr.setPos(3.148504435, -0.408552455, 0)
-        # rtq85lfgr.setColor(1,1,1,1)
-        rtq85lfgr.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85lfgr.setPos(31.48504435, -4.08552455, 0)
+        rtq85lfgr.setColor(0.2,0.2,0.2,1)
+        # rtq85lfgr.setTransparency(TransparencyAttrib.MAlpha)
         rtq85lfgr.reparentTo(rtq85lknuckle)
         rtq85_fingerl.instanceTo(rtq85rfgr)
-        rtq85rfgr.setPos(3.148504435, -0.408552455, 0)
-        # rtq85rfgr.setColor(1,1,1,1)
-        rtq85rfgr.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85rfgr.setPos(31.48504435, -4.08552455, 0)
+        rtq85rfgr.setColor(0.2,0.2,0.2,1)
+        # rtq85rfgr.setTransparency(TransparencyAttrib.MAlpha)
         rtq85rfgr.reparentTo(rtq85rknuckle)
 
         # left and right inner knuckle
         rtq85_innerknucklel.instanceTo(rtq85ilknuckle)
-        rtq85ilknuckle.setPos(-1.27, 6.142, 0)
+        rtq85ilknuckle.setPos(-12.7, 61.42, 0)
         rtq85ilknuckle.setHpr(0, 0, 180)
         # rtq85ilknuckle.setColor(1,1,1,1)
-        rtq85ilknuckle.setTransparency(TransparencyAttrib.MAlpha)
+        # rtq85ilknuckle.setTransparency(TransparencyAttrib.MAlpha)
         rtq85ilknuckle.reparentTo(rtq85base)
         rtq85_innerknucklel.instanceTo(rtq85irknuckle)
-        rtq85irknuckle.setPos(1.27, 6.142, 0)
+        rtq85irknuckle.setPos(12.7, 61.42, 0)
         rtq85irknuckle.setHpr(0, 0, 0)
         # rtq85irknuckle.setColor(1,1,1,1)
-        rtq85irknuckle.setTransparency(TransparencyAttrib.MAlpha)
+        # rtq85irknuckle.setTransparency(TransparencyAttrib.MAlpha)
         rtq85irknuckle.reparentTo(rtq85base)
 
         # left and right fgr tip
         rtq85_fingertipl.instanceTo(rtq85lfgrtip)
-        rtq85lfgrtip.setPos(3.759940821, 4.303959807, 0)
-        # rtq85lfgrtip.setColor(1,1,1,1)
-        rtq85lfgrtip.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85lfgrtip.setPos(37.59940821, 43.03959807, 0)
+        rtq85lfgrtip.setColor(.5,.5,.5,1)
+        # rtq85lfgrtip.setTransparency(TransparencyAttrib.MAlpha)
         rtq85lfgrtip.reparentTo(rtq85ilknuckle)
         rtq85_fingertipl.instanceTo(rtq85rfgrtip)
-        rtq85rfgrtip.setPos(3.759940821, 4.303959807, 0)
+        rtq85rfgrtip.setPos(37.59940821, 43.03959807, 0)
         rtq85rfgrtip.setHpr(0, 0, 0)
-        # rtq85rfgrtip.setColor(1,1,1,1)
-        rtq85rfgrtip.setTransparency(TransparencyAttrib.MAlpha)
+        rtq85rfgrtip.setColor(.5,.5,.5,1)
+        # rtq85rfgrtip.setTransparency(TransparencyAttrib.MAlpha)
         rtq85rfgrtip.reparentTo(rtq85irknuckle)
 
+        # rotate to x, y, z coordinates (this one rotates the base, not the self.rtq85np)
+        rtq85base.setMat(pandageom.cvtMat4(rm.rodrigues([0,0,1], 90))*rtq85base.getMat())
         rtq85base.reparentTo(self.rtq85np)
         self.setJawwidth(jawwidth)
 
@@ -163,7 +160,7 @@ class Rtq85():
             rotiknuckle=41-math.asin((jawwidth/2-5)/57.15)*180/math.pi
         else:
             rotiknuckle=41+math.asin((5-jawwidth/2)/57.15)*180/math.pi
-        print rotiknuckle
+        # print rotiknuckle
 
         # right finger
         rtq85irknuckle = self.rtq85np.find("**/rtq85irknuckle")
@@ -186,6 +183,32 @@ class Rtq85():
         rtq85lfgrtip = self.rtq85np.find("**/rtq85lfgrtip")
         rtq85lfgrtiphpr = rtq85rfgrtip.getHpr()
         rtq85lfgrtip.setHpr(-rotiknuckle, rtq85lfgrtiphpr[1], rtq85lfgrtiphpr[2])
+
+    def setMat(self, npmat4):
+        """
+        set the translation and rotation of a robotiq hand
+        changes self.rtq85np
+
+        :param npmat4: follows panda3d, a LMatrix4f matrix
+        :return: null
+
+        date: 20161109
+        author: weiwei
+        """
+
+        self.rtq85np.setMat(npmat4)
+
+    def reparentTo(self, nodepath):
+        """
+        add to scene, follows panda3d
+
+        :param nodepath: a panda3d nodepath
+        :return: null
+
+        date: 20161109
+        author: weiwei
+        """
+        self.rtq85np.reparentTo(nodepath)
 
     def plot(self, pandabase, nodepath=None, pos=None, ydirect=None, zdirect=None, rgba=None):
         '''
@@ -256,7 +279,7 @@ if __name__=='__main__':
 
     base = ShowBase()
     rtq85hnd = designpattern.singleton(Rtq85)
-    rtq85hnd.setJawwidth(50)
+    rtq85hnd.setJawwidth(70)
     hndpos = Vec3(0,0,0)
     ydirect = Vec3(0,1,0)
     zdirect = Vec3(0,0,1)
@@ -318,7 +341,7 @@ if __name__=='__main__':
     result = base.world.contactTestPair(bbullnode, ilkbullnode)
     print result
     print result.getContacts()
-    import plot.pandageom as pandageom
+    import pandaplotutils.pandageom as pandageom
     for contact in result.getContacts():
         cp = contact.getManifoldPoint()
         print cp.getLocalPointA()
