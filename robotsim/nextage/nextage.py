@@ -1,6 +1,8 @@
 import numpy as np
 import exceptions as ep
 import utils.robotmath as rm
+import pandaplotutils.pandactrl as pandactrl
+import pandaplotutils.pandageom as pg
 
 class NxtRobot():
     def __init__(self):
@@ -380,13 +382,8 @@ if __name__=="__main__":
     import pandaplotutils.pandactrl as pandactrl
     from direct.filter.CommonFilters import CommonFilters
 
-    base = ShowBase()
+    base = pandactrl.World()
 
-    pandactrl.setRenderEffect(base)
-    pandactrl.setLight(base)
-    pandactrl.setCam(base, 1500, 500, 2500, 'perspective')
-
-    # pandageom.plotAxis(base.render)
 
     nxtrobot = NxtRobot()
     nxtrobot.goinitpose()
@@ -394,9 +391,11 @@ if __name__=="__main__":
 
     import nxtplot
     nxtmnp = nxtplot.genNxtmnp(nxtrobot)
-    # nxtmnp.setY(-)
     nxtmnp.reparentTo(base.render)
     nxtplot.plotstick(base.render, nxtrobot)
+    pandamat4=Mat4()
+    pandamat4.setRow(3,Vec3(0,0,250))
+    pg.plotAxis(base.render, pandamat4)
     # nxtplot.plotmesh(base, nxtrobot)
     # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
 

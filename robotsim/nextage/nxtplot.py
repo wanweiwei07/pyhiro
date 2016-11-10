@@ -50,9 +50,9 @@ def genNxtmnp(nxtrobot):
     this_dir, this_filename = os.path.split(__file__)
 
     # mainbody, waist, body, head (neck is not plotted)
-    nxtwaist_filepath = os.path.join(this_dir, "nxtegg", "nxt_waist_mm.egg")
-    nxtbody_filepath = os.path.join(this_dir, "nxtegg", "nxt_body_mm.egg")
-    nxthead_filepath = os.path.join(this_dir, "nxtegg", "nxt_head_mm.egg")
+    nxtwaist_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_waist.egg"))
+    nxtbody_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_body.egg"))
+    nxthead_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_head.egg"))
 
     nxtwaist_model = loader.loadModel(nxtwaist_filepath)
     nxtbody_model = loader.loadModel(nxtbody_filepath)
@@ -76,7 +76,7 @@ def genNxtmnp(nxtrobot):
     nxthead_nodepath.reparentTo(nxtwaist_nodepath)
 
     # rgtarm
-    nxtrgtarmlj0_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj0.egg")
+    nxtrgtarmlj0_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj0.egg"))
     nxtrgtarmlj0_model = loader.loadModel(nxtrgtarmlj0_filepath)
     nxtrgtarmlj0_nodepath = NodePath("nxtrgtarmlj0_nodepath")
     nxtrgtarmlj0_model.instanceTo(nxtrgtarmlj0_nodepath)
@@ -84,7 +84,7 @@ def genNxtmnp(nxtrobot):
     nxtrgtarmlj0_nodepath.setMat(nxtrgtarmlj0_rotmat)
     nxtrgtarmlj0_nodepath.reparentTo(nxtmnp)
 
-    nxtrgtarmlj1_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj1.egg")
+    nxtrgtarmlj1_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj1.egg"))
     nxtrgtarmlj1_model = loader.loadModel(nxtrgtarmlj1_filepath)
     nxtrgtarmlj1_nodepath = NodePath("nxtrgtarmlj1_nodepath")
     nxtrgtarmlj1_model.instanceTo(nxtrgtarmlj1_nodepath)
@@ -92,7 +92,7 @@ def genNxtmnp(nxtrobot):
     nxtrgtarmlj1_nodepath.setMat(nxtrgtarmlj1_rotmat)
     nxtrgtarmlj1_nodepath.reparentTo(nxtmnp)
 
-    nxtrgtarmlj2_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj2.egg")
+    nxtrgtarmlj2_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj2.egg"))
     nxtrgtarmlj2_model = loader.loadModel(nxtrgtarmlj2_filepath)
     nxtrgtarmlj2_nodepath = NodePath("nxtrgtarmlj2_nodepath")
     nxtrgtarmlj2_model.instanceTo(nxtrgtarmlj2_nodepath)
@@ -100,7 +100,7 @@ def genNxtmnp(nxtrobot):
     nxtrgtarmlj2_nodepath.setMat(nxtrgtarmlj2_rotmat)
     nxtrgtarmlj2_nodepath.reparentTo(nxtmnp)
 
-    nxtrgtarmlj3_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj3.egg")
+    nxtrgtarmlj3_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj3.egg"))
     nxtrgtarmlj3_model = loader.loadModel(nxtrgtarmlj3_filepath)
     nxtrgtarmlj3_nodepath = NodePath("nxtrgtarmlj3_nodepath")
     nxtrgtarmlj3_model.instanceTo(nxtrgtarmlj3_nodepath)
@@ -108,7 +108,7 @@ def genNxtmnp(nxtrobot):
     nxtrgtarmlj3_nodepath.setMat(nxtrgtarmlj3_rotmat)
     nxtrgtarmlj3_nodepath.reparentTo(nxtmnp)
 
-    nxtrgtarmlj4_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj4.egg")
+    nxtrgtarmlj4_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj4.egg"))
     nxtrgtarmlj4_model = loader.loadModel(nxtrgtarmlj4_filepath)
     nxtrgtarmlj4_nodepath = NodePath("nxtrgtarmlj4_nodepath")
     nxtrgtarmlj4_model.instanceTo(nxtrgtarmlj4_nodepath)
@@ -117,7 +117,7 @@ def genNxtmnp(nxtrobot):
     nxtrgtarmlj4_nodepath.reparentTo(nxtmnp)
 
     # lftarm
-    nxtlftarmlj0_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj0.egg")
+    nxtlftarmlj0_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj0.egg"))
     nxtlftarmlj0_model = loader.loadModel(nxtlftarmlj0_filepath)
     nxtlftarmlj0_nodepath = NodePath("nxtlftarmlj0_nodepath")
     nxtlftarmlj0_model.instanceTo(nxtlftarmlj0_nodepath)
@@ -125,7 +125,7 @@ def genNxtmnp(nxtrobot):
     nxtlftarmlj0_nodepath.setMat(nxtlftarmlj0_rotmat)
     nxtlftarmlj0_nodepath.reparentTo(nxtmnp)
 
-    nxtlftarmlj1_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj1.egg")
+    nxtlftarmlj1_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj1.egg"))
     nxtlftarmlj1_model = loader.loadModel(nxtlftarmlj1_filepath)
     nxtlftarmlj1_nodepath = NodePath("nxtlftarmlj1_nodepath")
     nxtlftarmlj1_model.instanceTo(nxtlftarmlj1_nodepath)
@@ -133,7 +133,7 @@ def genNxtmnp(nxtrobot):
     nxtlftarmlj1_nodepath.setMat(nxtlftarmlj1_rotmat)
     nxtlftarmlj1_nodepath.reparentTo(nxtmnp)
 
-    nxtlftarmlj2_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj2.egg")
+    nxtlftarmlj2_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj2.egg"))
     nxtlftarmlj2_model = loader.loadModel(nxtlftarmlj2_filepath)
     nxtlftarmlj2_nodepath = NodePath("nxtlftarmlj2_nodepath")
     nxtlftarmlj2_model.instanceTo(nxtlftarmlj2_nodepath)
@@ -141,7 +141,7 @@ def genNxtmnp(nxtrobot):
     nxtlftarmlj2_nodepath.setMat(nxtlftarmlj2_rotmat)
     nxtlftarmlj2_nodepath.reparentTo(nxtmnp)
 
-    nxtlftarmlj3_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj3.egg")
+    nxtlftarmlj3_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj3.egg"))
     nxtlftarmlj3_model = loader.loadModel(nxtlftarmlj3_filepath)
     nxtlftarmlj3_nodepath = NodePath("nxtlftarmlj3_nodepath")
     nxtlftarmlj3_model.instanceTo(nxtlftarmlj3_nodepath)
@@ -149,7 +149,7 @@ def genNxtmnp(nxtrobot):
     nxtlftarmlj3_nodepath.setMat(nxtlftarmlj3_rotmat)
     nxtlftarmlj3_nodepath.reparentTo(nxtmnp)
 
-    nxtlftarmlj4_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj4.egg")
+    nxtlftarmlj4_filepath = Filename.fromOsSpecific(os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj4.egg"))
     nxtlftarmlj4_model = loader.loadModel(nxtlftarmlj4_filepath)
     nxtlftarmlj4_nodepath = NodePath("nxtlftarmlj4_nodepath")
     nxtlftarmlj4_model.instanceTo(nxtlftarmlj4_nodepath)
@@ -183,124 +183,5 @@ def plotmesh(pandabase, nxtrobot):
     date: 20161108
     """
 
-    this_dir, this_filename = os.path.split(__file__)
-
-    # mainbody, waist, body, head (neck is not plotted)
-    nxtwaist_filepath = os.path.join(this_dir, "nxtegg", "nxt_waist.egg")
-    nxtbody_filepath = os.path.join(this_dir, "nxtegg", "nxt_body.egg")
-    nxthead_filepath = os.path.join(this_dir, "nxtegg", "nxt_head.egg")
-
-    nxtwaist_model = loader.loadModel(nxtwaist_filepath)
-    nxtbody_model = loader.loadModel(nxtbody_filepath)
-    nxthead_model = loader.loadModel(nxthead_filepath)
-
-    nxtwaist_nodepath = NodePath("nxtwaist")
-    nxtbody_nodepath = NodePath("nxtbody")
-    nxthead_nodepath = NodePath("nxthead")
-
-    nxtwaist_model.instanceTo(nxtwaist_nodepath)
-    nxtwaist_rotmat = pandageom.cvtMat4(nxtrobot.base['rotmat'])
-    nxtwaist_nodepath.setMat(nxtwaist_rotmat)
-    nxtbody_model.instanceTo(nxtbody_nodepath)
-    nxthead_model.instanceTo(nxthead_nodepath)
-    nxthead_nodepath.setH(nxtrobot.initjnts[1])
-    nxthead_nodepath.setP(nxtrobot.initjnts[2])
-    nxthead_nodepath.setZ(56.95)
-
-    nxtwaist_nodepath.reparentTo(pandabase.render)
-    nxtbody_nodepath.reparentTo(nxtwaist_nodepath)
-    nxthead_nodepath.reparentTo(nxtwaist_nodepath)
-
-    # rgtarm
-    nxtrgtarmlj0_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj0.egg")
-    nxtrgtarmlj0_model = loader.loadModel(nxtrgtarmlj0_filepath)
-    nxtrgtarmlj0_nodepath = NodePath("nxtrgtarmlj0_nodepath")
-    nxtrgtarmlj0_model.instanceTo(nxtrgtarmlj0_nodepath)
-    nxtrgtarmlj0_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[1]['rotmat'], nxtrobot.rgtarm[1]['linkpos'])
-    nxtrgtarmlj0_nodepath.setMat(nxtrgtarmlj0_rotmat)
-    nxtrgtarmlj0_nodepath.reparentTo(pandabase.render)
-
-    nxtrgtarmlj1_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj1.egg")
-    nxtrgtarmlj1_model = loader.loadModel(nxtrgtarmlj1_filepath)
-    nxtrgtarmlj1_nodepath = NodePath("nxtrgtarmlj1_nodepath")
-    nxtrgtarmlj1_model.instanceTo(nxtrgtarmlj1_nodepath)
-    nxtrgtarmlj1_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[2]['rotmat'], nxtrobot.rgtarm[2]['linkpos'])
-    nxtrgtarmlj1_nodepath.setMat(nxtrgtarmlj1_rotmat)
-    nxtrgtarmlj1_nodepath.reparentTo(pandabase.render)
-
-    nxtrgtarmlj2_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj2.egg")
-    nxtrgtarmlj2_model = loader.loadModel(nxtrgtarmlj2_filepath)
-    nxtrgtarmlj2_nodepath = NodePath("nxtrgtarmlj2_nodepath")
-    nxtrgtarmlj2_model.instanceTo(nxtrgtarmlj2_nodepath)
-    nxtrgtarmlj2_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[3]['rotmat'], nxtrobot.rgtarm[3]['linkpos'])
-    nxtrgtarmlj2_nodepath.setMat(nxtrgtarmlj2_rotmat)
-    nxtrgtarmlj2_nodepath.reparentTo(pandabase.render)
-
-    nxtrgtarmlj3_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj3.egg")
-    nxtrgtarmlj3_model = loader.loadModel(nxtrgtarmlj3_filepath)
-    nxtrgtarmlj3_nodepath = NodePath("nxtrgtarmlj3_nodepath")
-    nxtrgtarmlj3_model.instanceTo(nxtrgtarmlj3_nodepath)
-    nxtrgtarmlj3_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[4]['rotmat'], nxtrobot.rgtarm[4]['linkpos'])
-    nxtrgtarmlj3_nodepath.setMat(nxtrgtarmlj3_rotmat)
-    nxtrgtarmlj3_nodepath.reparentTo(pandabase.render)
-
-    nxtrgtarmlj4_filepath = os.path.join(this_dir, "nxtegg", "nxt_rgtarm_lj4.egg")
-    nxtrgtarmlj4_model = loader.loadModel(nxtrgtarmlj4_filepath)
-    nxtrgtarmlj4_nodepath = NodePath("nxtrgtarmlj4_nodepath")
-    nxtrgtarmlj4_model.instanceTo(nxtrgtarmlj4_nodepath)
-    nxtrgtarmlj4_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[5]['rotmat'], nxtrobot.rgtarm[5]['linkpos'])
-    nxtrgtarmlj4_nodepath.setMat(nxtrgtarmlj4_rotmat)
-    nxtrgtarmlj4_nodepath.reparentTo(pandabase.render)
-
-    # lftarm
-    nxtlftarmlj0_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj0.egg")
-    nxtlftarmlj0_model = loader.loadModel(nxtlftarmlj0_filepath)
-    nxtlftarmlj0_nodepath = NodePath("nxtlftarmlj0_nodepath")
-    nxtlftarmlj0_model.instanceTo(nxtlftarmlj0_nodepath)
-    nxtlftarmlj0_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[1]['rotmat'], nxtrobot.lftarm[1]['linkpos'])
-    nxtlftarmlj0_nodepath.setMat(nxtlftarmlj0_rotmat)
-    nxtlftarmlj0_nodepath.reparentTo(pandabase.render)
-
-    nxtlftarmlj1_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj1.egg")
-    nxtlftarmlj1_model = loader.loadModel(nxtlftarmlj1_filepath)
-    nxtlftarmlj1_nodepath = NodePath("nxtlftarmlj1_nodepath")
-    nxtlftarmlj1_model.instanceTo(nxtlftarmlj1_nodepath)
-    nxtlftarmlj1_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[2]['rotmat'], nxtrobot.lftarm[2]['linkpos'])
-    nxtlftarmlj1_nodepath.setMat(nxtlftarmlj1_rotmat)
-    nxtlftarmlj1_nodepath.reparentTo(pandabase.render)
-
-    nxtlftarmlj2_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj2.egg")
-    nxtlftarmlj2_model = loader.loadModel(nxtlftarmlj2_filepath)
-    nxtlftarmlj2_nodepath = NodePath("nxtlftarmlj2_nodepath")
-    nxtlftarmlj2_model.instanceTo(nxtlftarmlj2_nodepath)
-    nxtlftarmlj2_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[3]['rotmat'], nxtrobot.lftarm[3]['linkpos'])
-    nxtlftarmlj2_nodepath.setMat(nxtlftarmlj2_rotmat)
-    nxtlftarmlj2_nodepath.reparentTo(pandabase.render)
-
-    nxtlftarmlj3_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj3.egg")
-    nxtlftarmlj3_model = loader.loadModel(nxtlftarmlj3_filepath)
-    nxtlftarmlj3_nodepath = NodePath("nxtlftarmlj3_nodepath")
-    nxtlftarmlj3_model.instanceTo(nxtlftarmlj3_nodepath)
-    nxtlftarmlj3_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[4]['rotmat'], nxtrobot.lftarm[4]['linkpos'])
-    nxtlftarmlj3_nodepath.setMat(nxtlftarmlj3_rotmat)
-    nxtlftarmlj3_nodepath.reparentTo(pandabase.render)
-
-    nxtlftarmlj4_filepath = os.path.join(this_dir, "nxtegg", "nxt_lftarm_lj4.egg")
-    nxtlftarmlj4_model = loader.loadModel(nxtlftarmlj4_filepath)
-    nxtlftarmlj4_nodepath = NodePath("nxtlftarmlj4_nodepath")
-    nxtlftarmlj4_model.instanceTo(nxtlftarmlj4_nodepath)
-    nxtlftarmlj4_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[5]['rotmat'], nxtrobot.lftarm[5]['linkpos'])
-    nxtlftarmlj4_nodepath.setMat(nxtlftarmlj4_rotmat)
-    nxtlftarmlj4_nodepath.reparentTo(pandabase.render)
-
-    # rgthnd
-    nxtrgthnd = rtq85.Rtq85()
-    nxtlftarmlj5_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos'])
-    nxtrgthnd.setMat(nxtlftarmlj5_rotmat)
-    nxtrgthnd.reparentTo(pandabase.render)
-
-    # lfthnd
-    nxtlfthnd = rtq85.Rtq85()
-    nxtlftarmlj5_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[6]['rotmat'], nxtrobot.lftarm[6]['linkpos'])
-    nxtlfthnd.setMat(nxtlftarmlj5_rotmat)
-    nxtlfthnd.reparentTo(pandabase.render)
+    nxtmnp = genNxtmnp(nxtrobot)
+    nxtmnp.reparentTo(pandabase.render)

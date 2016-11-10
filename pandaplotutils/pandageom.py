@@ -92,7 +92,7 @@ def _genArrow(length, thickness = 0.5):
     return arrow
 
 
-def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
+def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 50, rgba=None):
     """
     plot an arrow to nodepath
 
@@ -136,7 +136,7 @@ def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 0.5
 
     arrow.reparentTo(nodepath)
 
-def _genDumbbell(length, thickness = 0.5):
+def _genDumbbell(length, thickness = 0.5, plotname="dumbbell"):
     """
     Generate a dumbbell node for plot
     This function should not be called explicitly
@@ -155,7 +155,7 @@ def _genDumbbell(length, thickness = 0.5):
     cylinderpath = os.path.join(this_dir, "geomprim", "cylinder.egg")
     conepath = os.path.join(this_dir, "geomprim", "sphere.egg")
 
-    dumbbell = NodePath("dumbbell")
+    dumbbell = NodePath(plotname)
     dumbbellbody = loader.loadModel(cylinderpath)
     dumbbellhead = loader.loadModel(conepath)
     dumbbellbody.setPos(0,0,0)
@@ -175,7 +175,7 @@ def _genDumbbell(length, thickness = 0.5):
 
     return dumbbell
 
-def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 0.5, rgba=None):
+def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 50, rgba=None, plotname="dumbbell"):
     """
     plot a dumbbell to nodepath
 
@@ -206,7 +206,7 @@ def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 
     if rgba is None:
         rgba = np.array([1,1,1,1])
 
-    dumbbell = _genDumbbell(length, thickness)
+    dumbbell = _genDumbbell(length, thickness, plotname)
     dumbbell.setPos(spos[0], spos[1], spos[2])
     dumbbell.lookAt(epos[0], epos[1], epos[2])
     # lookAt points y+ to epos, use the following command to point x+ to epos
@@ -215,8 +215,9 @@ def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 
     dumbbell.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
 
     dumbbell.reparentTo(nodepath)
+    return dumbbell
 
-def plotFrame(nodepath, spos = None, epos = None, length = None, thickness = 0.01, rgba=None):
+def plotFrame(nodepath, spos = None, epos = None, length = None, thickness = 10, rgba=None):
     """
     plot an arrow to nodepath
 
@@ -348,11 +349,11 @@ def cvtMat4(npmat3, npvec3=np.array([0,0,0])):
     """
     return Mat4(npmat3[0, 0], npmat3[1, 0], npmat3[2, 0], 0, npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], 0, npmat3[0, 2], npmat3[1, 2], npmat3[2, 2], 0, npvec3[0], npvec3[1], npvec3[2], 1)
 
-def plotAxis(nodepath, npmat4=Mat4.identMat()):
+def plotAxis(nodepath, pandamat4=Mat4.identMat()):
     """
     plot an axis to the scene
 
-    :param npmat4: a panda3d LMatrix4f matrix
+    :param pandamat4: a panda3d LMatrix4f matrix
     :return: null
 
     author: weiwei
@@ -362,8 +363,8 @@ def plotAxis(nodepath, npmat4=Mat4.identMat()):
     dbgaxisnp = NodePath("debugaxis")
     dbgaxis = loader.loadModel('zup-axis.egg')
     dbgaxis.instanceTo(dbgaxisnp)
-    dbgaxis.setScale(5)
-    dbgaxisnp.setMat(npmat4)
+    dbgaxis.setScale(50)
+    dbgaxisnp.setMat(pandamat4)
     dbgaxisnp.reparentTo(nodepath)
 
 if __name__=="__main__":

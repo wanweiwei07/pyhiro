@@ -46,11 +46,11 @@ class Rtq85():
         self.jawwidth = jawwidth
 
         this_dir, this_filename = os.path.split(__file__)
-        rtq85basepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_base_link_mm.egg")
-        rtq85fingerpath = os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_link_mm.egg")
-        rtq85fingertippath = os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_tip_link_mm.egg")
-        rtq85innerknucklepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_inner_knuckle_link_mm.egg")
-        rtq85knucklepath = os.path.join(this_dir, "rtq85egg", "robotiq_85_knuckle_link_mm.egg")
+        rtq85basepath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_base_link.egg"))
+        rtq85fingerpath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_link.egg"))
+        rtq85fingertippath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_finger_tip_link.egg"))
+        rtq85innerknucklepath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_inner_knuckle_link.egg"))
+        rtq85knucklepath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_knuckle_link.egg"))
 
         rtq85base = NodePath("rtq85base")
         rtq85lknuckle = NodePath("rtq85lknuckle")

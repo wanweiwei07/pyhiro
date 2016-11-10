@@ -2,9 +2,64 @@ from panda3d.core import *
 from direct.task import Task
 from direct.filter.CommonFilters import CommonFilters
 from direct.showbase.ShowBase import ShowBase
+import pandaplotutils.inputmanager as im
+import pandaplotutils.pandageom as pg
 import os
 import numpy as np
 
+
+class World(ShowBase, object):
+
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self.setBackgroundColor(1, 1, 1)
+
+        # set up cartoon effect
+        self.__separation = 1
+        base.filters = CommonFilters(self.win, self.cam)
+        base.filters.setCartoonInk(separation=self.__separation)
+
+        # set up slight
+        ablight = AmbientLight("ambientlight")
+        ablight.setColor(Vec4(0.2, 0.2, 0.2, 1))
+        ablightnode = base.render.attachNewNode(ablight)
+        base.render.setLight(ablightnode)
+
+        ptlight0 = PointLight("pointlight1")
+        ptlight0.setColor(VBase4(1, 1, 1, 1))
+        ptlightnode0 = base.render.attachNewNode(ptlight0)
+        ptlightnode0.setPos(0, 5000, 2500)
+        base.render.setLight(ptlightnode0)
+
+        ptlight1 = PointLight("pointlight1")
+        ptlight1.setColor(VBase4(1, 1, 1, 1))
+        ptlightnode1 = base.render.attachNewNode(ptlight1)
+        ptlightnode1.setPos(5000, 0, 2500)
+        base.render.setLight(ptlightnode1)
+
+        # set up lens
+        camp = [2000,500,2000]
+        lookatp = [0,0,250]
+        lens = PerspectiveLens()
+        lens.setNearFar(1, 50000)
+        base.disableMouse()
+        base.cam.setPos(camp[0], camp[1], camp[2])
+        base.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
+        base.cam.node().setLens(lens)
+
+        # set up inputmanager
+        self.inputmgr = im.InputManager(base, lookatp)
+
+        taskMgr.add(self.cycleUpdate, "cycle update")
+
+    def cycleUpdate(self, task):
+        # reset aspect ratio
+        aspectRatio = base.getAspectRatio()
+        base.cam.node().getLens().setAspectRatio(aspectRatio)
+        self.inputmgr.checkMouse1Drag()
+        self.inputmgr.checkMouse2Drag()
+        self.inputmgr.checkMouseWheel()
+        return task.cont
 
 def setRenderEffect(base):
     """
@@ -120,7 +175,7 @@ def setCam(base, posx, posy, posz, view=None):
     set the cam lookAt 0,0,0
 
     ## input
-    base:
+    base:s
         a showbase object
     posx, posy, posz:
         the position of the cam
@@ -142,8 +197,8 @@ def setCam(base, posx, posy, posz, view=None):
             mw = base.mouseWatcherNode
             hasMouse = mw.hasMouse()
             if hasMouse:
-                m2downmpos = Vec2(mw.getMouseX()*2*base.camera.getPos().length(),mw.getMouseY()*2*base.camera.getPos().length())
-                m2downmposworld = Vec3(base.render.getRelativePoint(base.camera, Vec3(m2downmpos[0], 0, m2downmpos[1])))
+                m2downmpos = Vec2(mw.getMouseX()*2*base.cam.getPos().length(),mw.getMouseY()*2*base.cam.getPos().length())
+                m2downmposworld = Vec3(base.render.getRelativePoint(base.cam, Vec3(m2downmpos[0], 0, m2downmpos[1])))
                 m2downmposworld.normalize()
                 rotatevec = m2downmposworld.cross(params['m1downposinworld'])
                 rotateangle = m2downmposworld.signedAngleDeg(params['m1downposinworld'], rotatevec)
