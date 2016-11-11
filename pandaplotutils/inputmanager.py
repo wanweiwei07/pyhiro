@@ -1,5 +1,3 @@
-# the code in this file is based on a snip in Chapter 10 of the panda3d 1.6 book
-
 from direct.showbase.DirectObject import DirectObject
 from panda3d.core import *
 import numpy as np
@@ -28,8 +26,19 @@ class InputManager(DirectObject):
         return
 
     def setupMouseAim(self):
-        # This creates new collision ray and puts it into a collision node.
-        # It's bitmask is set to 8, and it will be the only collider at bit 8.
+        """
+        set up collision rays, spheres, and planes for mouse manipulation
+
+        :return: None
+
+        author: weiwei
+        date: 20161110
+        """
+
+        # create a collision ray and set its bitmask to 8
+        # the collision ray must be a subnode of cam since we will
+        # transform the clicked point (in the view of the cam) to the world coordinate system
+        # using the ray
         self.CN = CollisionNode("RayCN")
         self.cRay = CollisionRay()
         self.CN.addSolid(self.cRay)
@@ -38,9 +47,9 @@ class InputManager(DirectObject):
         self.CN = self.pandabase.cam.attachNewNode(self.CN)
 
         camdist = self.pandabase.cam.getPos().length()
-        # This creates an inverted collision sphere and puts it into a collision node.
-        # It's bitmask is set to 8, and it will be the only collidable object at bit 8.
-        # The collision node is attached to the camera so that it will move with the camera.
+        # create an inverted collision sphere and puts it into a collision node
+        # its bitmask is set to 8, and it will be the only collidable object at bit 8
+        # the collision node is attached to the render so that it will NOT move with the camera
         self.aimSphereCN = CollisionNode("aimSphereCN")
         self.aimSphere = CollisionSphere(self.lookatp[0], self.lookatp[1], self.lookatp[2], camdist*.6)
         self.aimSphereCN.addSolid(self.aimSphere)
@@ -58,10 +67,10 @@ class InputManager(DirectObject):
         self.aimPlaneCN = self.pandabase.render.attachNewNode(self.aimPlaneCN)
         # self.aimPlaneCN.show()
 
-        # Creates a traverser to do collision testing
+        # creates a traverser to do collision testing
         self.cTrav = CollisionTraverser()
 
-        # Creates a queue type handler to receive the collision event info
+        # creates a queue type handler to receive the collision event info
         self.cHanQ = CollisionHandlerQueue()
 
         # register the ray as a collider with the traverser,
