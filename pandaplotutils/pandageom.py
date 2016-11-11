@@ -152,8 +152,8 @@ def _genDumbbell(length, thickness = 0.5, plotname="dumbbell"):
     """
 
     this_dir, this_filename = os.path.split(__file__)
-    cylinderpath = os.path.join(this_dir, "geomprim", "cylinder.egg")
-    conepath = os.path.join(this_dir, "geomprim", "sphere.egg")
+    cylinderpath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "cylinder.egg"))
+    conepath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "sphere.egg"))
 
     dumbbell = NodePath(plotname)
     dumbbellbody = loader.loadModel(cylinderpath)

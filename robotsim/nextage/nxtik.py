@@ -144,7 +144,9 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
                 nxtrobot.movearmfk6(armjntsiter, armid)
                 import nxtplot
                 # nxtplot.plotstick(base.render, nxtrobot)
-                nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot,plotcolor=[.5,.5,0.1,.2])
+                # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot,plotcolor=[.5,.5,0.1,.2])
+                # nxtmnp.reparentTo(base.render)
+                nxtmnp = nxtplot.genNxtmnp(nxtrobot)
                 nxtmnp.reparentTo(base.render)
             else:
                 nxtrobot.movearmfk6(armjntssave, armid)
