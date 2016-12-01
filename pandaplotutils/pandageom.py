@@ -58,8 +58,26 @@ def packpandageom(vertices, facenormals, triangles, name=''):
 
     return geom
 
+def randomColorArray(ncolors=1):
+    """
+    Generate an array of random colors
+    if ncolor = 1, returns a 4-element list
 
-def _genArrow(length, thickness = 0.5):
+    :param ncolors: the number of colors genrated
+    :return: colorarray
+
+    author: weiwei
+    date: 20161130 hlab
+    """
+
+    if ncolors is 1:
+        return [np.random.random(), np.random.random(), np.random.random(), 1]
+    colorarray = []
+    for i in range(ncolors):
+        colorarray.append([np.random.random(), np.random.random(), np.random.random(), 1])
+    return colorarray
+
+def _genArrow(length, thickness = 1.5):
     """
     Generate a arrow node for plot
     This function should not be called explicitly
@@ -75,8 +93,8 @@ def _genArrow(length, thickness = 0.5):
     """
 
     this_dir, this_filename = os.path.split(__file__)
-    cylinderpath = os.path.join(this_dir, "geomprim", "cylinder.egg")
-    conepath = os.path.join(this_dir, "geomprim", "cone.egg")
+    cylinderpath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "cylinder.egg"))
+    conepath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "cone.egg"))
 
     arrow = NodePath("arrow")
     arrowbody = loader.loadModel(cylinderpath)
@@ -86,13 +104,13 @@ def _genArrow(length, thickness = 0.5):
     arrowbody.reparentTo(arrow)
     arrowhead.setPos(arrow.getX(), length, arrow.getZ())
     # set scale (consider relativitly)
-    arrowhead.setScale(thickness*2, thickness*9, thickness*2)
+    arrowhead.setScale(thickness*2, thickness*4, thickness*2)
     arrowhead.reparentTo(arrow)
 
     return arrow
 
 
-def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 50, rgba=None):
+def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 1.5, rgba=None):
     """
     plot an arrow to nodepath
 
@@ -136,7 +154,7 @@ def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 50,
 
     arrow.reparentTo(nodepath)
 
-def _genDumbbell(length, thickness = 0.5, plotname="dumbbell"):
+def _genDumbbell(length, thickness = 2, plotname="dumbbell"):
     """
     Generate a dumbbell node for plot
     This function should not be called explicitly
@@ -258,14 +276,12 @@ def plotFrame(nodepath, spos = None, epos = None, length = None, thickness = 10,
 
     arrow.reparentTo(nodepath)
 
-def _genSphere(pandabase, radius = None):
+def _genSphere(radius = None):
     """
     Generate a sphere for plot
     This function should not be called explicitly
 
     ## input
-    pandabase:
-        the panda direct.showbase.ShowBase object
     radius:
         the radius of the sphere
 
@@ -280,24 +296,21 @@ def _genSphere(pandabase, radius = None):
         radius = 0.05
 
     this_dir, this_filename = os.path.split(__file__)
-    spherepath = os.path.join(this_dir, "geomprim", "sphere.egg")
+    spherepath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "sphere.egg"))
 
     spherepnd = NodePath("arrow")
-    spherend = pandabase.loader.loadModel(spherepath)
+    spherend = loader.loadModel(spherepath)
     spherend.setPos(0,0,0)
     spherend.setScale(radius, radius, radius)
     spherend.reparentTo(spherepnd)
 
     return spherepnd
 
-def plotSphere(pandabase, nodepath = None, pos = None, radius=None, rgba=None):
+def plotSphere(nodepath, pos = None, radius=None, rgba=None):
     """
     plot a sphere to nodepath
 
     ## input:
-    pandabase:
-        the panda direct.showbase.ShowBase object
-        will be sent to _genSphere
     nodepath:
         defines which parent should the arrow be attached to
     pos:
@@ -311,14 +324,12 @@ def plotSphere(pandabase, nodepath = None, pos = None, radius=None, rgba=None):
     date: 20160620 ann arbor
     """
 
-    if nodepath is None:
-        nodepath = pandabase.render
     if pos is None:
         pos = np.array([0,0,0])
     if rgba is None:
         rgba = np.array([1,1,1,1])
 
-    spherend = _genSphere(pandabase, radius)
+    spherend = _genSphere(radius)
     spherend.setPos(pos[0], pos[1], pos[2])
     spherend.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
 
@@ -334,7 +345,9 @@ def cvtMat3(npmat3):
     author: weiwei
     date: 20161107, tsukuba
     """
-    return Mat3(npmat3[0, 0], npmat3[0, 1], npmat3[0, 2], npmat3[1, 0], npmat3[1, 1], npmat3[1, 2], npmat3[2, 0], npmat3[2, 1], npmat3[2, 2])
+    return Mat3(npmat3[0, 0], npmat3[0, 1], npmat3[0, 2], \
+                npmat3[1, 0], npmat3[1, 1], npmat3[1, 2], \
+                npmat3[2, 0], npmat3[2, 1], npmat3[2, 2])
 
 def cvtMat4(npmat3, npvec3=np.array([0,0,0])):
     """
@@ -347,7 +360,10 @@ def cvtMat4(npmat3, npvec3=np.array([0,0,0])):
     author: weiwei
     date: 20161107, tsukuba
     """
-    return Mat4(npmat3[0, 0], npmat3[1, 0], npmat3[2, 0], 0, npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], 0, npmat3[0, 2], npmat3[1, 2], npmat3[2, 2], 0, npvec3[0], npvec3[1], npvec3[2], 1)
+    return Mat4(npmat3[0, 0], npmat3[1, 0], npmat3[2, 0], 0, \
+                npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], 0, \
+                npmat3[0, 2], npmat3[1, 2], npmat3[2, 2], 0, \
+                npvec3[0], npvec3[1], npvec3[2], 1)
 
 def plotAxis(nodepath, pandamat4=Mat4.identMat()):
     """

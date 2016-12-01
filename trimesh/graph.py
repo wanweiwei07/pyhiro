@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import random
 import networkx as nx
 
 from collections import deque
@@ -133,7 +134,7 @@ def connected_edges(G, nodes):
         nodes_in_G.extend(nx.node_connected_component(G, node))
     edges = G.subgraph(nodes_in_G).edges()
     return edges
- 
+
 def facets(mesh):
     '''
     Find the list of parallel adjacent faces.
@@ -197,6 +198,183 @@ def facets(mesh):
     # if _has_gt: return facets_gt()
     # else:       return facets_nx()
     return facets_nx()
+
+
+def facets_over(mesh):
+    """
+    compute the clusters using mesh oversegmentation
+
+    :param mesh: Trimesh object
+    :return: the same as facets
+
+    author: weiwei
+    date: 20161116, cancun
+    """
+
+    def __expand_adj(mesh, faceid, refnormal, faceadj):
+        """
+        find the adjacency of a face
+        the normal of the newly added face should be coherent with the reference normal
+        this is an iterative function
+
+        :param: mesh: Trimesh object
+        :param: faceid: Index of the face to expand
+        :param: refnormal: The normal of the reference face
+        :param: faceadj: The adjacent list of a face
+        :return: None or a list of faceids
+        """
+
+        # iteration efficiency is bad:
+        # if not faceadj.size:
+        #     return []
+        # boollist0 = np.asarray(faceadj[:, 0] == faceid)
+        # boollist1 = np.asarray(faceadj[:, 1] == faceid)
+        # xadjid0 = faceadj[boollist1][:, 0]
+        # xadjid1 = faceadj[boollist0][:, 1]
+        # xadjid = np.append(xadjid0, xadjid1)
+        # faceadjx = faceadj[np.logical_not(np.logical_or(boollist0, boollist1))]
+        # returnlist = []
+        # for j in xadjid:
+        #     newnormal = mesh.face_normals[j]
+        #     dotnorm = np.dot(refnormal, newnormal)
+        #     if dotnorm > 0.9:
+        #         returnlist.append(j)
+        # print returnlist
+        # if not returnlist:
+        #     return []
+        # else:
+        #     for id, j in enumerate(returnlist):
+        #         returnlistex = __expand_adj(mesh, j, refnormal, faceadjx)
+        #         returnlist.extend(returnlistex)
+        #         returnlist = list(set(returnlist))
+        #     return returnlist
+        # loop:
+        boollist0 = np.asarray(faceadj[:, 0] == faceid)
+        boollist1 = np.asarray(faceadj[:, 1] == faceid)
+        xadjid0 = faceadj[boollist1][:, 0]
+        xadjid1 = faceadj[boollist0][:, 1]
+        xadjid = np.append(xadjid0, xadjid1)
+        returnlist = []
+        faceadjx = faceadj[np.logical_not(np.logical_or(boollist0, boollist1))]
+        for j in xadjid:
+            newnormal = mesh.face_normals[j]
+            dotnorm = np.dot(refnormal, newnormal)
+            if dotnorm > 0.9:
+                returnlist.append(j)
+        finalreturnlist = [faceid]
+        while returnlist:
+            finalreturnlist.extend(returnlist)
+            finalreturnlist = list(set(finalreturnlist))
+            newreturnlist = []
+            for id, j in enumerate(returnlist):
+                boollist0 = np.asarray(faceadjx[:, 0] == j)
+                boollist1 = np.asarray(faceadjx[:, 1] == j)
+                xadjid0 = faceadjx[boollist1][:, 0]
+                xadjid1 = faceadjx[boollist0][:, 1]
+                xadjid = np.append(xadjid0, xadjid1)
+                faceadjx = faceadjx[np.logical_not(np.logical_or(boollist0, boollist1))]
+                for k in xadjid:
+                    newnormal = mesh.face_normals[k]
+                    dotnorm = np.dot(refnormal, newnormal)
+                    if dotnorm > 0.9:
+                        newreturnlist.append(k)
+            returnlist = list(set(newreturnlist))
+        return finalreturnlist
+
+    # plot using panda3d
+    # import trimesh.visual as visual
+
+    # from panda3d.core import GeomNode, NodePath, Vec4
+    # import pandaplotutils.pandactrl as pandactrl
+    # import pandaplotutils.pandageom as pandageom
+    # base = pandactrl.World(camp=[700, 300, 700], lookatp=[0, 0, 0])
+
+    # the approach using random start
+    # faceadj  = mesh.face_adjacency
+    # removelist = []
+    # faceids = list(range(len(mesh.faces)))
+    # random.shuffle(faceids)
+    # for i in faceids:
+    #     if i not in removelist:
+    #         print i, len(mesh.faces)
+    #         rndcolor = visual.color_to_float(visual.random_color())
+    #         adjidlist = __expand_adj(mesh, i, mesh.face_normals[i], faceadj)
+    #         removelist.extend(adjidlist)
+    #         for j in adjidlist:
+    #             vertxid = mesh.faces[j, :]
+    #             vert0 = mesh.vertices[vertxid[0]]
+    #             vert1 = mesh.vertices[vertxid[1]]
+    #             vert2 = mesh.vertices[vertxid[2]]
+    #             verts = np.array([vert0, vert1, vert2])
+    #             normals = mesh.face_normals[j].reshape(1,3)
+    #             triangles = np.array([[0, 1, 2]])
+    #             geom = pandageom.packpandageom(verts, normals, triangles)
+    #             node = GeomNode('piece')
+    #             node.addGeom(geom)
+    #             star = NodePath('piece')
+    #             star.attachNewNode(node)
+    #             star.setColor(Vec4(rndcolor[0], rndcolor[1], rndcolor[2], rndcolor[3]))
+    #             star.setTwoSided(True)
+    #             star.reparentTo(base.render)
+    # base.run()
+
+    # the approach using large normal difference
+    faceadj  = mesh.face_adjacency
+    faceids = list(range(len(mesh.faces)))
+    random.shuffle(faceids)
+    knownfacetnormals = np.array([])
+    knownfacets = []
+    for i in faceids:
+        if knownfacetnormals.size:
+            potentialfacetsidx = np.where(np.dot(knownfacetnormals, mesh.face_normals[i]) > .9)[0]
+            potentialfaceids = []
+            if potentialfacetsidx.size:
+                for pfi in potentialfacetsidx:
+                    potentialfaceids.extend(knownfacets[pfi])
+                if i in potentialfaceids:
+                    continue
+        # rndcolor = visual.color_to_float(visual.random_color())
+        adjidlist = __expand_adj(mesh, i, mesh.face_normals[i], faceadj)
+        facetnormal = np.sum(mesh.face_normals[adjidlist], axis=0)
+        facetnormal = facetnormal/np.linalg.norm(facetnormal)
+        if knownfacetnormals.size:
+            knownfacetnormals = np.vstack((knownfacetnormals, facetnormal))
+        else:
+            knownfacetnormals = np.hstack((knownfacetnormals, facetnormal))
+        knownfacets.append(adjidlist)
+    return [np.array(knownfacets), np.array(knownfacetnormals)]
+
+    # plot using panda3d
+    #     for j in adjidlist:
+    #         vertxid = mesh.faces[j, :]
+    #         vert0 = mesh.vertices[vertxid[0]]+.012*i*facetnormal
+    #         vert1 = mesh.vertices[vertxid[1]]+.012*i*facetnormal
+    #         vert2 = mesh.vertices[vertxid[2]]+.012*i*facetnormal
+    #         verts = np.array([vert0, vert1, vert2])
+    #         normals = mesh.face_normals[j].reshape(1,3)
+    #         triangles = np.array([[0, 1, 2]])
+    #         geom = pandageom.packpandageom(verts, normals, triangles)
+    #         node = GeomNode('piece')
+    #         node.addGeom(geom)
+    #         star = NodePath('piece')
+    #         star.attachNewNode(node)
+    #         star.setColor(Vec4(rndcolor[0], rndcolor[1], rndcolor[2], rndcolor[3]))
+    #         star.setTwoSided(True)
+    #         star.reparentTo(base.render)
+    # base.run()
+
+
+    # for i in range(1122,1123):
+    #     rndcolor = visual.color_to_float(visual.DEFAULT_COLOR)
+    #     vertxid = mesh.faces[i, :]
+    #     vert0 = mesh.vertices[vertxid[0]]
+    #     vert1 = mesh.vertices[vertxid[1]]
+    #     vert2 = mesh.vertices[vertxid[2]]
+    #     verts = [[vert0, vert1, vert2]]
+    #     tri = Poly3DCollection(verts)
+    #     tri.set_color([rndcolor])
+    #     ax.add_collection3d(tri)
+    # plt.show()
 
 def split(mesh, only_watertight=True, adjacency=None):
     '''

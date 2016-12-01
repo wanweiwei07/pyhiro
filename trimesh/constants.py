@@ -18,12 +18,20 @@ class NumericalToleranceMesh(object):
                    of numerical error on very small faces. 
     '''
     def __init__(self, **kwargs):
+        # original
+        # self.zero      = 1e-12
+        # self.merge     = 1e-8
+        # self.planar    = 1e-5
+        # self.facet_rsq = 1e8
+        # self.fit       = 1e-2
+        # self.id_len    = 6
         self.zero      = 1e-12
         self.merge     = 1e-8
         self.planar    = 1e-5
         self.facet_rsq = 1e8
         self.fit       = 1e-2
         self.id_len    = 6
+
         self.__dict__.update(kwargs)
 
 

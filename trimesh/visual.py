@@ -11,6 +11,7 @@ COLORS = {'red'    : [205,59,34,255],
           'brown'  : [160,85,45,255]}
 COLOR_DTYPE = np.dtype(np.uint8)
 DEFAULT_COLOR = np.array(COLORS['purple'], dtype=COLOR_DTYPE)
+RED_COLOR = np.array(COLORS['red'], dtype=COLOR_DTYPE)
 
 class VisualAttributes(object):
     '''

@@ -77,10 +77,11 @@ def rotmatfacet(facetnormal, facetfirstpoint, facetsecondpoint):
     date: 20160624
     author: weiwei
     '''
+
     mat = np.eye(3,3)
     mat[2,:] = facetnormal
     mat[0,:] = facetsecondpoint-facetfirstpoint
-    mat[0,:] = mat[:,0]/np.linalg.norm(mat[:,0])
+    mat[0,:] = mat[0,:]/np.linalg.norm(mat[0,:])
     mat[1,:] = np.cross(mat[2,:],mat[0,:])
 
     return mat

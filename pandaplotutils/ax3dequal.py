@@ -20,6 +20,8 @@ def set_axes_equal(ax):
       ax: a matplotlib axis, e.g., as output from plt.gca().
     '''
 
+    ax.set_aspect('equal')
+
     x_limits = ax.get_xlim3d()
     y_limits = ax.get_ylim3d()
     z_limits = ax.get_zlim3d()

@@ -877,6 +877,29 @@ class Trimesh(object):
             result = facets
         self._cache[key] = result
         return result
+
+    # def facets_depth(self, return_area=False):
+    #     return graph.facets_depth(self)
+
+    def facets_over(self):
+        """
+        Compute facets using oversegmentation
+
+        :return: a list of oversegmented facets and their normals
+
+        author: weiwei
+        date: 20161128, tsukuba
+        """
+
+        key = 'facets_over'
+        cached = self._cache[key]
+        if cached is not None:
+            return cached
+
+        facets, facetnormals = graph.facets_over(self)
+        result = [facets, facetnormals]
+        self._cache[key] = result
+        return result
             
     @_log_time    
     def fix_normals(self):
