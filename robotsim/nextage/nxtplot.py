@@ -1,19 +1,20 @@
 # the file plots in Panda3D
 
 import os
+
 import numpy as np
-import exceptions as ep
-import utils.robotmath as rm
-import pandaplotutils.pandageom as pandageom
 from grip.robotiq85 import rtq85
-from grip.robotiq85 import rtq85nm
 from panda3d.core import *
 
-def plotstick(pandabase, nxtrobot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.array([.5 ,0 ,0 ,0])):
+import pandaplotutils.pandageom as pandageom
+from manipulation.grip.robotiq85 import rtq85nm
+
+
+def plotstick(pandanp, nxtrobot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.array([.5 ,0 ,0 ,0])):
     """
     plot the stick model of the nextage robot in panda3d
 
-    :param pandabase: the panda3d base
+    :param pandanp: a panda3d nodepath
     :param nxtrobot: the NxtRobot object, see nextage.py
     :param rgtrbga: color of right arm
     :param lftrgba: color of left arm
@@ -25,12 +26,12 @@ def plotstick(pandabase, nxtrobot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.a
 
     i = 0
     while i != -1:
-        pandageom.plotDumbbell(pandabase, spos=nxtrobot.rgtarm[i]['linkpos'], epos=nxtrobot.rgtarm[i]['linkend'],
+        pandageom.plotDumbbell(pandanp, spos=nxtrobot.rgtarm[i]['linkpos'], epos=nxtrobot.rgtarm[i]['linkend'],
                                thickness=20, rgba=rgtrbga)
         i = nxtrobot.rgtarm[i]['child']
     i = 0
     while i != -1:
-        pandageom.plotDumbbell(pandabase, spos=nxtrobot.lftarm[i]['linkpos'], epos=nxtrobot.lftarm[i]['linkend'],
+        pandageom.plotDumbbell(pandanp, spos=nxtrobot.lftarm[i]['linkpos'], epos=nxtrobot.lftarm[i]['linkend'],
                                thickness=20, rgba=lftrgba)
         i = nxtrobot.lftarm[i]['child']
 

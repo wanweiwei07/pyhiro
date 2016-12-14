@@ -29,9 +29,9 @@ def rodrigues(axis, theta, mat = None):
         double dth = static_cast<double>(theta);
         dth = dth * 3.1415926/180.0;
 
-        int axis0 = static_cast<int>(axis[0]);
-        int axis1 = static_cast<int>(axis[1]);
-        int axis2 = static_cast<int>(axis[2]);
+        double axis0 = static_cast<double>(axis[0]);
+        double axis1 = static_cast<double>(axis[1]);
+        double axis2 = static_cast<double>(axis[2]);
         double x = sqrt(axis0*axis0 + axis1*axis1 + axis2*axis2);
         double a = cos(dth / 2.0);
         double b = -(axis0 / x) * sin(dth / 2.0);
@@ -85,3 +85,37 @@ def rotmatfacet(facetnormal, facetfirstpoint, facetsecondpoint):
     mat[1,:] = np.cross(mat[2,:],mat[0,:])
 
     return mat
+
+def homoinverse(homomatrix4):
+    """
+    compute the inverse of a homogeneous transform
+
+    :param homomatrix4:
+    :return:
+
+    author: weiwei
+    date :20161213
+    """
+
+    rotmat = homomatrix4[:3, :3]
+    tranvec = homomatrix4[:3, 3]
+    invmatrix4 = np.eye(4,4)
+    invmatrix4[:3, :3] = np.transpose(rotmat)
+    invmatrix4[:3, 3] = -np.dot(np.transpose(rotmat), tranvec)
+
+    return invmatrix4
+
+def transformmat4(matrix4, point):
+    """
+    do homotransform on point using matrix4
+
+    :param matrix:
+    :param point:
+    :return:
+
+    author: weiwei
+    date: 20161213
+    """
+
+    point4 = np.array([point[0], point[1], point[2], 1])
+    return np.dot(matrix4, point4)

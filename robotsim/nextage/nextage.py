@@ -66,7 +66,7 @@ class NxtRobot():
         :return: null
 
         author: weiwei
-        date: 20161107
+        date: 20161205
         """
 
         if armid!="rgt" and armid!="lft":
@@ -322,14 +322,13 @@ class NxtRobot():
         rgtlj[6]['child'] = -1
         rgtlj[6]['linkpos'] = rgtlj[5]['linkend']
         # the reason 130 is used: the fgrcenter is defined somewhere inside the finger pads
-        rgtlj[6]['linkvec'] = np.array([-130,0,0])
+        rgtlj[6]['linkvec'] = np.array([-145,0,0])
         rgtlj[6]['rotax'] = np.array([1,0,0])
         rgtlj[6]['rotangle'] = 0
         rgtlj[6]['rotmat'] = np.dot(rgtlj[5]['rotmat'], rm.rodrigues(rgtlj[6]['rotax'], rgtlj[6]['rotangle']))
         rgtlj[6]['linkend'] = np.dot(rgtlj[6]['rotmat'], rgtlj[6]['linkvec'])+rgtlj[6]['linkpos']
         rgtlj[6]['rngmin'] = -(163-rngsafemargin)
         rgtlj[6]['rngmax'] = +(163-rngsafemargin)
-
 
         return rgtlj
 
@@ -421,7 +420,7 @@ class NxtRobot():
         lftlj[6]['mother'] = 5
         lftlj[6]['child'] = -1
         lftlj[6]['linkpos'] = lftlj[5]['linkend']
-        lftlj[6]['linkvec'] = np.array([-130,0,0])
+        lftlj[6]['linkvec'] = np.array([-145,0,0])
         lftlj[6]['rotax'] = np.array([1,0,0])
         lftlj[6]['rotangle'] = 0
         lftlj[6]['rotmat'] = np.dot(lftlj[5]['rotmat'], rm.rodrigues(lftlj[6]['rotax'], lftlj[6]['rotangle']))
@@ -480,11 +479,12 @@ if __name__=="__main__":
     nxtmnp = nxtplot.genNxtmnp(nxtrobot)
     nxtmnp.reparentTo(base.render)
 
+    nxtplot.plotstick(base.render, nxtrobot)
+
     angle = nxtik.eurgtbik(objpos)
     nxtrobot.movewaist(angle)
     armjntsgoal=nxtik.numik(nxtrobot, objpos, objrot)
 
-    # nxtplot.plotstick(base.render, nxtrobot)
     pandamat4=Mat4()
     pandamat4.setRow(3,Vec3(0,0,250))
     # pg.plotAxis(base.render, pandamat4)

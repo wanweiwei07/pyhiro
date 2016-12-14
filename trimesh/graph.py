@@ -200,18 +200,19 @@ def facets(mesh):
     return facets_nx()
 
 
-def facets_over(mesh):
+def facets_over(mesh, faceangle=.9):
     """
     compute the clusters using mesh oversegmentation
 
     :param mesh: Trimesh object
+    :param faceangle: the angle between two adjacent faces that are taken as coplanar
     :return: the same as facets
 
     author: weiwei
     date: 20161116, cancun
     """
 
-    def __expand_adj(mesh, faceid, refnormal, faceadj):
+    def __expand_adj(mesh, faceid, refnormal, faceadj, faceangle=.9):
         """
         find the adjacency of a face
         the normal of the newly added face should be coherent with the reference normal
@@ -221,7 +222,11 @@ def facets_over(mesh):
         :param: faceid: Index of the face to expand
         :param: refnormal: The normal of the reference face
         :param: faceadj: The adjacent list of a face
+        :param: faceangle: the angle of adjacent faces that are taken as coplanar
         :return: None or a list of faceids
+
+        author: weiwei
+        date: 20161213, update faceangle
         """
 
         # iteration efficiency is bad:
@@ -259,7 +264,7 @@ def facets_over(mesh):
         for j in xadjid:
             newnormal = mesh.face_normals[j]
             dotnorm = np.dot(refnormal, newnormal)
-            if dotnorm > 0.9:
+            if dotnorm > faceangle:
                 returnlist.append(j)
         finalreturnlist = [faceid]
         while returnlist:
@@ -276,7 +281,7 @@ def facets_over(mesh):
                 for k in xadjid:
                     newnormal = mesh.face_normals[k]
                     dotnorm = np.dot(refnormal, newnormal)
-                    if dotnorm > 0.9:
+                    if dotnorm > faceangle:
                         newreturnlist.append(k)
             returnlist = list(set(newreturnlist))
         return finalreturnlist
@@ -326,7 +331,7 @@ def facets_over(mesh):
     knownfacets = []
     for i in faceids:
         if knownfacetnormals.size:
-            potentialfacetsidx = np.where(np.dot(knownfacetnormals, mesh.face_normals[i]) > .9)[0]
+            potentialfacetsidx = np.where(np.dot(knownfacetnormals, mesh.face_normals[i]) > faceangle)[0]
             potentialfaceids = []
             if potentialfacetsidx.size:
                 for pfi in potentialfacetsidx:
@@ -334,7 +339,7 @@ def facets_over(mesh):
                 if i in potentialfaceids:
                     continue
         # rndcolor = visual.color_to_float(visual.random_color())
-        adjidlist = __expand_adj(mesh, i, mesh.face_normals[i], faceadj)
+        adjidlist = __expand_adj(mesh, i, mesh.face_normals[i], faceadj, faceangle)
         facetnormal = np.sum(mesh.face_normals[adjidlist], axis=0)
         facetnormal = facetnormal/np.linalg.norm(facetnormal)
         if knownfacetnormals.size:

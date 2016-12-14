@@ -11,7 +11,7 @@ except ImportError:
 
 def plane_transform(origin, normal):
     '''
-    Given the origin and normal of a plane, find the transform that will move 
+    Given the origin and normal of a plane, find the transform that will move
     that plane to be coplanar with the XY plane
 
     Arguments

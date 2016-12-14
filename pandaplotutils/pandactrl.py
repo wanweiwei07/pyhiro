@@ -6,6 +6,7 @@ import pandaplotutils.inputmanager as im
 import pandaplotutils.pandageom as pg
 import os
 import numpy as np
+import math
 
 
 class World(ShowBase, object):
@@ -56,6 +57,10 @@ class World(ShowBase, object):
 
         taskMgr.add(self.cycleUpdate, "cycle update")
 
+        # set up rotational cam
+        # self.lookatp = lookatp
+        # taskMgr.doMethodLater(.1, self.rotateCam, "rotate cam")
+
     def cycleUpdate(self, task):
         # reset aspect ratio
         aspectRatio = base.getAspectRatio()
@@ -63,6 +68,23 @@ class World(ShowBase, object):
         self.inputmgr.checkMouse1Drag()
         self.inputmgr.checkMouse2Drag()
         self.inputmgr.checkMouseWheel()
+        return task.cont
+
+    def rotateCam(self, task):
+        campos = base.cam.getPos()
+        camangle = math.atan2(campos[1], campos[0])
+        # print camangle
+        if camangle < 0:
+            camangle += math.pi*2
+        if camangle >= math.pi*2:
+            camangle = 0
+        else:
+            camangle += math.pi/180
+        camradius = math.sqrt(campos[0]*campos[0]+campos[1]*campos[1])
+        camx = camradius*math.cos(camangle)
+        camy= camradius*math.sin(camangle)
+        base.cam.setPos(camx, camy, campos[2])
+        base.cam.lookAt(self.lookatp[0], self.lookatp[1], self.lookatp[2])
         return task.cont
 
 # def setRenderEffect(base):
