@@ -4,7 +4,7 @@ import os
 
 import MySQLdb as mdb
 import numpy as np
-from grip.robotiq85 import rtq85nm
+from manipulation.grip.robotiq85 import rtq85nm
 from panda3d.bullet import BulletWorld
 from panda3d.core import *
 from shapely.geometry import LinearRing
@@ -20,7 +20,7 @@ from utils import dbcvt as dc
 from utils import robotmath as rm
 
 
-class TablePlacements():
+class TablePlacements(object):
 
     def __init__(self, objpath):
         self.objtrimesh=trimesh.load_mesh(objpath)
@@ -62,6 +62,7 @@ class TablePlacements():
         self.bulletworldtable = BulletWorld()
         # add tabletop plane model to bulletworld
         # tt = tabletop
+        this_dir, this_filename = os.path.split(__file__)
         ttpath = Filename.fromOsSpecific(os.path.join(this_dir, "supports", "tabletop.egg"))
         self.ttnodepath = NodePath("tabletop")
         ttl = loader.loadModel(ttpath)
@@ -194,9 +195,12 @@ class TablePlacements():
                                    rotmat[2][0], rotmat[2][1], rotmat[2][2], 0,
                                    0, 0, 0, 1)
                     varrotmat = self.tpsmat4s[i]*rotmat4
-                    sql = "INSERT INTO tabletopplacements(objname, rotmat, angleid) \
-                           VALUES('%s', '%s', %d)" % \
-                          (self.dbobjname, dc.mat4ToStr(varrotmat), angleid)
+                    # tabletopplacements id includes both placement and rot
+                    # placement id only indicates placements (different rotation belongs to the same placement)
+                    # table top position is the position of the contact between the object and the table
+                    sql = "INSERT INTO tabletopplacements(objname, rotmat, tabletopposition, angleid, placementid) \
+                           VALUES('%s', '%s', '%s', %d, %d)" % \
+                          (self.dbobjname, dc.mat4ToStr(varrotmat), dc.v3ToStr(Point3(0,0,0)),angleid, i)
                     try:
                         cursor.execute(sql)
                     except mdb.Error as e:
@@ -222,7 +226,7 @@ class TablePlacements():
                         cctn0 = rotmat4.xformVec(self.tpsgripnormals[i][j][0])
                         cctn1 = rotmat4.xformVec(self.tpsgripnormals[i][j][1])
                         tpsgriprotmat4 = self.tpsgriprotmats[i][j]*rotmat4
-                        sql = "INSERT INTO tabletopgrip(idtabletopplacements, contactpnt0, contactpnt1, contactnormal0, contactnormal1, rotmat, jawwidth, idfreeair) \
+                        sql = "INSERT INTO tabletopgrip(idtabletopplacements, contactpnt0, contactpnt1, contactnormal0, contactnormal1, rotmat, jawwidth, idfreeairgrip) \
                         VALUES(%d, '%s', '%s', '%s', '%s', '%s', '%s', %d)" % \
                         (lastid, dc.v3ToStr(cct0), dc.v3ToStr(cct1), dc.v3ToStr(cctn0), dc.v3ToStr(cctn1), \
                          dc.mat4ToStr(tpsgriprotmat4), self.tpsgripjawwidth[i][j], self.tpsgripidfreeair[i][j])
@@ -418,6 +422,7 @@ if __name__ == '__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
     objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    print objpath
     tps = TablePlacements(objpath)
 
     # plot obj and its convexhull
@@ -456,8 +461,8 @@ if __name__ == '__main__':
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
 
-    # tps.removebadfacets(base, doverh=.033)
-    # tps.saveToDB()
+    tps.removebadfacets(base, doverh=.033)
+    tps.saveToDB()
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')

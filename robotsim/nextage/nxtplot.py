@@ -3,7 +3,7 @@
 import os
 
 import numpy as np
-from grip.robotiq85 import rtq85
+from manipulation.grip.robotiq85 import rtq85
 from panda3d.core import *
 
 import pandaplotutils.pandageom as pandageom

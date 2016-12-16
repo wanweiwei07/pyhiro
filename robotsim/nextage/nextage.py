@@ -167,6 +167,18 @@ class NxtRobot():
 
         return armjnts
 
+    def getjntwaist(self):
+        """
+        get the rot angle of robot waist
+
+        :return: rot angle in degree
+
+         author: weiwei
+         date: 20161216, sapporo
+        """
+
+        return self.base['rotangle']
+
     def chkrng6(self, armjnts, armid="rgt"):
         """
         check if the given armjnts is inside the oeprating range of the speificed armid
@@ -481,9 +493,10 @@ if __name__=="__main__":
 
     nxtplot.plotstick(base.render, nxtrobot)
 
-    angle = nxtik.eurgtbik(objpos)
-    nxtrobot.movewaist(angle)
-    armjntsgoal=nxtik.numik(nxtrobot, objpos, objrot)
+    # angle = nxtik.eurgtbik(objpos)
+    # nxtrobot.movewaist(angle)
+    # armjntsgoal=nxtik.numik(nxtrobot, objpos, objrot)
+    # print armjntsgoal
 
     pandamat4=Mat4()
     pandamat4.setRow(3,Vec3(0,0,250))
@@ -492,8 +505,10 @@ if __name__=="__main__":
     # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
     pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,0,1])
 
-    # nxtrobot.movearmfk6(armjntsgoal)
-    # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,0,1])
-    # nxtmnp.reparentTo(base.render)
+    armjntsgoal7 = nxtik.numikr(nxtrobot, objpos, objrot)
+    print armjntsgoal7
+    nxtrobot.movearmfk7(armjntsgoal7)
+    nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,0,1])
+    nxtmnp.reparentTo(base.render)
 
     base.run()

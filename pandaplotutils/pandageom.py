@@ -465,6 +465,57 @@ def mat4ToStr(pdmat4):
 
     return ','.join(row0)+','+','.join(row1)+','+','.join(row2)
 
+def mat3ToNp(pdmat3):
+    """
+    convert a mat3 matrix to a numpy 2darray...
+
+    :param pdmat3:
+    :return: numpy 2darray
+
+    author: weiwei
+    date: 20161216, sapporo
+    """
+
+    row0 = pdmat3.getRow(0)
+    row1 = pdmat3.getRow(1)
+    row2 = pdmat3.getRow(2)
+
+    return np.array([[row0[0], row0[1], row0[2]], [row1[0], row1[1], row1[2]], [row2[0], row2[1], row2[2]]])
+
+def mat4ToNp(pdmat4):
+    """
+    convert a mat4 matrix to a numpy 2darray...
+
+    :param pdmat4
+    :return: numpy 2darray
+
+    author: weiwei
+    date: 20161216, sapporo
+    """
+
+    # TODO translation should be vertical?
+
+    row0 = pdmat4.getRow(0)
+    row1 = pdmat4.getRow(1)
+    row2 = pdmat4.getRow(2)
+    row3 = pdmat4.getRow(3)
+
+    return np.array([[row0[0], row0[1], row0[2], row0[3]], [row1[0], row1[1], row1[2], row1[3]],
+                     [row2[0], row2[1], row2[2], row2[3]], [row3[0], row3[1], row3[2], row3[3]]])
+
+def v3ToNp(pdv3):
+    """
+    convert vbase3 to a numpy array...
+
+    :param pdmat3:
+    :return: numpy 2darray
+
+    author: weiwei
+    date: 20161216, sapporo
+    """
+
+    return np.array([pdv3[0], pdv3[1], pdv3[2]])
+
 def plotAxis(nodepath, pandamat4=Mat4.identMat()):
     """
     plot an axis to the scene
@@ -498,6 +549,35 @@ def plotAxisSelf(nodepath, spos, pandamat4=Mat4.identMat(), length=300, thicknes
     plotArrow(nodepath, spos, spos+pandamat4.getRow3(0), length=length, thickness=thickness, rgba=[1,0,0,1])
     plotArrow(nodepath, spos, spos+pandamat4.getRow3(1), length=length, thickness=thickness, rgba=[0,1,0,1])
     plotArrow(nodepath, spos, spos+pandamat4.getRow3(2), length=length, thickness=thickness, rgba=[0,0,1,1])
+
+def makelsnodepath(linesegs,thickness=1, rgbacolor=[1,1,1,1]):
+    """
+    create linesegs pathnode
+
+    :param linesegs: [[pnt0, pn1], [pn0, pnt1], ...]
+    :param thickness:
+    :return: a panda3d pathnode
+
+    author: weiwei
+    date: 20161216
+    """
+
+    # Create a set of line segments
+    ls = LineSegs()
+    ls.setThickness(thickness)
+
+    for p0p1tuple in linesegs:
+        pnt00, pnt01, pnt02 = p0p1tuple[0]
+        pnt10, pnt11, pnt12 = p0p1tuple[1]
+        ls.setColor(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3])
+        ls.moveTo(pnt00, pnt01, pnt02)
+        ls.drawTo(pnt10, pnt11, pnt12)
+
+    # Create and return a node with the segments
+    lsnp = NodePath(ls.create())
+    lsnp.setTransparency(TransparencyAttrib.MAlpha)
+    return lsnp
+
 
 def facetboundary(objtrimesh, facet, facetcenter, facetnormal):
     """

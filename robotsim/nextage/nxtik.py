@@ -93,10 +93,22 @@ def tcperror(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     if anglesum is 3:
         deltaw = np.array([0,0,0])
     else:
-        theta = math.acos((anglesum-1)/2.0)
-        deltaw = (theta/(2*math.sin(theta)))*(np.array([deltarot[2,1]-deltarot[1,2], \
-                                                        deltarot[0,2]-deltarot[2,0], \
-                                                        deltarot[1,0]-deltarot[0,1]]))
+        # revised on 20161216 at sapporo
+        # compute the geodesic distance of two rotationmatrix
+        # logarithm of R'R
+        # see pygeometry.geodesic_distance_for_rotations for details
+        nominator = anglesum-1
+        if nominator > 2:
+            nominator = 2
+        if nominator < -2:
+            nominator = -2
+        theta = math.acos(nominator/2.0)
+        if theta == 0:
+            deltaw = np.array([0,0,0])
+        else:
+            deltaw = (theta/(2*math.sin(theta)))*(np.array([deltarot[2,1]-deltarot[1,2], \
+                                                            deltarot[0,2]-deltarot[2,0], \
+                                                            deltarot[1,0]-deltarot[0,1]]))
 
     return np.append(deltapos, deltaw)
 
@@ -142,16 +154,44 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
             armjntsiter += dq
             if nxtrobot.chkrng6(armjntsiter):
                 nxtrobot.movearmfk6(armjntsiter, armid)
-                import nxtplot
+                # import nxtplot
                 # nxtplot.plotstick(base.render, nxtrobot)
-                nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot,plotcolor=[.5,.5,0.1,.2])
-                nxtmnp.reparentTo(base.render)
+                # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot,plotcolor=[.5,.5,0.1,.2])
+                # nxtmnp.reparentTo(base.render)
                 # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
                 # nxtmnp.reparentTo(base.render)
             else:
                 nxtrobot.movearmfk6(armjntssave, armid)
                 return None
 
+def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
+    """
+    solve the ik of the specified arm, waist is included (r means redundant)
+
+    :param nxtrobot:
+    :param tgtpos:
+    :param tgtrot:
+    :param armid:  armjnts: a 1-by-7 numpy ndarray where the first eleemnt is the waist rot angle
+    :return:
+
+    author: weiwei
+    date: 20161216, sapporo
+    """
+
+    # anglewi means the init angle of waist
+    anglewi = nxtrobot.getjntwaist()
+    armjntb = eurgtbik(tgtpos)
+    nxtrobot.movewaist(armjntb)
+    armjnts6 = numik(nxtrobot, tgtpos, tgtrot)
+    if armjnts6 is None:
+        return None
+    else:
+        nxtrobot.movewaist(anglewi)
+
+        armjnts7 = [armjntb]
+        armjnts7.extend(armjnts6)
+
+        return armjnts7
 
 if __name__=="__main__":
     pos = [300,300,0]
