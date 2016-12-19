@@ -155,6 +155,7 @@ class TablePlacements(object):
                         tmprtq85 = self.rtq85hnd
                         # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
                         initmat = tmprtq85.getMat()
+                        initjawwidth = tmprtq85.jawwidth
                         tmprtq85.setJawwidth(self.freegripjawwidth[j])
                         tmprtq85.setMat(tpsgriprotmat)
                         # add hand model to bulletworld
@@ -178,6 +179,7 @@ class TablePlacements(object):
                         # else:
                         #     tmprtq85.reparentTo(base.render)
                         tmprtq85.setMat(initmat)
+                        tmprtq85.setJawwidth(initjawwidth)
 
     def saveToDB(self, discretesize=8):
 
