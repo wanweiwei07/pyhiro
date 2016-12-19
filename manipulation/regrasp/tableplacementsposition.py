@@ -262,8 +262,8 @@ if __name__ == '__main__':
     tps.removebadfacets(base, doverh=.033)
     # build grid space
     grids = []
-    for x in range(100,701,100):
-        for y in range(-600,601,100):
+    for x in range(300,501,100):
+        for y in range(-600,601,200):
             grids.append([x,y,0])
     tps.saveToDB(grids)
     tps.updateDBwithIK()
