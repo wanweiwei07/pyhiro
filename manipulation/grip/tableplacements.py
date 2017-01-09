@@ -341,7 +341,7 @@ class TablePlacements(object):
             ttprows = list(cursor.fetchall())
             nttp = len(ttprows)
             # for i in range(nttp):
-            for i in range(2,3):
+            for i in range(20,21):
                 ttpid = ttprows[i][0]
                 ttprotmat = dc.strToMat4(ttprows[i][2])
 
@@ -451,20 +451,20 @@ if __name__ == '__main__':
     # star.reparentTo(base.render)
 
 
-    # def updateshow(task):
-    #     # tps.ocfacetshow(base)
-    #     tps.removebadfacetsshow(base, doverh=.033)
-    #     return task.again
-    #
-    # taskMgr.doMethodLater(.1, updateshow, "tickTask")
+    def updateshow(task):
+        # tps.ocfacetshow(base)
+        tps.removebadfacetsshow(base, doverh=.033)
+        return task.again
+
+    taskMgr.doMethodLater(.1, updateshow, "tickTask")
 
 
     # def updateworld(world, task):
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
 
-    tps.removebadfacets(base, doverh=.033)
-    tps.saveToDB()
+    # tps.removebadfacets(base, doverh=.033)
+    # tps.saveToDB()
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
@@ -476,5 +476,5 @@ if __name__ == '__main__':
     #
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldtable], appendTask=True)
 
-    tps.tpsgrpshow(base)
+    # tps.tpsgrpshow(base)
     base.run()
