@@ -53,8 +53,8 @@ class World(ShowBase, object):
         base.render.setLight(ptlightnode2)
 
         # set up inputmanager
-        # self.inputmgr = im.InputManager(base, lookatp)
-        # taskMgr.add(self.cycleUpdate, "cycle update")
+        self.inputmgr = im.InputManager(base, lookatp)
+        taskMgr.add(self.cycleUpdate, "cycle update")
 
         # set up rotational cam
         # self.lookatp = lookatp

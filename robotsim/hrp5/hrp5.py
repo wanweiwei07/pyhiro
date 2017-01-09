@@ -9,7 +9,7 @@ class Hrp5Robot():
         # initjnts has 20 elements where the first two are for the head,
         # the remaining 18 are for each of the two 9-dof arms
         self.__initjnts = np.array([0,0,0,45,-20,0,-75,0,-30,0,0,0,45,20,0,-75,0,30,0,0]);
-        # self.__initjnts = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+        # self.__initjnts = np.array([0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         self.__base = self.__rgtarm[0]
@@ -300,7 +300,7 @@ class Hrp5Robot():
         rgtlj[8]['child'] = 9
         rgtlj[8]['linkpos'] = rgtlj[7]['linkend']
         rgtlj[8]['linkvec'] = np.array([-55,0,37])
-        rgtlj[8]['rotax'] = np.array([0,1,0])
+        rgtlj[8]['rotax'] = np.array([0.707,0,0.707])
         rgtlj[8]['rotangle'] = 0
         # make sure x direction faces at ee, z directions faces downward
         # see the definition of the coordinates in rtq85 (execute the file)
@@ -318,7 +318,7 @@ class Hrp5Robot():
         rgtlj[9]['child'] = -1
         rgtlj[9]['linkpos'] = rgtlj[8]['linkend']
         rgtlj[9]['linkvec'] = np.array([-130,0,0])
-        rgtlj[9]['rotax'] = np.array([0,0,1])
+        rgtlj[9]['rotax'] = np.array([1,0,0])
         rgtlj[9]['rotangle'] = 0
         rgtlj[9]['rotmat'] = np.dot(rgtlj[8]['rotmat'], rm.rodrigues(rgtlj[9]['rotax'], rgtlj[9]['rotangle']))
         rgtlj[9]['linkend'] = np.dot(rgtlj[9]['rotmat'], rgtlj[9]['linkvec'])+rgtlj[9]['linkpos']
@@ -478,7 +478,7 @@ class Hrp5Robot():
         lftlj[8]['child'] = 9
         lftlj[8]['linkpos'] = lftlj[7]['linkend']
         lftlj[8]['linkvec'] = np.array([-55,0,37])
-        lftlj[8]['rotax'] = np.array([0,1,0])
+        lftlj[8]['rotax'] = np.array([0.707,0,0.707])
         lftlj[8]['rotangle'] = 0
         # make sure x direction faces at ee, z directions faces downward
         # see the definition of the coordinates in rtq85 (execute the file)
@@ -496,7 +496,7 @@ class Hrp5Robot():
         lftlj[9]['child'] = -1
         lftlj[9]['linkpos'] = lftlj[8]['linkend']
         lftlj[9]['linkvec'] = np.array([-130,0,0])
-        lftlj[9]['rotax'] = np.array([0,0,1])
+        lftlj[9]['rotax'] = np.array([1,0,0])
         lftlj[9]['rotangle'] = 0
         lftlj[9]['rotmat'] = np.dot(lftlj[8]['rotmat'], rm.rodrigues(lftlj[9]['rotax'], lftlj[9]['rotangle']))
         lftlj[9]['linkend'] = np.dot(lftlj[9]['rotmat'], lftlj[9]['linkvec'])+lftlj[9]['linkpos']
@@ -554,14 +554,15 @@ if __name__=="__main__":
     hrp5mnp.reparentTo(base.render)
 
     import hrp5ik
-    objpos = np.array([300,-250,200])
-    # objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
-    objrot = np.array([[1,0,0],[0,1,0],[0,0,1]])
-    # armjntsgoal = hrp5ik.numik(hrp5robot, objpos, objrot)
-    #
-    # if armjntsgoal:
-    #     hrp5robot.movearmfk6(armjntsgoal)
-    #     hrp5robot.reparentTo(base.render)
+    objpos = np.array([300,-50,100])
+    objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
+    # objrot = np.array([[1,0,0],[0,1,0],[0,0,1]])
+    armjntsgoal = hrp5ik.numik(hrp5robot, objpos, objrot)
+    print armjntsgoal
+    # #
+    if armjntsgoal:
+        hrp5robot.movearmfk6(armjntsgoal)
+        hrp5robot.reparentTo(base.render)
     #
     # angle = nxtik.eurgtbik(objpos)
     # nxtrobot.movewaist(angle)
@@ -574,6 +575,7 @@ if __name__=="__main__":
     # # nxtplot.plotmesh(base, nxtrobot)
     # # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
     pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,0,1])
+    # pg.plotArrow(base.render, hrp5robot.rgtarm[8]['linkpos'], hrp5robot.rgtarm[8]['linkpos']+hrp5robot.rgtarm[8]['rotax']*1000)
     #
     # # nxtrobot.movearmfk6(armjntsgoal)
     # # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,0,1])
