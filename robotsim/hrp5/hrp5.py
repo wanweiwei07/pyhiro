@@ -9,9 +9,14 @@ class Hrp5Robot():
         # initjnts has 20 elements where the first two are for the head,
         # the remaining 18 are for each of the two 9-dof arms
         self.__initjnts = np.array([0,0,0,45,-20,0,-75,0,-30,0,0,0,45,20,0,-75,0,30,0,0]);
+        # self.__initjnts = np.array([0,0,0,45,-20,0,-64,82,-27,109,-111,0,45,20,0,-75,0,30,0,0]);
+        # self.__initjnts = np.array([0,0,0,45,-20,0,-68,77,-32,109,-122,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
+        # define the six joints for ik
+        # these sixjoints are used instead of the last 6 joints
+        self.__sixjoints = [2,3,4,5,6,9]
         self.__base = self.__rgtarm[0]
 
     @property
@@ -34,6 +39,11 @@ class Hrp5Robot():
         # read-only property
         return self.__base
 
+    @property
+    def sixjoints(self):
+        # read-only property
+        return self.__sixjoints
+
     def movearmfk6(self, armjnts, armid="rgt"):
         """
         move the last 6 joints of armlj using forward kinematics
@@ -53,10 +63,10 @@ class Hrp5Robot():
         if armid == "lft":
             armlj = self.lftarm
 
-        i = 4
-        while i != -1:
-            armlj[i]['rotangle'] = armjnts[i-4]
-            i = armlj[i]['child']
+        counter = 0
+        for i in self.__sixjoints:
+            armlj[i]['rotangle'] = armjnts[counter]
+            counter += 1
         self.__updatefk(armlj)
 
     def move15(self, hrp5jnts):
@@ -115,8 +125,10 @@ class Hrp5Robot():
             armlj = self.leftarm
 
         armjnts = np.zeros(6)
-        for i in range(6):
-            armjnts[i] = armlj[i+4]['rotangle']
+        counter = 0
+        for i in self.__sixjoints:
+            armjnts[counter] = armlj[i]['rotangle']
+            counter += 1
 
         return armjnts
 
@@ -140,12 +152,14 @@ class Hrp5Robot():
         if armid == "lft":
             armlj = self.lftarm
 
-        # for i in range(6):
-        #     if armjnts[i] < armlj[i+4]["rngmin"] or armjnts[i]>armlj[i+4]["rngmax"]:
-        #         print "Joint "+ str(i+4) + " of the " + armid + " arm is out of range"
-        #         print "Angle is " + str(armjnts[i])
-        #         print "Range is (" + str(armlj[i+4]["rngmin"]) + ", " + str(armlj[i+4]["rngmax"]) + ")"
-        #         return False
+        counter = 0
+        for i in self.__sixjoints:
+            if armjnts[counter] < armlj[i]["rngmin"] or armjnts[counter] > armlj[i]["rngmax"]:
+                print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                print "Angle is " + str(armjnts[counter])
+                print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
+                return False
+            counter += 1
 
         return True
 
@@ -554,15 +568,27 @@ if __name__=="__main__":
     hrp5mnp.reparentTo(base.render)
 
     import hrp5ik
-    objpos = np.array([300,-50,100])
-    objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
+    objpos = np.array([180,-130,100])
+    objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+    # objpos = hrp5robot.rgtarm[9]['linkend']+[0,0,-50]
+    # objrot = hrp5robot.rgtarm[9]['rotmat']
     # objrot = np.array([[1,0,0],[0,1,0],[0,0,1]])
     armjntsgoal = hrp5ik.numik(hrp5robot, objpos, objrot)
     print armjntsgoal
     # #
-    if armjntsgoal:
+    if armjntsgoal is not None:
         hrp5robot.movearmfk6(armjntsgoal)
-        hrp5robot.reparentTo(base.render)
+        hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
+        hrp5mnp.reparentTo(base.render)
+
+    # goal hand
+    from manipulation.grip.robotiq85 import rtq85nm
+    hrp5robotrgthnd = rtq85nm.Rtq85NM()
+    hrp5robotrgthnd.setColor([1,0,0,.3])
+    hrp5robotrgtarmlj9_rotmat = pandageom.cvtMat4(objrot, objpos+objrot[:,0]*130)
+    pg.plotAxisSelf(base.render, objpos, hrp5robotrgtarmlj9_rotmat)
+    hrp5robotrgthnd.setMat(hrp5robotrgtarmlj9_rotmat)
+    hrp5robotrgthnd.reparentTo(base.render)
     #
     # angle = nxtik.eurgtbik(objpos)
     # nxtrobot.movewaist(angle)

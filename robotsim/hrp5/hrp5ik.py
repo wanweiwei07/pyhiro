@@ -44,9 +44,12 @@ def jacobian(hrp5robot, armid="rgt"):
         armlj = hrp5robot.lftarm
 
     armjac = np.zeros((6,6))
-    for i in range(6):
-        a = np.dot(armlj[i+4]["rotmat"], armlj[i+4]["rotax"])
-        armjac[:, i] = np.append(np.cross(a, armlj[9]["linkpos"]-armlj[i+4]["linkpos"]), a)
+
+    counter = 0
+    for i in hrp5robot.sixjoints:
+        a = np.dot(armlj[i]["rotmat"], armlj[i]["rotax"])
+        armjac[:, counter] = np.append(np.cross(a, armlj[hrp5robot.sixjoints[-1]]["linkpos"]-armlj[i]["linkpos"]), a)
+        counter += 1
 
     return armjac
 
@@ -86,17 +89,25 @@ def tcperror(hrp5robot, tgtpos, tgtrot, armid="rgt"):
     if armid == "lft":
         armlj = hrp5robot.lftarm
 
-    deltapos = tgtpos - armlj[9]["linkend"]
-    deltarot = np.dot(tgtrot, armlj[9]["rotmat"].transpose())
+    deltapos = tgtpos - armlj[hrp5robot.sixjoints[-1]]["linkend"]
+    deltarot = np.dot(tgtrot, armlj[hrp5robot.sixjoints[-1]]["rotmat"].transpose())
 
     anglesum = np.trace(deltarot)
     if anglesum is 3:
         deltaw = np.array([0,0,0])
     else:
-        theta = math.acos((anglesum-1)/2.0)
-        deltaw = (theta/(2*math.sin(theta)))*(np.array([deltarot[2,1]-deltarot[1,2], \
-                                                        deltarot[0,2]-deltarot[2,0], \
-                                                        deltarot[1,0]-deltarot[0,1]]))
+        nominator = anglesum - 1
+        if nominator > 2:
+            nominator = 2
+        if nominator < -2:
+            nominator = -2
+        theta = math.acos(nominator / 2.0)
+        if theta == 0:
+            deltaw = np.array([0, 0, 0])
+        else:
+            deltaw = (theta / (2 * math.sin(theta))) * (np.array([deltarot[2, 1] - deltarot[1, 2], \
+                                                                  deltarot[0, 2] - deltarot[2, 0], \
+                                                                  deltarot[1, 0] - deltarot[0, 1]]))
 
     return np.append(deltapos, deltaw)
 
@@ -119,10 +130,11 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
         raise ep.ValueError
 
     # stablizer
-    steplength = 3
+    steplength = 30
     armjntssave = hrp5robot.getarmjnts6(armid)
+    print armjntssave
     armjntsiter = armjntssave.copy()
-    for i in range(30):
+    for i in range(500):
         armjac = jacobian(hrp5robot, armid)
         if abs(np.linalg.det(armjac))>1e-6:
             err = tcperror(hrp5robot, tgtpos, tgtrot, armid)
@@ -137,12 +149,15 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
         else:
             # todo dq definition
             armjntsiter += dq
-            if hrp5robot.chkrng6(armjntsiter):
+            # the robot may encounter overrange errors in the first few iterations
+            # use i<50 to avoid these errors
+            if hrp5robot.chkrng6(armjntsiter) or i < 50:
+                # print armjntsiter
                 hrp5robot.movearmfk6(armjntsiter, armid)
-                import hrp5plot
-                hrp5plot.plotstick(base.render, hrp5robot)
-                hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
-                hrp5mnp.reparentTo(base.render)
+                # import hrp5plot
+                # hrp5plot.plotstick(base.render, hrp5robot)
+                # hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
+                # hrp5mnp.reparentTo(base.render)
                 # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
                 # nxtmnp.reparentTo(base.render)
             else:

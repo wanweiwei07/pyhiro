@@ -17,7 +17,6 @@ from utils import robotmath as rm
 from robotsim.nextage import nxtik
 from robotsim.nextage import nextage
 
-
 class TablePlacementsPosition(tp.TablePlacements):
 
     def __init__(self, objpath, robot):

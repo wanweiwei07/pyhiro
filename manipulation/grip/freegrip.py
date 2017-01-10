@@ -14,6 +14,7 @@ from manipulation.grip import freegripcontactpairs as fgcp
 from utils import collisiondetection as cd
 from utils import dbcvt as dc
 from utils import robotmath as rm
+from database import dbaccess as db
 
 
 class Freegrip(fgcp.FreegripContactpairs):
