@@ -3,11 +3,13 @@ import exceptions as ep
 import utils.robotmath as rm
 import pandaplotutils.pandactrl as pandactrl
 import pandaplotutils.pandageom as pg
+import hrp5ik
 
 class Hrp5Robot():
     def __init__(self):
         # initjnts has 20 elements where the first two are for the head,
         # the remaining 18 are for each of the two 9-dof arms
+        self.__name = 'hrp5'
         self.__initjnts = np.array([0,0,0,45,-20,0,-75,0,-30,0,0,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-64,82,-27,109,-111,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-68,77,-32,109,-122,0,45,20,0,-75,0,30,0,0]);
@@ -18,6 +20,12 @@ class Hrp5Robot():
         # these sixjoints are used instead of the last 6 joints
         self.__sixjoints = [2,3,4,5,6,9]
         self.__base = self.__rgtarm[0]
+        self.goinitpose()
+
+    @property
+    def name(self):
+        # read-only property
+        return self.__name
 
     @property
     def initjnts(self):
@@ -44,6 +52,41 @@ class Hrp5Robot():
         # read-only property
         return self.__sixjoints
 
+    def movewaistshoulder(self, waistrot, shoulderrot, armid="rgt"):
+        """
+        rotate the shoulderwaist of the robot
+
+        :param waistrot: in degree
+        :param shoulderrot: in degree
+        :return: null
+
+        author: weiwei
+        date: 20170112
+        """
+
+        if armid!="rgt" and armid!="lft":
+            raise ep.ValueError("Armid must be 'rgt' or 'lft'")
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        # right arm
+        self.rgtarm[0]['rotangle'] = waistrot
+        self.rgtarm[0]['rotmat'] = rm.rodrigues(self.rgtarm[0]['rotax'], self.rgtarm[0]['rotangle'])
+        self.rgtarm[0]['linkend'] = np.squeeze(np.dot(self.rgtarm[0]['rotmat'], self.rgtarm[0]['linkvec'].reshape((-1,))))+self.rgtarm[0]['linkpos']
+
+        # left arm
+        self.lftarm[0]['rotangle'] = waistrot
+        self.lftarm[0]['rotmat'] = rm.rodrigues(self.lftarm[0]['rotax'], self.lftarm[0]['rotangle'])
+        self.lftarm[0]['linkend'] = np.squeeze(np.dot(self.lftarm[0]['rotmat'], self.lftarm[0]['linkvec'].reshape((-1,))))+self.lftarm[0]['linkpos']
+
+        # shoulder
+        armlj[1]['rotangle'] = shoulderrot
+
+        self.__updatefk(self.rgtarm)
+        self.__updatefk(self.lftarm)
+
     def movearmfk6(self, armjnts, armid="rgt"):
         """
         move the last 6 joints of armlj using forward kinematics
@@ -68,6 +111,32 @@ class Hrp5Robot():
             armlj[i]['rotangle'] = armjnts[counter]
             counter += 1
         self.__updatefk(armlj)
+
+    def movearmfkr(self, armjnts, armid ="rgt"):
+        """
+        move the redundant joints of armlj using forward kinematics
+
+        :param armjnts: [waistrot, shoulderrot, armjnts6] all in angle
+        :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
+        :return: null
+
+        author: weiwei
+        date: 20170112
+        """
+
+        if armid!="rgt" and armid!="lft":
+            raise ep.ValueError
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        counter = 0
+        for i in self.__sixjoints:
+            armlj[i]['rotangle'] = armjnts[2][counter]
+            counter += 1
+
+        self.movewaistshoulder(armjnts[0], armjnts[1], armid)
 
     def move15(self, hrp5jnts):
         """
@@ -122,7 +191,7 @@ class Hrp5Robot():
 
         armlj = self.rgtarm
         if armid == "lft":
-            armlj = self.leftarm
+            armlj = self.lftarm
 
         armjnts = np.zeros(6)
         counter = 0
@@ -131,6 +200,25 @@ class Hrp5Robot():
             counter += 1
 
         return armjnts
+
+    def getjntwaistshoulder(self, armid="rgt"):
+        """
+        get the rot angle of robot shoulder and waist
+
+        :return: [waistangle, shoulderangle] in degree
+
+         author: weiwei
+         date: 20170112
+        """
+
+        if armid!="rgt" and armid!="lft":
+            raise ep.ValueError("Armid must be 'rgt' or 'lft'")
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        return [self.base['rotangle'], armlj[1]['rotangle']]
 
     def chkrng6(self, armjnts, armid="rgt"):
         """
@@ -155,9 +243,9 @@ class Hrp5Robot():
         counter = 0
         for i in self.__sixjoints:
             if armjnts[counter] < armlj[i]["rngmin"] or armjnts[counter] > armlj[i]["rngmax"]:
-                print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
-                print "Angle is " + str(armjnts[counter])
-                print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
+                # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                # print "Angle is " + str(armjnts[counter])
+                # print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
                 return False
             counter += 1
 
@@ -225,8 +313,8 @@ class Hrp5Robot():
         rgtlj[1]['rotangle'] = 0
         rgtlj[1]['rotmat'] = np.dot(rgtlj[0]['rotmat'], rm.rodrigues(rgtlj[1]['rotax'], rgtlj[1]['rotangle']))
         rgtlj[1]['linkend'] = np.dot(rgtlj[1]['rotmat'], rgtlj[1]['linkvec'])+rgtlj[1]['linkpos']
-        rgtlj[1]['rngmin'] = -(88-rngsafemargin)
-        rgtlj[1]['rngmax'] = +(88-rngsafemargin)
+        rgtlj[1]['rngmin'] = -(20-rngsafemargin)
+        rgtlj[1]['rngmax'] = +(60-rngsafemargin)
 
         # the 2nd joint and link
         rgtlj[2]['name'] = 'link2'
@@ -238,8 +326,8 @@ class Hrp5Robot():
         rgtlj[2]['rotangle'] = 0
         rgtlj[2]['rotmat'] = np.dot(rgtlj[1]['rotmat'], rm.rodrigues(rgtlj[2]['rotax'], rgtlj[2]['rotangle']))
         rgtlj[2]['linkend'] = np.dot(rgtlj[2]['rotmat'], rgtlj[2]['linkvec'])+rgtlj[2]['linkpos']
-        rgtlj[2]['rngmin'] = -(140-rngsafemargin)
-        rgtlj[2]['rngmax'] = +(60-rngsafemargin)
+        rgtlj[2]['rngmin'] = -(200-rngsafemargin)
+        rgtlj[2]['rngmax'] = +(70-rngsafemargin)
 
         # the 3rd joint and link
         rgtlj[3]['name'] = 'link3'
@@ -251,8 +339,8 @@ class Hrp5Robot():
         rgtlj[3]['rotangle'] = 0
         rgtlj[3]['rotmat'] = np.dot(rgtlj[2]['rotmat'], rm.rodrigues(rgtlj[3]['rotax'], rgtlj[3]['rotangle']))
         rgtlj[3]['linkend'] = np.dot(rgtlj[3]['rotmat'], rgtlj[3]['linkvec'])+rgtlj[3]['linkpos']
-        rgtlj[3]['rngmin'] = -(158-rngsafemargin)
-        rgtlj[3]['rngmax'] = +(0-rngsafemargin)
+        rgtlj[3]['rngmin'] = -(95-rngsafemargin)
+        rgtlj[3]['rngmax'] = +(25-rngsafemargin)
 
         # the 4th joint and link
         rgtlj[4]['name'] = 'link4'
@@ -306,7 +394,7 @@ class Hrp5Robot():
                                     rm.rodrigues(rgtlj[7]['rotax'], rgtlj[7]['rotangle']))
         rgtlj[7]['linkend'] = np.dot(rgtlj[7]['rotmat'], rgtlj[7]['linkvec'])+rgtlj[7]['linkpos']
         rgtlj[7]['rngmin'] = -(47-rngsafemargin)
-        rgtlj[7]['rngmax'] = +(60-rngsafemargin)
+        rgtlj[7]['rngmax'] = +(70-rngsafemargin)
 
         # the 8th joint and link
         rgtlj[8]['name'] = 'link8'
@@ -323,8 +411,8 @@ class Hrp5Robot():
         rgtlj[8]['rotmat'] = np.dot(np.dot(rgtlj[7]['rotmat'], rgtlj[8]['inherentR']), \
                                     rm.rodrigues(rgtlj[8]['rotax'], rgtlj[8]['rotangle']))
         rgtlj[8]['linkend'] = np.dot(rgtlj[8]['rotmat'], rgtlj[8]['linkvec'])+rgtlj[8]['linkpos']
-        rgtlj[8]['rngmin'] = -(30-rngsafemargin)
-        rgtlj[8]['rngmax'] = +(30-rngsafemargin)
+        rgtlj[8]['rngmin'] = -(42-rngsafemargin)
+        rgtlj[8]['rngmax'] = +(42-rngsafemargin)
 
         # the 9th joint and link
         rgtlj[9]['name'] = 'link9'
@@ -336,8 +424,8 @@ class Hrp5Robot():
         rgtlj[9]['rotangle'] = 0
         rgtlj[9]['rotmat'] = np.dot(rgtlj[8]['rotmat'], rm.rodrigues(rgtlj[9]['rotax'], rgtlj[9]['rotangle']))
         rgtlj[9]['linkend'] = np.dot(rgtlj[9]['rotmat'], rgtlj[9]['linkvec'])+rgtlj[9]['linkpos']
-        rgtlj[9]['rngmin'] = -(180-rngsafemargin)
-        rgtlj[9]['rngmax'] = +(180-rngsafemargin)
+        rgtlj[9]['rngmin'] = -(300-rngsafemargin)
+        rgtlj[9]['rngmax'] = +(300-rngsafemargin)
 
         return rgtlj
 
@@ -403,8 +491,8 @@ class Hrp5Robot():
         lftlj[1]['rotangle'] = 0
         lftlj[1]['rotmat'] = np.dot(lftlj[0]['rotmat'], rm.rodrigues(lftlj[1]['rotax'], lftlj[1]['rotangle']))
         lftlj[1]['linkend'] = np.dot(lftlj[1]['rotmat'], lftlj[1]['linkvec'])+lftlj[1]['linkpos']
-        lftlj[1]['rngmin'] = -(88-rngsafemargin)
-        lftlj[1]['rngmax'] = +(88-rngsafemargin)
+        lftlj[1]['rngmin'] = -(60-rngsafemargin)
+        lftlj[1]['rngmax'] = +(20-rngsafemargin)
 
         # the 2nd joint and link
         lftlj[2]['name'] = 'link2'
@@ -416,8 +504,8 @@ class Hrp5Robot():
         lftlj[2]['rotangle'] = 0
         lftlj[2]['rotmat'] = np.dot(lftlj[1]['rotmat'], rm.rodrigues(lftlj[2]['rotax'], lftlj[2]['rotangle']))
         lftlj[2]['linkend'] = np.dot(lftlj[2]['rotmat'], lftlj[2]['linkvec'])+lftlj[2]['linkpos']
-        lftlj[2]['rngmin'] = -(140-rngsafemargin)
-        lftlj[2]['rngmax'] = +(60-rngsafemargin)
+        lftlj[2]['rngmin'] = -(200-rngsafemargin)
+        lftlj[2]['rngmax'] = +(70-rngsafemargin)
 
         # the 3rd joint and link
         lftlj[3]['name'] = 'link3'
@@ -429,8 +517,8 @@ class Hrp5Robot():
         lftlj[3]['rotangle'] = 0
         lftlj[3]['rotmat'] = np.dot(lftlj[2]['rotmat'], rm.rodrigues(lftlj[3]['rotax'], lftlj[3]['rotangle']))
         lftlj[3]['linkend'] = np.dot(lftlj[3]['rotmat'], lftlj[3]['linkvec'])+lftlj[3]['linkpos']
-        lftlj[3]['rngmin'] = -(158-rngsafemargin)
-        lftlj[3]['rngmax'] = +(0-rngsafemargin)
+        lftlj[3]['rngmin'] = -(25-rngsafemargin)
+        lftlj[3]['rngmax'] = +(95-rngsafemargin)
 
         # the 4th joint and link
         lftlj[4]['name'] = 'link4'
@@ -483,7 +571,7 @@ class Hrp5Robot():
         lftlj[7]['rotmat'] = np.dot(np.dot(lftlj[6]['rotmat'], lftlj[7]['inherentR']), \
                                     rm.rodrigues(lftlj[7]['rotax'], lftlj[7]['rotangle']))
         lftlj[7]['linkend'] = np.dot(lftlj[7]['rotmat'], lftlj[7]['linkvec'])+lftlj[7]['linkpos']
-        lftlj[7]['rngmin'] = -(60-rngsafemargin)
+        lftlj[7]['rngmin'] = -(70-rngsafemargin)
         lftlj[7]['rngmax'] = +(47-rngsafemargin)
 
         # the 8th joint and link
@@ -501,8 +589,8 @@ class Hrp5Robot():
         lftlj[8]['rotmat'] = np.dot(np.dot(lftlj[7]['rotmat'], lftlj[8]['inherentR']), \
                                     rm.rodrigues(lftlj[8]['rotax'], lftlj[8]['rotangle']))
         lftlj[8]['linkend'] = np.dot(lftlj[8]['rotmat'], lftlj[8]['linkvec'])+lftlj[8]['linkpos']
-        lftlj[8]['rngmin'] = -(30-rngsafemargin)
-        lftlj[8]['rngmax'] = +(30-rngsafemargin)
+        lftlj[8]['rngmin'] = -(42-rngsafemargin)
+        lftlj[8]['rngmax'] = +(42-rngsafemargin)
 
         # the 9th joint and link
         lftlj[9]['name'] = 'link9'
@@ -514,8 +602,8 @@ class Hrp5Robot():
         lftlj[9]['rotangle'] = 0
         lftlj[9]['rotmat'] = np.dot(lftlj[8]['rotmat'], rm.rodrigues(lftlj[9]['rotax'], lftlj[9]['rotangle']))
         lftlj[9]['linkend'] = np.dot(lftlj[9]['rotmat'], lftlj[9]['linkvec'])+lftlj[9]['linkpos']
-        lftlj[9]['rngmin'] = -(180-rngsafemargin)
-        lftlj[9]['rngmax'] = +(180-rngsafemargin)
+        lftlj[9]['rngmin'] = -(300-rngsafemargin)
+        lftlj[9]['rngmax'] = +(300-rngsafemargin)
 
         return lftlj
 
@@ -546,6 +634,12 @@ class Hrp5Robot():
             i = armlj[i]['child']
         return armlj
 
+    def numik(self, objpos, objrot, armid="rgt"):
+        return hrp5ik.numik(self, objpos, objrot, armid)
+
+    def numikr(self, objpos, objrot, armid="rgt"):
+        return hrp5ik.numikr(self, objpos, objrot, armid)
+
 if __name__=="__main__":
 
     # show in panda3d
@@ -567,19 +661,29 @@ if __name__=="__main__":
     hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
     hrp5mnp.reparentTo(base.render)
 
-    import hrp5ik
-    objpos = np.array([180,-130,100])
-    objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
-    # objpos = hrp5robot.rgtarm[9]['linkend']+[0,0,-50]
-    # objrot = hrp5robot.rgtarm[9]['rotmat']
-    # objrot = np.array([[1,0,0],[0,1,0],[0,0,1]])
-    armjntsgoal = hrp5ik.numik(hrp5robot, objpos, objrot)
-    print armjntsgoal
-    # #
+    objpos = np.array([300,-200,0])
+    # objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+    objrot = np.array([[0,-1,0],[0,0,-1],[1,0,0]])
+    objpos = np.array([401.67913818,-644.12841797,83.24006653])
+    objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
+                        [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
+                        [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
+    # lfthnd
+    # objpos = np.array([180,130,100])
+    # objrot = np.array([[0,0,-1],[1,0,0],[0,-1,0]])
+    armid="rgt"
+    # armjntsgoal = hrp5robot.numikr(objpos, objrot, armid)
+    # if armjntsgoal is not None:
+    #     hrp5robot.movearmfkr(armjntsgoal, armid)
+    #     hrp5plot.plotstick(base.render, hrp5robot)
+    #     hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
+    #     hrp5mnp.reparentTo(base.render)
+    armjntsgoal = hrp5robot.numik(objpos, objrot, armid)
     if armjntsgoal is not None:
-        hrp5robot.movearmfk6(armjntsgoal)
+        hrp5robot.movearmfk6(armjntsgoal, armid)
+        hrp5plot.plotstick(base.render, hrp5robot)
         hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
-        hrp5mnp.reparentTo(base.render)
+        # hrp5mnp.reparentTo(base.render)
 
     # goal hand
     from manipulation.grip.robotiq85 import rtq85nm

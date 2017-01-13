@@ -86,6 +86,10 @@ class World(ShowBase, object):
         base.cam.lookAt(self.lookatp[0], self.lookatp[1], self.lookatp[2])
         return task.cont
 
+    def changeLookAt(self, lookatp):
+        base.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
+        self.inputmgr = im.InputManager(base, lookatp)
+
 # def setRenderEffect(base):
 #     """
 #     Set a cartoonink shader and the background color etc to base

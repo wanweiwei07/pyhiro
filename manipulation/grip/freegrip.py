@@ -4,7 +4,7 @@ import os
 
 import MySQLdb as mdb
 import numpy as np
-from grip.robotiq85 import rtq85nm
+from manipulation.grip.robotiq85 import rtq85nm
 from panda3d.bullet import BulletWorld
 from panda3d.core import *
 
@@ -127,7 +127,7 @@ class Freegrip(fgcp.FreegripContactpairs):
                     tmprtq85.setPos(Point3(cctcenter[0], cctcenter[1], cctcenter[2]))
 
                     # collision detection
-                    hndbullnode = cd.genCollisionMeshMutiNp(tmprtq85.rtq85np, base.render)
+                    hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np, base.render)
                     self.bulletworld.attachRigidBody(hndbullnode)
                     result = self.bulletworld.contactTest(self.objmeshbullnode)
 
@@ -148,30 +148,7 @@ class Freegrip(fgcp.FreegripContactpairs):
                     # reset initial hand pose
                     tmprtq85.setMat(initmat)
             self.counter+=1
-
         self.counter = 0
-
-        # save to database
-        db = mdb.connect("localhost", "weiweilab", "weiweilab", "freegrip")
-        cursor = db.cursor()
-        result = cursor.execute("SELECT * FROM freeairgrip WHERE objname LIKE '%s'" % self.dbobjname)
-        if not result:
-            for i in range(len(self.gripcontacts)):
-                sql = "INSERT INTO freeairgrip(objname, contactpnt0, contactpnt1, contactnormal0, contactnormal1, rotmat, jawwidth) \
-                       VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
-                      (self.dbobjname, dc.v3ToStr(self.gripcontacts[i][0]), dc.v3ToStr(self.gripcontacts[i][1]),
-                       dc.v3ToStr(self.gripcontactnormals[i][0]), dc.v3ToStr(self.gripcontactnormals[i][1]),
-                       dc.mat4ToStr(self.griprotmats[i]), str(self.gripjawwidth[i]))
-                try:
-                    cursor.execute(sql)
-                except:
-                    print "failed to update db"
-                    db.rollback()
-            db.commit()
-        else:
-            print "Grasps already saved or duplicated filename!"
-        db.close()
-
 
     def removeFgrpcc(self, base):
         """
@@ -233,6 +210,42 @@ class Freegrip(fgcp.FreegripContactpairs):
                     self.gripcontactpairfacets_precc[-1].append(self.gripcontactpairfacets[self.counter])
             self.counter += 1
         self.counter=0
+
+    def saveToDB(self, gdb):
+        """
+        save the result to mysqldatabase
+
+        :param gdb: is an object of the GraspDB class in the database package
+        :return:
+
+        author: weiwei
+        date: 20170110
+        """
+
+        # save to database
+        gdb = db.GraspDB()
+
+        sql = "SELECT * FROM freeairgrip, object WHERE freeairgrip.idobject = object.idobject AND \
+                object.objname LIKE '%s'" % self.dbobjname
+        result = gdb.execute(sql)
+        if not result:
+            sql = "SELECT idobject FROM object WHERE objname LIKE '%s'" % self.dbobjname
+            returnlist = gdb.execute(sql)[0]
+            if len(returnlist) != 0:
+                idobject = returnlist[0]
+            else:
+                sql = "INSERT INTO object(objname) VALUES('%s')" % self.dbobjname
+                idobject = gdb.execute(sql)
+            for i in range(len(self.gripcontacts)):
+                sql = "INSERT INTO freeairgrip(idobject, contactpnt0, contactpnt1, \
+                        contactnormal0, contactnormal1, rotmat, jawwidth) \
+                       VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
+                      (idobject, dc.v3ToStr(self.gripcontacts[i][0]), dc.v3ToStr(self.gripcontacts[i][1]),
+                       dc.v3ToStr(self.gripcontactnormals[i][0]), dc.v3ToStr(self.gripcontactnormals[i][1]),
+                       dc.mat4ToStr(self.griprotmats[i]), str(self.gripjawwidth[i]))
+                gdb.execute(sql)
+        else:
+            print "Grasps already saved or duplicated filename!"
 
     def removeFgrpccShow(self, base):
         """
@@ -479,25 +492,28 @@ if __name__=='__main__':
     objpath = os.path.join(this_dir, "objects", "ttube.stl")
     freegriptst = Freegrip(objpath)
 
-    freegriptst.segShow(base, togglesamples=False, togglenormals=False,
-                        togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=False, togglenormals_refcls=False)
+    # freegriptst.segShow(base, togglesamples=False, togglenormals=False,
+    #                     togglesamples_ref=False, togglenormals_ref=False,
+    #                     togglesamples_refcls=False, togglenormals_refcls=False)
 
-    # freegriptst.removeFgrpcc(base)
-    # freegriptst.removeHndcc(base)
+    freegriptst.removeFgrpcc(base)
+    freegriptst.removeHndcc(base)
 
-    def updateshow(task):
-    #     freegriptst.removeFgrpccShow(base)
-    #     freegriptst.removeFgrpccShowLeft(base)
-        freegriptst.removeHndccShow(base)
-    #     # print task.delayTime
-    #     # if abs(task.delayTime-13) < 1:
-    #     #     task.delayTime -= 12.85
-        return task.again
+    gdb = db.GraspDB()
+    freegriptst.saveToDB(gdb)
 
-    taskMgr.doMethodLater(.3, updateshow, "tickTask")
-    # freegriptst.removeFgrpcc(base)
-    # freegriptst.removeHndcc(base)
+    # def updateshow(task):
+    # #     freegriptst.removeFgrpccShow(base)
+    # #     freegriptst.removeFgrpccShowLeft(base)
+    #     freegriptst.removeHndccShow(base)
+    # #     # print task.delayTime
+    # #     # if abs(task.delayTime-13) < 1:
+    # #     #     task.delayTime -= 12.85
+    #     return task.again
+    #
+    # taskMgr.doMethodLater(.3, updateshow, "tickTask")
+    # # freegriptst.removeFgrpcc(base)
+    # # freegriptst.removeHndcc(base)
 
     # taskMgr.add(updateworld, "updateworld", extraArgs=[freegriptst.bulletworld], appendTask=True)
     base.run()

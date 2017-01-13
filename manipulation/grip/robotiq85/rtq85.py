@@ -116,6 +116,19 @@ class Rtq85():
         rtq85base.reparentTo(self.rtq85np)
         self.setJawwidth(jawwidth)
 
+        self.__jawwidthopen = 85.0
+        self.__jawwidthclosed = 0.0
+
+    @property
+    def jawwidthopen(self):
+        # read-only property
+        return self.__jawwidthopen
+
+    @property
+    def jawwidthclosed(self):
+        # read-only property
+        return self.__jawwidthclosed
+
     def setJawwidth(self, jawwidth):
         '''
         set the jawwidth of rtq85hnd

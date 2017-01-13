@@ -9,10 +9,17 @@ class NxtRobot():
         # initjnts has 16 elements where the first three are the waist yaw, head pitch, and head yaw
         # the following 12 elements are the joint angles of right and left arms
         # the last element is the moving speed
+        self.__name = 'nextage'
         self.__initjnts = np.array([0,0,0,-15,0,-143,0,0,0,15,0,-143,0,0,0,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         self.__base = self.__rgtarm[0]
+        self.goinitpose()
+
+    @property
+    def name(self):
+        # read-only property
+        return self.__name
 
     @property
     def initjnts(self):
@@ -81,7 +88,7 @@ class NxtRobot():
             i = armlj[i]['child']
         self.__updatefk(armlj)
 
-    def movearmfk7(self, armjnts, armid ="rgt"):
+    def movearmfkr(self, armjnts, armid ="rgt"):
         """
         move the 7 joints of armlj using forward kinematics
 
@@ -201,9 +208,9 @@ class NxtRobot():
 
         for i in range(6):
             if armjnts[i] < armlj[i+1]["rngmin"] or armjnts[i]>armlj[i+1]["rngmax"]:
-                print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
-                print "Angle is " + str(armjnts[i])
-                print "Range is (" + str(armlj[i+1]["rngmin"]) + ", " + str(armlj[i+1]["rngmax"]) + ")"
+                # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                # print "Angle is " + str(armjnts[i])
+                # print "Range is (" + str(armlj[i+1]["rngmin"]) + ", " + str(armlj[i+1]["rngmax"]) + ")"
                 return False
 
         return True
@@ -467,6 +474,12 @@ class NxtRobot():
             i = armlj[i]['child']
         return armlj
 
+    def numik(self, objpos, objrot, armid="rgt"):
+        return nxtik.numik(self, objpos, objrot, armid)
+
+    def numikr(self, objpos, objrot, armid="rgt"):
+        return nxtik.numikr(self, objpos, objrot, armid)
+
 if __name__=="__main__":
 
     # show in panda3d
@@ -484,8 +497,8 @@ if __name__=="__main__":
     # nxtrobot.movewaist(0)
 
     import nxtik
-    objpos = np.array([400,50,300])
-    objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
+    objpos = np.array([500,0,300])
+    objrot = np.array([[0,1,0],[1,0,0],[0,0,-1]])
 
     import nxtplot
     nxtmnp = nxtplot.genNxtmnp(nxtrobot)
@@ -503,12 +516,20 @@ if __name__=="__main__":
     # pg.plotAxis(base.render, pandamat4)
     # nxtplot.plotmesh(base, nxtrobot)
     # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
-    pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,0,1])
+    pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,1,.51])
 
-    armjntsgoal7 = nxtik.numikr(nxtrobot, objpos, objrot)
+    armid = "lft"
+    armjntsgoal7 = nxtrobot.numikr(objpos, objrot, armid)
     print armjntsgoal7
-    nxtrobot.movearmfk7(armjntsgoal7)
-    nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,0,1])
-    nxtmnp.reparentTo(base.render)
+    if armjntsgoal7 is not None:
+        nxtrobot.movearmfkr(armjntsgoal7, armid)
+
+    armid= "rgt"
+    objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
+    armjntsgoal6 =  nxtrobot.numik(objpos, objrot, armid)
+    if armjntsgoal6 is not None:
+        nxtrobot.movearmfk6(armjntsgoal6, armid)
+        nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,1,.51])
+        nxtmnp.reparentTo(base.render)
 
     base.run()

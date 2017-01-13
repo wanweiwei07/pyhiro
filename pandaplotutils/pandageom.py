@@ -4,6 +4,7 @@ from panda3d.core import *
 from utils import robotmath as rm
 from shapely.geometry import Polygon
 from trimesh import geometry as trigeom
+import trimesh
 
 def packpandageom(vertices, facenormals, triangles, name=''):
     """
@@ -416,9 +417,9 @@ def cvtMat3(npmat3):
     author: weiwei
     date: 20161107, tsukuba
     """
-    return Mat3(npmat3[0, 0], npmat3[0, 1], npmat3[0, 2], \
-                npmat3[1, 0], npmat3[1, 1], npmat3[1, 2], \
-                npmat3[2, 0], npmat3[2, 1], npmat3[2, 2])
+    return Mat3(npmat3[0, 0], npmat3[1, 0], npmat3[2, 0], \
+                npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], \
+                npmat3[0, 2], npmat3[1, 2], npmat3[2, 2])
 
 def cvtMat4(npmat3, npvec3=np.array([0,0,0])):
     """
@@ -480,7 +481,7 @@ def mat3ToNp(pdmat3):
     row1 = pdmat3.getRow(1)
     row2 = pdmat3.getRow(2)
 
-    return np.array([[row0[0], row0[1], row0[2]], [row1[0], row1[1], row1[2]], [row2[0], row2[1], row2[2]]])
+    return np.array([[row0[0], row1[0], row2[0]], [row0[1], row1[1], row2[1]], [row0[2], row1[2], row2[2]]])
 
 def mat4ToNp(pdmat4):
     """
@@ -500,8 +501,8 @@ def mat4ToNp(pdmat4):
     row2 = pdmat4.getRow(2)
     row3 = pdmat4.getRow(3)
 
-    return np.array([[row0[0], row0[1], row0[2], row0[3]], [row1[0], row1[1], row1[2], row1[3]],
-                     [row2[0], row2[1], row2[2], row2[3]], [row3[0], row3[1], row3[2], row3[3]]])
+    return np.array([[row0[0], row1[0], row2[0], row3[0]], [row0[1], row1[1], row2[1], row3[2]],
+                     [row0[2], row1[2], row2[2], row3[2]], [row0[3], row1[3], row2[3], row3[3]]])
 
 def v3ToNp(pdv3):
     """
@@ -620,6 +621,27 @@ def facetboundary(objtrimesh, facet, facetcenter, facetnormal):
         verts3d.append(vert3d)
 
     return [verts3d, verts2d, facetmat4]
+
+def genObjmnp(objpath):
+    """
+    gen objmnp
+
+    :param objpath:
+    :return:
+    """
+
+    objtrimesh = trimesh.load_mesh(objpath)
+    geom = packpandageom(objtrimesh.vertices,
+                         objtrimesh.face_normals,
+                         objtrimesh.faces)
+    node = GeomNode('obj')
+    node.addGeom(geom)
+    objmnp = NodePath('obj')
+    objmnp.attachNewNode(node)
+    objmnp.setColor(Vec4(1, 0, 0, 1))
+    objmnp.setTransparency(TransparencyAttrib.MAlpha)
+
+    return objmnp
 
 if __name__=="__main__":
 

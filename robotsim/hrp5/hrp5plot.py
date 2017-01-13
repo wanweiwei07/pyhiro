@@ -33,7 +33,7 @@ def plotstick(pandanp, hrp5robot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.ar
         i = hrp5robot.lftarm[i]['child']
 
 
-def genHrp5mnp(hrp5robot):
+def genHrp5mnp(hrp5robot, jawwidthrgt = None, jawwidthlft = None):
     """
     generate a panda3d nodepath for the hrp5robot
     mnp indicates this function generates a mesh nodepath
@@ -66,9 +66,8 @@ def genHrp5mnp(hrp5robot):
     hrp5head1_nodepath = NodePath("hrp5head1")
 
     hrp5chest0_model.instanceTo(hrp5chest0_nodepath)
-    # avoid waist rot, 20161202
-    # hrp5chest0_rotmat = pg.cvtMat4(hrp5robot.base['rotmat'])
-    # hrp5chest0_nodepath.setMat(hrp5chest0_rotmat)
+    hrp5chest0_rotmat = pg.cvtMat4(hrp5robot.base['rotmat'])
+    hrp5chest0_nodepath.setMat(hrp5chest0_rotmat)
     hrp5chest0_nodepath.setZ(223)
     hrp5chest1_model.instanceTo(hrp5chest1_nodepath)
     hrp5chest1_nodepath.setColor(.7,.7,.2,1)
@@ -207,12 +206,16 @@ def genHrp5mnp(hrp5robot):
     pg.plotAxisSelf(hrp5mnp, hrp5robot.rgtarm[9]['linkend'], hrp5robotrgtarmlj9_rotmat)
     hrp5robotrgthnd.setMat(hrp5robotrgtarmlj9_rotmat)
     hrp5robotrgthnd.reparentTo(hrp5mnp)
+    if jawwidthrgt is not None:
+        hrp5robotrgthnd.setJawwidth(jawwidthrgt)
 
     # lfthnd
-    hrp5robotlfthnd = rtq85.Rtq85()
-    hrp5robotlftarmlj9_rotmat = pg.cvtMat4(hrp5robot.lftarm[9]['rotmat'], hrp5robot.lftarm[9]['linkpos'])
-    pg.plotAxisSelf(hrp5mnp, hrp5robot.lftarm[9]['linkend'], hrp5robotlftarmlj9_rotmat)
-    hrp5robotlfthnd.setMat(hrp5robotlftarmlj9_rotmat)
-    hrp5robotlfthnd.reparentTo(hrp5mnp)
+    # hrp5robotlfthnd = rtq85.Rtq85()
+    # hrp5robotlftarmlj9_rotmat = pg.cvtMat4(hrp5robot.lftarm[9]['rotmat'], hrp5robot.lftarm[9]['linkpos'])
+    # pg.plotAxisSelf(hrp5mnp, hrp5robot.lftarm[9]['linkend'], hrp5robotlftarmlj9_rotmat)
+    # hrp5robotlfthnd.setMat(hrp5robotlftarmlj9_rotmat)
+    # hrp5robotlfthnd.reparentTo(hrp5mnp)
+    # if jawwidthlft is not None:
+    #     hrp5robotlfthnd.setJawwidth(jawwidthlft)
 
     return hrp5mnp

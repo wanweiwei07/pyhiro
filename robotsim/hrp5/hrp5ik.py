@@ -1,27 +1,101 @@
 import math
 import numpy as np
 import exceptions as ep
+import copy
 
-
-def eurgtbik(pos):
+def eubik(pos, armid="rgt"):
     """
     compute the euristic waist angles for the first three joints?
     ew = euristic waist
+    eubik doesnt use waist
+    eubik use waist
 
     :param pos: object position
-    :return: waistangle in degree
+    :return: [waistangle, shoulderangle] in degree
 
     author: weiwei
     date: 20161202
     """
 
+    newpos = copy.deepcopy(pos)
     anglecomponent1 = 0
     try:
-        anglecomponent1 = math.asin(145/np.linalg.norm(pos[0:1]))
+        if armid == "rgt":
+            newpos[1] = newpos[1]-80
+        else:
+            if armid == "lft":
+                newpos[1] = newpos[1]+80
+            else:
+                raise ValueError("Armid must be 'rgt' or 'lft'")
+        anglecomponent1 = math.asin(130 / np.linalg.norm(newpos[0:2]))
     except:
         pass
-    waistangle = (math.atan2(pos[1], pos[0]) + anglecomponent1)*180/math.pi
-    return waistangle
+    shoulderangle = (math.atan2(newpos[1], newpos[0]) + anglecomponent1) * 180 / math.pi
+    if armid == "rgt":
+        if shoulderangle > 55:
+            shoulderangle = 55
+        if shoulderangle < -15:
+            shoulderangle = -15
+    if armid == "lft":
+        shoulderangle = -shoulderangle
+        if shoulderangle > 15:
+            shoulderangle = 15
+        if shoulderangle < -55:
+            shoulderangle = -55
+    return [0, shoulderangle]
+
+
+def eubik2(pos, armid="rgt"):
+    """
+    compute the euristic waist angles for the first three joints?
+    ew = euristic waist
+
+    :param pos: object position
+    :return: [waistangle, shoulderangle] in degree
+
+    author: weiwei
+    date: 20161202
+    """
+
+    newpos = copy.deepcopy(pos)
+    anglecomponent1 = 0
+    try:
+        anglecomponent1 = math.asin(210/np.linalg.norm(newpos[0:2]))
+    except:
+        pass
+    waistangle = (math.atan2(newpos[1], newpos[0]) + anglecomponent1)*180/math.pi
+    if armid == "lft":
+        waistangle = -waistangle
+    shoulderangle = 0
+    if waistangle > 40 or waistangle < -40 or waistangle == 0:
+        if waistangle > 40:
+            waistangle = 40
+        if waistangle < -40:
+            waistangle = -40
+        try:
+            if armid == "rgt":
+                newpos[1] = newpos[1]-80
+            else:
+                if armid == "lft":
+                    newpos[1] = newpos[1]+80
+                else:
+                    raise ValueError("Armid must be 'rgt' or 'lft'")
+            anglecomponent1 = math.asin(130 / np.linalg.norm(newpos[0:2]))
+        except:
+            pass
+        shoulderangle = (math.atan2(newpos[1], newpos[0]) + anglecomponent1) * 180 / math.pi
+        if armid == "rgt":
+            if shoulderangle > 55:
+                shoulderangle = 55
+            if shoulderangle < -15:
+                shoulderangle = -15
+        if armid == "lft":
+            shoulderangle = -shoulderangle
+            if shoulderangle > 15:
+                shoulderangle = 15
+            if shoulderangle < -55:
+                shoulderangle = -55
+    return [waistangle, shoulderangle]
 
 
 def jacobian(hrp5robot, armid="rgt"):
@@ -132,7 +206,6 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
     # stablizer
     steplength = 30
     armjntssave = hrp5robot.getarmjnts6(armid)
-    print armjntssave
     armjntsiter = armjntssave.copy()
     for i in range(500):
         armjac = jacobian(hrp5robot, armid)
@@ -141,6 +214,7 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
             dq = steplength*(np.linalg.solve(armjac, err))
         else:
             print "The Jacobian Matrix of the specified arm is at singularity"
+            hrp5robot.movearmfk6(armjntssave, armid)
             return None
         if np.linalg.norm(err)<1e-4:
             armjntsreturn = hrp5robot.getarmjnts6(armid)
@@ -151,7 +225,7 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
             armjntsiter += dq
             # the robot may encounter overrange errors in the first few iterations
             # use i<50 to avoid these errors
-            if hrp5robot.chkrng6(armjntsiter) or i < 50:
+            if hrp5robot.chkrng6(armjntsiter, armid) or i < 10:
                 # print armjntsiter
                 hrp5robot.movearmfk6(armjntsiter, armid)
                 # import hrp5plot
@@ -161,14 +235,50 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
                 # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
                 # nxtmnp.reparentTo(base.render)
             else:
-                import hrp5plot
-                hrp5plot.plotstick(base.render, hrp5robot)
+                # import hrp5plot
+                # hrp5plot.plotstick(base.render, hrp5robot)
+                hrp5robot.movearmfk6(armjntssave, armid)
                 return None
+    hrp5robot.movearmfk6(armjntssave, armid)
+    return None
 
+
+def numikr(hrp5robot, tgtpos, tgtrot, armid="rgt"):
+    """
+    solve the ik of the specified arm, waist is included (r means redundant)
+
+    :param hrp5robot:
+    :param tgtpos: the position of the goal, 1-by-3 numpy ndarray
+    :param tgtrot:
+    :param armid:
+    :return: [waist, shoulder, 1-by-6 armjnts]
+
+    author: weiwei
+    date: 20161216, sapporo
+    """
+
+    # anglewi means the init angle of waist
+    anglewai, angleshi = hrp5robot.getjntwaistshoulder(armid)
+    anglewa, anglesh = eubik(tgtpos, armid)
+    hrp5robot.movewaistshoulder(anglewa, anglesh, armid)
+    armjnts6 = numik(hrp5robot, tgtpos, tgtrot, armid)
+    hrp5robot.movewaistshoulder(anglewai, angleshi, armid)
+    if armjnts6 is None:
+        # try waist if shoulder doesnt work
+        anglewa2, anglesh2 = eubik2(tgtpos, armid)
+        hrp5robot.movewaistshoulder(anglewa2, anglesh2, armid)
+        armjnts62 = numik(hrp5robot, tgtpos, tgtrot, armid)
+        hrp5robot.movewaistshoulder(anglewai, angleshi, armid)
+        if armjnts62 is None:
+            return None
+        else:
+            return [anglewa2, anglesh2, armjnts62]
+    else:
+        return [anglewa, anglesh, armjnts6]
 
 if __name__=="__main__":
     pos = [300,300,0]
-    print eurgtbik(pos)
+    print eubik(pos)
 
     try:
         print math.asin(145/np.linalg.norm(pos[0:1]))

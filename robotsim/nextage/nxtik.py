@@ -3,7 +3,7 @@ import numpy as np
 import exceptions as ep
 
 
-def eurgtbik(pos):
+def eubik(pos, armid="rgt"):
     """
     compute the euristic waist rotation
     ew = euristic waist
@@ -17,10 +17,12 @@ def eurgtbik(pos):
 
     anglecomponent1 = 0
     try:
-        anglecomponent1 = math.asin(145/np.linalg.norm(pos[0:1]))
+        anglecomponent1 = math.asin(145/np.linalg.norm(pos[0:2]))
     except:
         pass
     waistangle = (math.atan2(pos[1], pos[0]) + anglecomponent1)*180/math.pi
+    if armid=="lft":
+        waistangle = -waistangle
     return waistangle
 
 
@@ -145,6 +147,7 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
             dq = steplength*(np.linalg.solve(armjac, err))
         else:
             print "The Jacobian Matrix of the specified arm is at singularity"
+            nxtrobot.movearmfk6(armjntssave, armid)
             return None
         if np.linalg.norm(err)<1e-4:
             armjntsreturn = nxtrobot.getarmjnts6(armid)
@@ -152,7 +155,7 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
             return armjntsreturn
         else:
             armjntsiter += dq
-            if nxtrobot.chkrng6(armjntsiter):
+            if nxtrobot.chkrng6(armjntsiter) or i < 10:
                 nxtrobot.movearmfk6(armjntsiter, armid)
                 import nxtplot
                 # nxtplot.plotstick(base.render, nxtrobot)
@@ -162,7 +165,9 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
                 # nxtmnp.reparentTo(base.render)
             else:
                 nxtrobot.movearmfk6(armjntssave, armid)
+                print "No feasible IK"
                 return None
+    nxtrobot.movearmfk6(armjntssave, armid)
 
 def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     """
@@ -171,7 +176,7 @@ def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     :param nxtrobot:
     :param tgtpos:
     :param tgtrot:
-    :param armid:  armjnts: a 1-by-7 numpy ndarray where the first eleemnt is the waist rot angle
+    :param armid:  armjnts: a 1-by-7 numpy ndarray where the first element is the waist rot angle
     :return:
 
     author: weiwei
@@ -180,14 +185,14 @@ def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
 
     # anglewi means the init angle of waist
     anglewi = nxtrobot.getjntwaist()
-    armjntb = eurgtbik(tgtpos)
+    armjntb = eubik(tgtpos, armid)
     nxtrobot.movewaist(armjntb)
-    armjnts6 = numik(nxtrobot, tgtpos, tgtrot)
+    armjnts6 = numik(nxtrobot, tgtpos, tgtrot, armid)
     if armjnts6 is None:
+        nxtrobot.movewaist(anglewi)
         return None
     else:
         nxtrobot.movewaist(anglewi)
-
         armjnts7 = [armjntb]
         armjnts7.extend(armjnts6)
 
