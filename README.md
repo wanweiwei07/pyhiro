@@ -1,5 +1,5 @@
 # pyhiro
-python scripts to control the hiro/nxo
+python scripts to control the hiro/nxo/hrp5p
 
 The following libraries are used
 
@@ -10,6 +10,7 @@ The following libraries are used
 
 The following executable programs are used:
 1) MySQL set (including server, bench, dump, etc.)
+Import 20170113freegrip.sql as into the DBMS system first.
 
 The program follows these common sense:
 (1) A 3d point or nd vector is represented using one row of np.array list
