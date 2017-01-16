@@ -11,6 +11,7 @@ from panda3d.bullet import BulletWorld
 from panda3d.core import *
 from shapely.geometry import Point
 from shapely.geometry import Polygon
+from shapely.geometry import MultiPolygon
 from sklearn.cluster import KMeans
 from sklearn.neighbors import RadiusNeighborsClassifier
 
@@ -19,7 +20,6 @@ import pandaplotutils.pandageom as pandageom
 import sample
 import trimesh
 from utils import robotmath
-
 
 class FreegripContactpairs(object):
 
@@ -60,7 +60,7 @@ class FreegripContactpairs(object):
         self.facetcolorarray = pandageom.randomColorArray(self.facets.shape[0])
         self.sampleObjModel()
 
-    def sampleObjModel(self, numpointsoververts=10):
+    def sampleObjModel(self, numpointsoververts=5):
         """
         sample the object model
         self.objsamplepnts and self.objsamplenrmls
@@ -75,7 +75,9 @@ class FreegripContactpairs(object):
 
         nverts = self.objtrimesh.vertices.shape[0]
         samples, face_idx = sample.sample_surface_even(self.objtrimesh,
-                                                       count=1000 if nverts > 1000 else nverts*5)
+                                                       count=(1000 if nverts*numpointsoververts > 1000 \
+                                                                  else nverts*numpointsoververts))
+        print nverts
         self.objsamplepnts = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.objsamplenrmls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         for i, faces in enumerate(self.facets):
@@ -108,10 +110,13 @@ class FreegripContactpairs(object):
         date: 20160623 flight to tokyo
         '''
 
+        # ref = refine
         self.objsamplepnts_ref = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.objsamplenrmls_ref = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.facet2dbdries = []
         for i, faces in enumerate(self.facets):
+            print "removebadsample"
+            print i,len(self.facets)
             facetp = None
             face0verts = self.objtrimesh.vertices[self.objtrimesh.faces[faces[0]]]
             facetmat = robotmath.rotmatfacet(self.facetnormals[i], face0verts[0], face0verts[1])
@@ -132,20 +137,26 @@ class FreegripContactpairs(object):
                 if facetp is None:
                     facetp = facep
                 else:
-                    facetp = facetp.union(facep)
+                    try:
+                        facetp = facetp.union(facep)
+                    except:
+                        continue
             self.facet2dbdries.append(facetp)
             selectedele = []
             for j, apntp in enumerate(samplepntsp):
-                apntpnt = Point(apntp[0], apntp[1])
-                dbnds = []
-                dbnds.append(apntpnt.distance(facetp.exterior))
-                for fpinter in facetp.interiors:
-                    dbnds.append(apntpnt.distance(fpinter))
-                dbnd = min(dbnds)
-                if dbnd < mindist or dbnd > maxdist:
+                try:
+                    apntpnt = Point(apntp[0], apntp[1])
+                    dbnds = []
+                    dbnds.append(apntpnt.distance(facetp.exterior))
+                    for fpinter in facetp.interiors:
+                        dbnds.append(apntpnt.distance(fpinter))
+                    dbnd = min(dbnds)
+                    if dbnd < mindist or dbnd > maxdist:
+                        pass
+                    else:
+                        selectedele.append(j)
+                except:
                     pass
-                else:
-                    selectedele.append(j)
             self.objsamplepnts_ref[i] = np.asarray([self.objsamplepnts[i][j] for j in selectedele])
             self.objsamplenrmls_ref[i] = np.asarray([self.objsamplenrmls[i][j] for j in selectedele])
         self.facet2dbdries = np.array(self.facet2dbdries)
@@ -240,6 +251,8 @@ class FreegripContactpairs(object):
         self.objsamplepnts_refcls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.objsamplenrmls_refcls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         for i, facet in enumerate(self.facets):
+            print "cluster"
+            print i,len(self.facets)
             self.objsamplepnts_refcls[i] = []
             self.objsamplenrmls_refcls[i] = []
             X = self.objsamplepnts_ref[i]
@@ -307,6 +320,8 @@ class FreegripContactpairs(object):
         nfacets = self.facets.shape[0]
         self.facetpairs = list(itertools.combinations(range(nfacets), 2))
         for facetpair in self.facetpairs:
+            print "facetpair"
+            print facetpair, len(self.facetpairs)
             self.gripcontactpairs.append([])
             self.gripcontactpairnormals.append([])
             self.gripcontactpairfacets.append([])
@@ -338,10 +353,14 @@ class FreegripContactpairs(object):
                     result = bulletworldray.rayTestClosest(pFrom, pTo)
                     if result.hasHit():
                         hitpos = result.getHitPos()
-                        self.gripcontactpairs[-1].append([facet0pnt.tolist(), [hitpos[0], hitpos[1], hitpos[2]]])
-                        self.gripcontactpairnormals[-1].append([[facet0normal[0], facet0normal[1], facet0normal[2]],
-                                                            [facet1normal[0], facet1normal[1], facet1normal[2]]])
-                        self.gripcontactpairfacets[-1].append(facetpair)
+                        # avoid large torque
+                        if np.linalg.norm(np.array(facet0pnt.tolist())-np.array([hitpos[0], hitpos[1], hitpos[2]])) < 82:
+                            fgrcenter = (np.array(facet0pnt.tolist())+np.array([hitpos[0], hitpos[1], hitpos[2]]))/2.0
+                            if np.linalg.norm(self.objtrimesh.center_mass - fgrcenter) < 100:
+                                self.gripcontactpairs[-1].append([facet0pnt.tolist(), [hitpos[0], hitpos[1], hitpos[2]]])
+                                self.gripcontactpairnormals[-1].append([[facet0normal[0], facet0normal[1], facet0normal[2]],
+                                                                    [facet1normal[0], facet1normal[1], facet1normal[2]]])
+                                self.gripcontactpairfacets[-1].append(facetpair)
 
                         # pre collision checking: it takes one finger as a cylinder and
                         # computes its collision with the object

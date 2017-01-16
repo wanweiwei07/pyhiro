@@ -3,15 +3,21 @@ python scripts to control the hiro/nxo
 
 The following libraries are used
 
-1) trimesh for mesh processing
+1) Panda3D
+2) Networkx
+3) Numpy, Scipy
+4) MySQLdb
 
-https://pypi.python.org/pypi/trimesh
+The following executable programs are used:
+1) MySQL set (including server, bench, dump, etc.)
 
 The program follows these common sense:
 (1) A 3d point or nd vector is represented using one row of np.array list
 (2) A n-by-3 matrix is represented by n rows of np.array list
 
-TODO:
-(1) when creating a panda geom from trimesh, the points are added following
-faces. They are repeated.
-(2) nodepath setcolor doesnt seem to affect its children (representto@star)
+Executing the program for HRP5P
+1) Compute the grasps using freegrip.py (under manipulation/grip)
+2) Compute the stable placements using freetabletopplacement.py (under manipulation/grip)
+3) Compute the stable placements and ik-feasible grasps all over a table surface using tableplacements.py (under manipulation/regrasp)
+4) Build the regrasp graph using regriptpp.py (under manipulation/regrasp)
+Step 4) is integrated in regrasp/hrp5plot.py, see the final results by executing this file.

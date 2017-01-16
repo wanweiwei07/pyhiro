@@ -93,12 +93,14 @@ class Freegrip(fgcp.FreegripContactpairs):
         self.gripjawwidth = []
         self.gripcontactnormals = []
 
+        # must be smaller than 3
         plotoffsetfp = 2
 
         self.counter = 0
 
         while self.counter < self.facetpairs.shape[0]:
             print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
+            print self.gripcontactpairs_precc
 
             facetpair = self.facetpairs[self.counter]
             facetidx0 = facetpair[0]
@@ -170,6 +172,7 @@ class Freegrip(fgcp.FreegripContactpairs):
 
         while self.counter < self.facetpairs.shape[0]:
             print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
+            print self.gripcontactpairs
             self.gripcontactpairs_precc.append([])
             self.gripcontactpairnormals_precc.append([])
             self.gripcontactpairfacets_precc.append([])
@@ -230,12 +233,13 @@ class Freegrip(fgcp.FreegripContactpairs):
         result = gdb.execute(sql)
         if not result:
             sql = "SELECT idobject FROM object WHERE objname LIKE '%s'" % self.dbobjname
-            returnlist = gdb.execute(sql)[0]
+            returnlist = gdb.execute(sql)
             if len(returnlist) != 0:
-                idobject = returnlist[0]
+                idobject = returnlist[0][0]
             else:
                 sql = "INSERT INTO object(objname) VALUES('%s')" % self.dbobjname
                 idobject = gdb.execute(sql)
+            print self.gripcontacts
             for i in range(len(self.gripcontacts)):
                 sql = "INSERT INTO freeairgrip(idobject, contactpnt0, contactpnt1, \
                         contactnormal0, contactnormal1, rotmat, jawwidth) \
@@ -489,18 +493,23 @@ if __name__=='__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "tool.stl")
     freegriptst = Freegrip(objpath)
 
-    # freegriptst.segShow(base, togglesamples=False, togglenormals=False,
+    # freegriptst.segShow(base, togglesamples=True, togglenormals=False,
     #                     togglesamples_ref=False, togglenormals_ref=False,
     #                     togglesamples_refcls=False, togglenormals_refcls=False)
 
-    freegriptst.removeFgrpcc(base)
-    freegriptst.removeHndcc(base)
+    import dill
+    dill.dump(freegriptst, open('freegriptstdebug.obj', 'wb'))
 
-    gdb = db.GraspDB()
-    freegriptst.saveToDB(gdb)
+    # freegriptst = dill.load(open('freegriptstdebug.obj', 'rb'))
+    # freegriptst.removeFgrpcc(base)
+    # freegriptst.removeHndcc(base)
+    #
+    # gdb = db.GraspDB()
+    # freegriptst.saveToDB(gdb)
 
     # def updateshow(task):
     # #     freegriptst.removeFgrpccShow(base)
