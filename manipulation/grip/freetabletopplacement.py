@@ -6,6 +6,7 @@ import MySQLdb as mdb
 import numpy as np
 from manipulation.grip.robotiq85 import rtq85nm
 from panda3d.bullet import BulletWorld
+from panda3d.bullet import BulletDebugNode
 from panda3d.core import *
 from shapely.geometry import LinearRing
 from shapely.geometry import Point
@@ -46,16 +47,10 @@ class FreeTabletopPlacement(object):
 
         # use two bulletworld, one for the ray, the other for the tabletop
         self.bulletworldray = BulletWorld()
-        self.bulletworldtable = BulletWorld()
-        # add tabletop plane model to bulletworld
-        # tt = tabletop
-        this_dir, this_filename = os.path.split(__file__)
-        ttpath = Filename.fromOsSpecific(os.path.join(this_dir, "supports", "tabletop.egg"))
-        self.ttnodepath = NodePath("tabletop")
-        ttl = loader.loadModel(ttpath)
-        ttl.instanceTo(self.ttnodepath)
-        self.ttbullnode = cd.genCollisionMeshNp(self.ttnodepath)
-        self.bulletworldtable.attachRigidBody(self.ttbullnode)
+        self.bulletworldhp = BulletWorld()
+        # plane to remove hand
+        self.planebullnode = cd.genCollisionPlane()
+        self.bulletworldhp.attachRigidBody(self.planebullnode)
 
         self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
 
@@ -151,14 +146,14 @@ class FreeTabletopPlacement(object):
                         # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
                         initmat = tmprtq85.getMat()
                         initjawwidth = tmprtq85.jawwidth
-                        tmprtq85.setJawwidth(self.freegripjawwidth[j])
+                        # open the hand to ensure it doesnt collide with surrounding obstacles
+                        # tmprtq85.setJawwidth(self.freegripjawwidth[j])
+                        tmprtq85.setJawwidth(80)
                         tmprtq85.setMat(tpsgriprotmat)
                         # add hand model to bulletworld
                         hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
-                        self.bulletworldtable.attachRigidBody(hndbullnode)
-                        result = self.bulletworldtable.contactTest(self.ttbullnode)
+                        result = self.bulletworldhp.contactTest(hndbullnode)
                         print result.getNumContacts()
-                        self.bulletworldtable.removeRigidBody(hndbullnode)
                         if not result.getNumContacts():
                             self.tpsgriprotmats[-1].append(tpsgriprotmat)
                             cct0 = self.tpsmat4s[-1].xformPoint(self.freegripcontacts[j][0])
@@ -249,7 +244,7 @@ class FreeTabletopPlacement(object):
         """
 
         plotoffsetfp = 10
-        print self.counter
+        # print self.counter
 
         if self.counter < len(self.ocfacets):
             i = self.counter
@@ -258,12 +253,12 @@ class FreeTabletopPlacement(object):
                                            self.objtrimeshconv.face_normals[self.ocfacets[i]],
                                            self.objtrimeshconv.faces[self.ocfacets[i]])
             geombullnode = cd.genCollisionMeshGeom(geom)
-            self.bulletworld.attachRigidBody(geombullnode)
+            self.bulletworldray.attachRigidBody(geombullnode)
             pFrom = Point3(self.objcom[0], self.objcom[1], self.objcom[2])
             pTo = self.objcom+self.ocfacetnormals[i]*99999
             pTo = Point3(pTo[0], pTo[1], pTo[2])
-            result = self.bulletworld.rayTestClosest(pFrom, pTo)
-            self.bulletworld.removeRigidBody(geombullnode)
+            result = self.bulletworldray.rayTestClosest(pFrom, pTo)
+            self.bulletworldray.removeRigidBody(geombullnode)
             if result.hasHit():
                 hitpos = result.getHitPos()
                 pg.plotArrow(base.render, spos=self.objcom,
@@ -328,8 +323,8 @@ class FreeTabletopPlacement(object):
                        freetabletopplacement.idobject = object.idobject AND object.objname LIKE '%s'" % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) != 0:
-            idfreetabletopplacement = int(result[-1][0])
-            objrotmat  = dc.strToMat4(result[-1][1])
+            idfreetabletopplacement = int(result[3][0])
+            objrotmat  = dc.strToMat4(result[3][1])
             # show object
             geom = pg.packpandageom(self.objtrimesh.vertices,
                                     self.objtrimesh.face_normals,
@@ -338,7 +333,7 @@ class FreeTabletopPlacement(object):
             node.addGeom(geom)
             star = NodePath('obj')
             star.attachNewNode(node)
-            star.setColor(Vec4(1,0,0,1))
+            star.setColor(Vec4(.77,0.67,0,1))
             star.setTransparency(TransparencyAttrib.MAlpha)
             star.setMat(objrotmat)
             star.reparentTo(base.render)
@@ -349,9 +344,10 @@ class FreeTabletopPlacement(object):
                 hndrotmat = dc.strToMat4(resultrow[0])
                 hndjawwidth = float(resultrow[1])
                 # show grasps
-                tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .5])
+                tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .1])
                 tmprtq85.setMat(hndrotmat)
                 tmprtq85.setJawwidth(hndjawwidth)
+                # tmprtq85.setJawwidth(80)
                 tmprtq85.reparentTo(base.render)
 
     def ocfacetshow(self, base):
@@ -390,12 +386,17 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
+    # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
+    # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
+    # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
     print objpath
     gdb = db.GraspDB()
     tps = FreeTabletopPlacement(objpath, gdb)
 
-    # plot obj and its convexhull
+    # # plot obj and its convexhull
     # geom = pandageom.packpandageom(tps.objtrimesh.vertices,
     #                                tps.objtrimesh.face_normals,
     #                                tps.objtrimesh.faces)
@@ -405,8 +406,7 @@ if __name__ == '__main__':
     # star.attachNewNode(node)
     # star.setColor(Vec4(1,0,0,1))
     # star.setTransparency(TransparencyAttrib.MAlpha)
-    # star.reparentTo(base.render)
-    #
+    # # star.reparentTo(base.render)
     # geom = pandageom.packpandageom(tps.objtrimeshconv.vertices,
     #                                tps.objtrimeshconv.face_normals,
     #                                tps.objtrimeshconv.faces)
@@ -417,34 +417,28 @@ if __name__ == '__main__':
     # star.setColor(Vec4(0, 1, 0, .3))
     # star.setTransparency(TransparencyAttrib.MAlpha)
     # star.reparentTo(base.render)
-
-
     # def updateshow(task):
     #     # tps.ocfacetshow(base)
-    #     tps.removebadfacetsshow(base, doverh=.033)
+    #     tps.removebadfacetsshow(base, doverh=.1)
     #     return task.again
-    #
     # taskMgr.doMethodLater(.1, updateshow, "tickTask")
-
 
     # def updateworld(world, task):
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
-
-    # tps.loadFreeAirGrip(gdb)
-    # tps.removebadfacets(base, doverh=.033)
-    # tps.saveToDB(gdb)
-    tps.grpshow(base)
-
+    #
+    # tps.removebadfacets(base, doverh=.2)
+    # tps.saveToDB()
+    #
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
     # debugNode.showWireframe(True)
     # debugNP = bullcldrnp.attachNewNode(debugNode)
     # debugNP.show()
     #
-    # tps.bulletworldtable.setDebugNode(debugNP.node())
+    # tps.bulletworldhp.setDebugNode(debugNP.node())
     #
-    # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldtable], appendTask=True)
+    # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldhp], appendTask=True)
 
-    # tps.tpsgrpshow(base)
+    tps.grpshow(base)
     base.run()

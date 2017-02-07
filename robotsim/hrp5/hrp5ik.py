@@ -217,15 +217,19 @@ def numik(hrp5robot, tgtpos, tgtrot, armid="rgt"):
             hrp5robot.movearmfk6(armjntssave, armid)
             return None
         if np.linalg.norm(err)<1e-4:
-            armjntsreturn = hrp5robot.getarmjnts6(armid)
-            hrp5robot.movearmfk6(armjntssave, armid)
-            return armjntsreturn
+            if hrp5robot.chkrng6(armjntsiter, armid):
+                armjntsreturn = hrp5robot.getarmjnts6(armid)
+                hrp5robot.movearmfk6(armjntssave, armid)
+                return armjntsreturn
+            else:
+                hrp5robot.movearmfk6(armjntssave, armid)
+                return None
         else:
             # todo dq definition
             armjntsiter += dq
             # the robot may encounter overrange errors in the first few iterations
             # use i<50 to avoid these errors
-            if hrp5robot.chkrng6(armjntsiter, armid) or i < 10:
+            if hrp5robot.chkrng6(armjntsiter, armid) or i < 50:
                 # print armjntsiter
                 hrp5robot.movearmfk6(armjntsiter, armid)
                 # import hrp5plot

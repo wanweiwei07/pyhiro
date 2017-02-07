@@ -50,17 +50,17 @@ class RegripTpp():
         # for removing the grasps at start and goal
         self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
 
-        # use two bulletworld, one for the ray, the other for the tabletop
+        # plane to remove hand
         self.bulletworld = BulletWorld()
+        self.planebullnode = cd.genCollisionPlane()
+        self.bulletworld.attachRigidBody(self.planebullnode)
+
         # add tabletop plane model to bulletworld
-        # tt = tabletop
         this_dir, this_filename = os.path.split(__file__)
         ttpath = Filename.fromOsSpecific(os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "supports", "tabletop.egg"))
         self.ttnodepath = NodePath("tabletop")
         ttl = loader.loadModel(ttpath)
         ttl.instanceTo(self.ttnodepath)
-        self.ttbullnode = cd.genCollisionMeshNp(self.ttnodepath)
-        self.bulletworld.attachRigidBody(self.ttbullnode)
 
         self.startnodeids = None
         self.goalnodeids = None
@@ -231,14 +231,14 @@ class RegripTpp():
             # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
             initmat = tmprtq85.getMat()
             initjawwidth = tmprtq85.jawwidth
-            tmprtq85.setJawwidth(self.freegripjawwidth[j])
+            # set jawwidth to 80 to avoid collision with surrounding obstacles
+            # set to gripping with is unnecessary
+            # tmprtq85.setJawwidth(self.freegripjawwidth[j])
+            tmprtq85.setJawwidth(80)
             tmprtq85.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
             hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
-            self.bulletworld.attachRigidBody(hndbullnode)
-            result = self.bulletworld.contactTest(self.ttbullnode)
-            # print result.getNumContacts()
-            self.bulletworld.removeRigidBody(hndbullnode)
+            result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=startrotmat4.xformPoint(self.freegripcontacts[j][0])
                 ttgscct1=startrotmat4.xformPoint(self.freegripcontacts[j][1])
@@ -258,10 +258,10 @@ class RegripTpp():
                 ttgsfgrcenternp_worlda = pg.v3ToNp(ttgsfgrcenterworlda)
                 ttgsfgrcenternp_worldaworldz = pg.v3ToNp(ttgsfgrcenterworldaworldz)
                 ttgsrotmat3np = pg.mat3ToNp(ttgsrotmat.getUpper3())
-                ikc = self.robot.numik(ttgsfgrcenternp, ttgsrotmat3np)
-                ikcx = self.robot.numik(ttgsfgrcenternp_handx, ttgsrotmat3np)
-                ikca = self.robot.numik(ttgsfgrcenternp_worlda, ttgsrotmat3np)
-                ikcaz = self.robot.numik(ttgsfgrcenternp_worldaworldz, ttgsrotmat3np)
+                ikc = self.robot.numikr(ttgsfgrcenternp, ttgsrotmat3np)
+                ikcx = self.robot.numikr(ttgsfgrcenternp_handx, ttgsrotmat3np)
+                ikca = self.robot.numikr(ttgsfgrcenternp_worlda, ttgsrotmat3np)
+                ikcaz = self.robot.numikr(ttgsfgrcenternp_worldaworldz, ttgsrotmat3np)
                 if (ikc is not None) and (ikcx is not None) and (ikca is not None) and (ikcaz is not None):
                     # note the tabletopposition here is not the contact for the intermediate states
                     # it is the zero pos
@@ -324,10 +324,7 @@ class RegripTpp():
             tmprtq85.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
             hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
-            self.bulletworld.attachRigidBody(hndbullnode)
-            result = self.bulletworld.contactTest(self.ttbullnode)
-            # print result.getNumContacts()
-            self.bulletworld.removeRigidBody(hndbullnode)
+            result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=goalrotmat4.xformPoint(self.freegripcontacts[j][0])
                 ttgscct1=goalrotmat4.xformPoint(self.freegripcontacts[j][1])

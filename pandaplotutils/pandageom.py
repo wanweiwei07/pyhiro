@@ -62,6 +62,37 @@ def packpandageom(vertices, facenormals, triangles, name=''):
 
     return geom
 
+def packpandanode(vertices, facenormals, triangles, name=''):
+    """
+    package the vertices and triangles into a panda3d geom
+
+    ## input
+    vertices:
+        a n-by-3 nparray, each row is a vertex
+    facenormals:
+        a n-by-3 nparray, each row is the normal of a face
+    triangles:
+        a n-by-3 nparray, each row is three idx to the vertices
+    name:
+        not as important
+
+    ## output
+    pandanode
+        a panda node
+
+    author: weiwei
+    date: 20170120
+    """
+
+    objgeom = packpandageom(vertices, facenormals, triangles, name)
+    geomnodeobj = GeomNode('obj')
+    geomnodeobj.addGeom(objgeom)
+    npnodeobj = NodePath('obj')
+    npnodeobj.attachNewNode(geomnodeobj)
+    npnodeobj.reparentTo(base.render)
+
+    return npnodeobj
+
 def randomColorArray(ncolors=1):
     """
     Generate an array of random colors
@@ -622,7 +653,7 @@ def facetboundary(objtrimesh, facet, facetcenter, facetnormal):
 
     return [verts3d, verts2d, facetmat4]
 
-def genObjmnp(objpath):
+def genObjmnp(objpath, color = Vec4(1,0,0,1)):
     """
     gen objmnp
 
@@ -638,7 +669,7 @@ def genObjmnp(objpath):
     node.addGeom(geom)
     objmnp = NodePath('obj')
     objmnp.attachNewNode(node)
-    objmnp.setColor(Vec4(1, 0, 0, 1))
+    objmnp.setColor(color)
     objmnp.setTransparency(TransparencyAttrib.MAlpha)
 
     return objmnp

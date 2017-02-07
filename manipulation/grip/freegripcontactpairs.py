@@ -18,12 +18,14 @@ from sklearn.neighbors import RadiusNeighborsClassifier
 import pandaplotutils.pandactrl as pandactrl
 import pandaplotutils.pandageom as pandageom
 import sample
+import sys
 import trimesh
 from utils import robotmath
+import pickle
 
 class FreegripContactpairs(object):
 
-    def __init__(self, ompath):
+    def __init__(self, ompath, ser=False):
         self.objtrimesh = None
         # the sampled points and their normals
         self.objsamplepnts = None
@@ -34,8 +36,6 @@ class FreegripContactpairs(object):
         # the sampled points (bad samples removed + clustered)
         self.objsamplepnts_refcls = None
         self.objsamplenrmls_refcls = None
-        self.hndmodel = None
-        self.grasps = None
         # facets is used to avoid repeated computation
         self.facets = None
         # facetnormals is used to plot overlapped facets with different heights
@@ -47,18 +47,46 @@ class FreegripContactpairs(object):
         self.gripcontactpairs = None
         self.gripcontactpairnormals = None
         self.gripcontactpairfacets = None
-        # for pre-collision checking of the contact pairs
-        self.preccradius = 3
         # for plot
         self.facetcolorarray = None
         self.counter = 0
-        self.loadObjModel(ompath)
+        if ser is False:
+            self.loadObjModel(ompath)
+            self.saveSerialized("tmpnocp.pickle")
+        else:
+            self.loadSerialized("tmpnocp.pickle", ompath)
 
     def loadObjModel(self, ompath):
         self.objtrimesh=trimesh.load_mesh(ompath)
-        self.facets, self.facetnormals = self.objtrimesh.facets_over()
+        # oversegmentation
+        self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.95)
+        # conventional approach
+        # self.facets = self.objtrimesh.facets()
+        # self.facetnormals = []
+        # for i, faces in enumerate(self.objtrimesh.facets()):
+        #     facetnormal = np.sum(self.objtrimesh.face_normals[faces], axis=0)
+        #     facetnormal = facetnormal/np.linalg.norm(facetnormal)
+        #     self.facetnormals.append(facetnormal)
         self.facetcolorarray = pandageom.randomColorArray(self.facets.shape[0])
         self.sampleObjModel()
+
+    def loadSerialized(self, filename, ompath):
+        self.objtrimesh=trimesh.load_mesh(ompath)
+        try:
+            self.facets, self.facetnormals, self.facetcolorarray, self.objsamplepnts, \
+            self.objsamplenrmls, self.objsamplepnts_ref, self.objsamplenrmls_ref, \
+            self.objsamplepnts_refcls, self.objsamplenrmls_refcls, self.facetpairs, \
+            self.gripcontactpairs, self.gripcontactpairnormals, self.gripcontactpairfacets = \
+            pickle.load(open(filename, mode="rb"))
+        except:
+            print str(sys.exc_info()[0])+" cannot load tmpcp.pickle"
+            raise
+
+    def saveSerialized(self, filename):
+        pickle.dump([self.facets, self.facetnormals, self.facetcolorarray, self.objsamplepnts, \
+         self.objsamplenrmls, self.objsamplepnts_ref, self.objsamplenrmls_ref, \
+         self.objsamplepnts_refcls, self.objsamplenrmls_refcls, self.facetpairs, \
+         self.gripcontactpairs, self.gripcontactpairnormals, self.gripcontactpairfacets], open(filename, mode="wb"))
 
     def sampleObjModel(self, numpointsoververts=5):
         """
@@ -245,9 +273,6 @@ class FreegripContactpairs(object):
         date: 20161130, osaka
         """
 
-        # update the pre collision detection radius
-        self.preccradius = reduceRadius
-
         self.objsamplepnts_refcls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.objsamplenrmls_refcls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         for i, facet in enumerate(self.facets):
@@ -284,10 +309,11 @@ class FreegripContactpairs(object):
                 self.objsamplepnts_refcls[i] = np.empty(shape=(0,0))
                 self.objsamplenrmls_refcls[i] = np.empty(shape=(0,0))
 
-    def planContactpairs(self):
+    def planContactpairs(self, torqueresist = 50):
         """
         find the grasps using parallel pairs
 
+        :param: torqueresist the maximum allowable distance to com
         :return:
 
         author: weiwei
@@ -328,6 +354,7 @@ class FreegripContactpairs(object):
             # if one of the facet doesnt have samples, jump to next
             if self.objsamplepnts_refcls[facetpair[0]].shape[0] is 0 or \
                             self.objsamplepnts_refcls[facetpair[1]].shape[0] is 0:
+                print "no sampled points"
                 continue
             # check if the faces are opposite and parallel
             dotnorm = np.dot(self.facetnormals[facetpair[0]], self.facetnormals[facetpair[1]])
@@ -356,7 +383,7 @@ class FreegripContactpairs(object):
                         # avoid large torque
                         if np.linalg.norm(np.array(facet0pnt.tolist())-np.array([hitpos[0], hitpos[1], hitpos[2]])) < 82:
                             fgrcenter = (np.array(facet0pnt.tolist())+np.array([hitpos[0], hitpos[1], hitpos[2]]))/2.0
-                            if np.linalg.norm(self.objtrimesh.center_mass - fgrcenter) < 100:
+                            if np.linalg.norm(self.objtrimesh.center_mass - fgrcenter) < torqueresist:
                                 self.gripcontactpairs[-1].append([facet0pnt.tolist(), [hitpos[0], hitpos[1], hitpos[2]]])
                                 self.gripcontactpairnormals[-1].append([[facet0normal[0], facet0normal[1], facet0normal[2]],
                                                                     [facet1normal[0], facet1normal[1], facet1normal[2]]])
@@ -436,7 +463,7 @@ class FreegripContactpairs(object):
             rgbapnts2 = [1,0,0,1]
             if togglesamples:
                 for j, apnt in enumerate(self.objsamplepnts[i]):
-                    pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=1, rgba=rgbapnts0)
+                    pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3, rgba=rgbapnts0)
             if togglenormals:
                 for j, apnt in enumerate(self.objsamplepnts[i]):
                     pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
@@ -444,7 +471,7 @@ class FreegripContactpairs(object):
                                         rgba=rgbapnts0, length=10)
             if togglesamples_ref:
                 for j, apnt in enumerate(self.objsamplepnts_ref[i]):
-                    pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=2, rgba=rgbapnts1)
+                    pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3, rgba=rgbapnts1)
             if togglenormals_ref:
                 for j, apnt in enumerate(self.objsamplepnts_ref[i]):
                     pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
@@ -458,6 +485,118 @@ class FreegripContactpairs(object):
                     pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
                                         epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls_refcls[i][j],
                                         rgba=rgbapnts2, length=10)
+
+    def segShow2(self, base, togglesamples=False, togglenormals=False,
+                togglesamples_ref=False, togglenormals_ref=False,
+                togglesamples_refcls=False, togglenormals_refcls=False, specificface = True):
+        """
+
+        :param base:
+        :param togglesamples:
+        :param togglenormals:
+        :param togglesamples_ref: toggles the sampled points that fulfills the dist requirements
+        :param togglenormals_ref:
+        :return:
+        """
+
+        nfacets = self.facets.shape[0]
+        facetcolorarray = self.facetcolorarray
+
+        rgbapnts0 = [1, 1, 1, 1]
+        rgbapnts1 = [0, 0, 1, 1]
+        rgbapnts2 = [1, 0, 0, 1]
+
+        # offsetf = facet
+        plotoffsetf = .0
+        faceplotted = False
+        # plot the segments
+        for i, facet in enumerate(self.facets):
+            if not specificface:
+                geom = pandageom.packpandageom(self.objtrimesh.vertices+np.tile(plotoffsetf*i*self.facetnormals[i],
+                                                                                [self.objtrimesh.vertices.shape[0],1]),
+                                               self.objtrimesh.face_normals[facet], self.objtrimesh.faces[facet])
+                node = GeomNode('piece')
+                node.addGeom(geom)
+                star = NodePath('piece')
+                star.attachNewNode(node)
+                star.setColor(Vec4(.77, .17, 0, 1))
+                star.setTransparency(TransparencyAttrib.MAlpha)
+
+                star.setTwoSided(True)
+                star.reparentTo(base.render)
+                # sampledpnts = samples[sample_idxes[i]]
+                # for apnt in sampledpnts:
+                #     pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
+                if togglesamples:
+                    for j, apnt in enumerate(self.objsamplepnts[i]):
+                        pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=2.8, rgba=rgbapnts0)
+                if togglenormals:
+                    for j, apnt in enumerate(self.objsamplepnts[i]):
+                        pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
+                                            epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls[i][j],
+                                            rgba=rgbapnts0, length=10)
+                if togglesamples_ref:
+                    for j, apnt in enumerate(self.objsamplepnts_ref[i]):
+                        pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=2.9, rgba=rgbapnts1)
+                if togglenormals_ref:
+                    for j, apnt in enumerate(self.objsamplepnts_ref[i]):
+                        pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
+                                            epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls_ref[i][j],
+                                            rgba=rgbapnts1, length=10)
+                if togglesamples_refcls:
+                    for j, apnt in enumerate(self.objsamplepnts_refcls[i]):
+                        pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3, rgba=rgbapnts2)
+                if togglenormals_refcls:
+                    for j, apnt in enumerate(self.objsamplepnts_refcls[i]):
+                        pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
+                                            epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls_refcls[i][j],
+                                            rgba=rgbapnts2, length=10)
+            if specificface:
+                plotoffsetf = .1
+                if faceplotted:
+                    continue
+                else:
+                    if len(self.objsamplepnts[i])>25:
+                        faceplotted = True
+                        geom = pandageom.packpandageom(self.objtrimesh.vertices+np.tile(plotoffsetf*i*self.facetnormals[i],
+                                                                                        [self.objtrimesh.vertices.shape[0],1]),
+                                                       self.objtrimesh.face_normals[facet], self.objtrimesh.faces[facet])
+                        node = GeomNode('piece')
+                        node.addGeom(geom)
+                        star = NodePath('piece')
+                        star.attachNewNode(node)
+                        star.setColor(Vec4(facetcolorarray[i][0], facetcolorarray[i][1], facetcolorarray[i][2], 1))
+                        star.setTransparency(TransparencyAttrib.MAlpha)
+
+                        star.setTwoSided(True)
+                        star.reparentTo(base.render)
+                        # sampledpnts = samples[sample_idxes[i]]
+                        # for apnt in sampledpnts:
+                        #     pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
+                        if togglesamples:
+                            for j, apnt in enumerate(self.objsamplepnts[i]):
+                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=2.8, rgba=rgbapnts0)
+                        if togglenormals:
+                            for j, apnt in enumerate(self.objsamplepnts[i]):
+                                pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
+                                                    epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls[i][j],
+                                                    rgba=rgbapnts0, length=10)
+                        if togglesamples_ref:
+                            for j, apnt in enumerate(self.objsamplepnts_ref[i]):
+                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=2.9, rgba=rgbapnts1)
+                        if togglenormals_ref:
+                            for j, apnt in enumerate(self.objsamplepnts_ref[i]):
+                                pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
+                                                    epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls_ref[i][j],
+                                                    rgba=rgbapnts1, length=10)
+                        if togglesamples_refcls:
+                            for j, apnt in enumerate(self.objsamplepnts_refcls[i]):
+                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3, rgba=rgbapnts2)
+                        if togglenormals_refcls:
+                            for j, apnt in enumerate(self.objsamplepnts_refcls[i]):
+                                pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
+                                                    epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls_refcls[i][j],
+                                                    rgba=rgbapnts2, length=10)
 
     def pairShow(self, base, togglecontacts = False, togglecontactnormals = False):
         # the following sentence requires segshow to be executed first
@@ -554,46 +693,100 @@ if __name__=='__main__':
     #
 
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
+    objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     freegriptst = FreegripContactpairs(objpath)
     # freegriptst.objtrimesh.show()
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     freegriptst.removeBadSamples()
     # freegriptst.clusterFacetSamplesKNN(reduceRatio=15, maxNPnts=5)
-    freegriptst.clusterFacetSamplesRNN(reduceRadius=1)
+    freegriptst.clusterFacetSamplesRNN(reduceRadius=10)
     freegriptst.planContactpairs()
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
                         togglesamples_refcls=False, togglenormals_refcls=False)
 
+    # freegriptst.segShow2(base, togglesamples=True, togglenormals=False,
+    #                     togglesamples_ref=False, togglenormals_ref=False,
+    #                     togglesamples_refcls=False, togglenormals_refcls=False, specificface = False)
+    #
+    # def updateshow0(freegriptst, task):
+    #     npc = base.render.findAllMatches("**/piece")
+    #     for np in npc:
+    #         np.removeNode()
+    #     freegriptst.segShow2(base, togglesamples=True, togglenormals=False,
+    #                         togglesamples_ref=False, togglenormals_ref=False,
+    #                         togglesamples_refcls=False, togglenormals_refcls=False, specificface = True)
+    #     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
+    #                         togglesamples_ref=False, togglenormals_ref=False,
+    #                         togglesamples_refcls=False, togglenormals_refcls=False)
+    #     return task.done
+    #
+    # def updateshow1(freegriptst, task):
+    #     npc = base.render.findAllMatches("**/piece")
+    #     for np in npc:
+    #         np.removeNode()
+    #     freegriptst.segShow2(base, togglesamples=True, togglenormals=False,
+    #                         togglesamples_ref=True, togglenormals_ref=False,
+    #                         togglesamples_refcls=False, togglenormals_refcls=False, specificface = True)
+    #     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
+    #                         togglesamples_ref=False, togglenormals_ref=False,
+    #                         togglesamples_refcls=False, togglenormals_refcls=False)
+    #     return task.done
+    #
+    # def updateshow2(freegriptst, task):
+    #     np = base.render.find("**/piece")
+    #     if np:
+    #         np.removeNode()
+    #     freegriptst.segShow2(base, togglesamples=True, togglenormals=False,
+    #                         togglesamples_ref=True, togglenormals_ref=False,
+    #                         togglesamples_refcls=True, togglenormals_refcls=False, specificface = True)
+    #     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
+    #                         togglesamples_ref=False, togglenormals_ref=False,
+    #                         togglesamples_refcls=False, togglenormals_refcls=False)
+    #     return task.done
+    #
+    # taskMgr.doMethodLater(10, updateshow0, "tickTask", extraArgs=[freegriptst], appendTask=True)
+    # taskMgr.doMethodLater(20, updateshow1, "tickTask", extraArgs=[freegriptst], appendTask=True)
+    # taskMgr.doMethodLater(30, updateshow2, "tickTask", extraArgs=[freegriptst], appendTask=True)
+    # base.run()
+
     def updateshow(task):
         freegriptst.pairShow(base, togglecontacts=True, togglecontactnormals=True)
-        # print task.delayTime
-        # if abs(task.delayTime-13) < 1:
-        #     task.delayTime -= 12.85
+        print task.delayTime
+        if abs(task.delayTime-13) < 1:
+            task.delayTime -= 12.85
         return task.again
-
-    taskMgr.doMethodLater(.5, updateshow, "tickTask")
-    base.run()
+    taskMgr.doMethodLater(1, updateshow, "tickTask")
 
     # geom = None
     # for i, faces in enumerate(freegriptst.objtrimesh.facets()):
     #     rgba = [np.random.random(),np.random.random(),np.random.random(),1]
-    #     geom = ppg.packpandageom(freegriptst.objtrimesh.vertices, freegriptst.objtrimesh.face_normals[faces], freegrip tst.objtrimesh.faces[faces])
+    #     # geom = pandageom.packpandageom(freegriptst.objtrimesh.vertices, freegriptst.objtrimesh.face_normals[faces], freegriptst.objtrimesh.faces[faces])
+    #     # compute facet normal
+    #     facetnormal = np.sum(freegriptst.objtrimesh.face_normals[faces], axis=0)
+    #     facetnormal = facetnormal/np.linalg.norm(facetnormal)
+    #     geom = pandageom.packpandageom(freegriptst.objtrimesh.vertices +
+    #                             np.tile(0 * facetnormal,
+    #                                     [freegriptst.objtrimesh.vertices.shape[0], 1]),
+    #                             freegriptst.objtrimesh.face_normals[faces],
+    #                             freegriptst.objtrimesh.faces[faces])
     #     node = GeomNode('piece')
     #     node.addGeom(geom)
     #     star = NodePath('piece')
     #     star.attachNewNode(node)
     #     star.setColor(Vec4(rgba[0],rgba[1],rgba[2],rgba[3]))
+    #     # star.setColor(Vec4(.7,.4,0,1))
     #     star.setTwoSided(True)
     #     star.reparentTo(base.render)
-    #     # sampledpnts = samples[sample_idxes[i]]
-    #     # for apnt in sampledpnts:
-    #     #     pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
-    #     for j, apnt in enumerate(freegriptst.objsamplepnts[i]):
-    #         pandageom.plotSphere(base, star, pos=apnt, radius=0.7, rgba=rgba)
-    #         pandageom.plotArrow(base, star, spos=apnt, epos=apnt+freegriptst.objsamplenrmls[i][j], rgba=[1,0,0,1], length=5, thickness=0.1)
+        # sampledpnts = samples[sample_idxes[i]]
+        # for apnt in sampledpnts:
+        #     pandageom.plotSphere(base, star, pos=apnt, radius=1, rgba=rgba)
+        # for j, apnt in enumerate(freegriptst.objsamplepnts[i]):
+        #     pandageom.plotSphere(base, star, pos=apnt, radius=0.7, rgba=rgba)
+        #     pandageom.plotArrow(base, star, spos=apnt, epos=apnt+freegriptst.objsamplenrmls[i][j], rgba=[1,0,0,1], length=5, thickness=0.1)
     # # selectedfacet = 2
     # geom = ppg.packpandageom(mesh.vertices, mesh.face_normals[facets[selectedfacet]], mesh.faces[facets[selectedfacet]])
     # node = GeomNode('piece')
@@ -686,4 +879,4 @@ if __name__=='__main__':
     # generator.segment(Vec3(0,0,0), Vec3(10,0,0), Vec4(1,1,1,1), 0.5, Vec4(0,1,0,1))
     # generator.end()
     #
-    # base.run()
+    base.run()

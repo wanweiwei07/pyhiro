@@ -96,10 +96,11 @@ class TablePlacements(object):
                     for idangle, anglevalue in zip(idanglelist, anglevaluelist):
                         rotangle = anglevalue
                         rotmat = rm.rodrigues([0, 0, 1], rotangle)
-                        rotmat4 = Mat4(rotmat[0][0], rotmat[0][1], rotmat[0][2], 0,
-                                       rotmat[1][0], rotmat[1][1], rotmat[1][2], 0,
-                                       rotmat[2][0], rotmat[2][1], rotmat[2][2], 0,
-                                       ttoppos[0], ttoppos[1], ttoppos[2], 1)
+                        # rotmat4 = Mat4(rotmat[0][0], rotmat[0][1], rotmat[0][2], 0,
+                        #                rotmat[1][0], rotmat[1][1], rotmat[1][2], 0,
+                        #                rotmat[2][0], rotmat[2][1], rotmat[2][2], 0,
+                        #                ttoppos[0], ttoppos[1], ttoppos[2], 1)
+                        rotmat4 = pg.cvtMat4(rotmat, ttoppos)
                         varrotmat = rotmatfree * rotmat4
                         sql += "('%s', '%s', %d, %d), " % \
                               (dc.mat4ToStr(varrotmat), dc.v3ToStr(ttoppos), idangle, idfree)
@@ -154,10 +155,11 @@ class TablePlacements(object):
                     freegripcontactnormal0list, freegripcontactnormal1list, freegriprotmatlist, freegripjawwidthlist, \
                     freegripidlist):
                     rotmat = rm.rodrigues([0, 0, 1], rotangle)
-                    rotmat4 = Mat4(rotmat[0][0], rotmat[0][1], rotmat[0][2], 0,
-                                   rotmat[1][0], rotmat[1][1], rotmat[1][2], 0,
-                                   rotmat[2][0], rotmat[2][1], rotmat[2][2], 0,
-                                   ttoppos[0], ttoppos[1], ttoppos[2], 1)
+                    # rotmat4 = Mat4(rotmat[0][0], rotmat[0][1], rotmat[0][2], 0,
+                    #                rotmat[1][0], rotmat[1][1], rotmat[1][2], 0,
+                    #                rotmat[2][0], rotmat[2][1], rotmat[2][2], 0,
+                    #                ttoppos[0], ttoppos[1], ttoppos[2], 1)
+                    rotmat4 = pg.cvtMat4(rotmat, ttoppos)
                     ttpcct0 = rotmat4.xformPoint(cct0)
                     ttpcct1 = rotmat4.xformPoint(cct1)
                     ttpcctn0 = rotmat4.xformVec(cctn0)
@@ -169,6 +171,8 @@ class TablePlacements(object):
                            (dc.v3ToStr(ttpcct0), dc.v3ToStr(ttpcct1), dc.v3ToStr(ttpcctn0), dc.v3ToStr(ttpcctn1), \
                             dc.mat4ToStr(ttpgriprotmat), str(jawwidth), idfreegrip, idtabletopplacements)
                     gdb.execute(sql)
+
+        print "Save to DB done!"
 
     def updateDBwithIK(self, gdb, robot, armid='rgt'):
         """
@@ -200,7 +204,11 @@ class TablePlacements(object):
         feasibility_worlda = {}
         feasibility_worldaworldz = {}
 
-        sql = "SELECT idtabletopgrips, contactpnt0, contactpnt1, rotmat FROM tabletopgrips"
+        sql = "SELECT tabletopgrips.idtabletopgrips, tabletopgrips.contactpnt0, tabletopgrips.contactpnt1, \
+                tabletopgrips.rotmat FROM tabletopgrips, tabletopplacements, freetabletopplacement, object WHERE \
+                 tabletopgrips.idtabletopplacements = tabletopplacements.idtabletopplacements AND \
+                  tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
+                   freetabletopplacement.idobject = object.idobject AND object.objname LIKE '%s'" % self.dbobjname
         result = gdb.execute(sql)
         if len(result) == 0:
             raise ValueError("Plan the tabletopgrips first!")
@@ -264,11 +272,10 @@ class TablePlacements(object):
                 tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
                 freetabletopplacement.idobject = object.idobject AND object.objname LIKE '%s' AND \
                 tabletopplacements.idangle = angle.idangle AND \
-                tabletopplacements.idtabletopplacements = %d " % (self.dbobjname, 465)
-                # angle.value = %d" % (self.dbobjname, 45.0)
+                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 35, 45)
         result = gdb.execute(sql)
         if len(result) != 0:
-            for resultrow in result[0:1]:
+            for resultrow in result:
                 idtabletopplacements = int(resultrow[0])
                 objrotmat  = dc.strToMat4(resultrow[1])
                 objpos = objrotmat.getRow3(3)
@@ -281,7 +288,7 @@ class TablePlacements(object):
                 node.addGeom(geom)
                 star = NodePath('obj')
                 star.attachNewNode(node)
-                star.setColor(Vec4(1,0,0,1))
+                star.setColor(Vec4(.77,.67,0,1))
                 star.setTransparency(TransparencyAttrib.MAlpha)
                 star.setMat(objrotmat)
                 star.reparentTo(base.render)
@@ -292,7 +299,7 @@ class TablePlacements(object):
                     hndrotmat = dc.strToMat4(resultrow[0])
                     hndjawwidth = float(resultrow[1])
                     # show grasps
-                    tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .5])
+                    tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .1])
                     tmprtq85.setMat(hndrotmat)
                     tmprtq85.setJawwidth(hndjawwidth)
                     tmprtq85.reparentTo(base.render)
@@ -301,9 +308,14 @@ if __name__ == '__main__':
     nxtrobot = nextage.NxtRobot()
     hrp5robot = hrp5.Hrp5Robot()
 
-    base = pandactrl.World(camp=[700,400,700], lookatp=[0,0,0])
+    base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
     print objpath
     tps = TablePlacements(objpath)
 
@@ -350,8 +362,8 @@ if __name__ == '__main__':
             grids.append([x,y,0])
     gdb = db.GraspDB()
     # tps.saveToDB(grids, gdb)
-    # tps.grpshow(base, gdb)
-    tps.updateDBwithIK(gdb, hrp5robot)
+    tps.grpshow(base, gdb)
+    # tps.updateDBwithIK(gdb, hrp5robot)
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
@@ -363,5 +375,5 @@ if __name__ == '__main__':
     #
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldtable], appendTask=True)
 
-    # tps.tpsgrpshow(base)
+    tps.grpshow(base, gdb)
     base.run()

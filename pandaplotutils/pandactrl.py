@@ -17,43 +17,43 @@ class World(ShowBase, object):
 
         # set up cartoon effect
         self.__separation = 1
-        base.filters = CommonFilters(self.win, self.cam)
-        base.filters.setCartoonInk(separation=self.__separation)
+        self.filters = CommonFilters(self.win, self.cam)
+        self.filters.setCartoonInk(separation=self.__separation)
 
         # set up lens
         lens = PerspectiveLens()
         lens.setNearFar(1, 50000)
-        base.disableMouse()
-        base.cam.setPos(camp[0], camp[1], camp[2])
-        base.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
-        base.cam.node().setLens(lens)
+        self.disableMouse()
+        self.cam.setPos(camp[0], camp[1], camp[2])
+        self.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
+        self.cam.node().setLens(lens)
 
         # set up slight
         ablight = AmbientLight("ambientlight")
         ablight.setColor(Vec4(0.2, 0.2, 0.2, 1))
-        ablightnode = base.cam.attachNewNode(ablight)
-        base.render.setLight(ablightnode)
+        ablightnode = self.cam.attachNewNode(ablight)
+        self.render.setLight(ablightnode)
 
         ptlight0 = PointLight("pointlight1")
         ptlight0.setColor(VBase4(1, 1, 1, 1))
-        ptlightnode0 = base.cam.attachNewNode(ptlight0)
+        ptlightnode0 = self.cam.attachNewNode(ptlight0)
         ptlightnode0.setPos(0, 0, 0)
-        base.render.setLight(ptlightnode0)
+        self.render.setLight(ptlightnode0)
 
         ptlight1 = PointLight("pointlight1")
         ptlight1.setColor(VBase4(.4, .4, .4, 1))
-        ptlightnode1 = base.cam.attachNewNode(ptlight1)
-        ptlightnode1.setPos(base.cam.getPos().length(), 0, base.cam.getPos().length())
-        base.render.setLight(ptlightnode1)
+        ptlightnode1 = self.cam.attachNewNode(ptlight1)
+        ptlightnode1.setPos(self.cam.getPos().length(), 0, self.cam.getPos().length())
+        self.render.setLight(ptlightnode1)
 
         ptlight2 = PointLight("pointlight2")
         ptlight2.setColor(VBase4(.3, .3, .3, 1))
-        ptlightnode2 = base.cam.attachNewNode(ptlight2)
-        ptlightnode2.setPos(-base.cam.getPos().length(), 0, base.cam.getPos().length())
-        base.render.setLight(ptlightnode2)
+        ptlightnode2 = self.cam.attachNewNode(ptlight2)
+        ptlightnode2.setPos(-self.cam.getPos().length(), 0, base.cam.getPos().length())
+        self.render.setLight(ptlightnode2)
 
         # set up inputmanager
-        self.inputmgr = im.InputManager(base, lookatp)
+        self.inputmgr = im.InputManager(self, lookatp)
         taskMgr.add(self.cycleUpdate, "cycle update")
 
         # set up rotational cam
@@ -62,15 +62,15 @@ class World(ShowBase, object):
 
     def cycleUpdate(self, task):
         # reset aspect ratio
-        aspectRatio = base.getAspectRatio()
-        base.cam.node().getLens().setAspectRatio(aspectRatio)
+        aspectRatio = self.getAspectRatio()
+        self.cam.node().getLens().setAspectRatio(aspectRatio)
         self.inputmgr.checkMouse1Drag()
         self.inputmgr.checkMouse2Drag()
         self.inputmgr.checkMouseWheel()
         return task.cont
 
     def rotateCam(self, task):
-        campos = base.cam.getPos()
+        campos = self.cam.getPos()
         camangle = math.atan2(campos[1], campos[0])
         # print camangle
         if camangle < 0:
@@ -82,12 +82,12 @@ class World(ShowBase, object):
         camradius = math.sqrt(campos[0]*campos[0]+campos[1]*campos[1])
         camx = camradius*math.cos(camangle)
         camy= camradius*math.sin(camangle)
-        base.cam.setPos(camx, camy, campos[2])
-        base.cam.lookAt(self.lookatp[0], self.lookatp[1], self.lookatp[2])
+        self.cam.setPos(camx, camy, campos[2])
+        self.cam.lookAt(self.lookatp[0], self.lookatp[1], self.lookatp[2])
         return task.cont
 
     def changeLookAt(self, lookatp):
-        base.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
+        self.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
         self.inputmgr = im.InputManager(base, lookatp)
 
 # def setRenderEffect(base):

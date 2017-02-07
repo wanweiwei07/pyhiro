@@ -1,9 +1,9 @@
-
 from panda3d.core import *
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletTriangleMesh
 from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import BulletPlaneShape
 
 from pandaplotutils import pandageom
 
@@ -25,7 +25,9 @@ def rayHit(pfrom, pto, geom):
     facetmesh = BulletTriangleMesh()
     facetmesh.addGeom(geom)
     facetmeshnode = BulletRigidBodyNode('facet')
-    facetmeshnode.addShape(BulletTriangleMeshShape(facetmesh, dynamic=True))
+    bullettmshape = BulletTriangleMeshShape(facetmesh, dynamic=True)
+    bullettmshape.setMargin(0)
+    facetmeshnode.addShape(bullettmshape)
     bulletworld.attachRigidBody(facetmeshnode)
     result = bulletworld.rayTestClosest(pfrom, pto)
 
@@ -56,7 +58,9 @@ def genCollisionMeshNp(nodepath, basenodepath=None, name='autogen'):
         geomtf = nodepath.getTransform(basenodepath)
     geombullmesh = BulletTriangleMesh()
     geombullmesh.addGeom(geom)
-    geombullnode.addShape(BulletTriangleMeshShape(geombullmesh, dynamic=True), geomtf)
+    bullettmshape = BulletTriangleMeshShape(geombullmesh, dynamic=True)
+    bullettmshape.setMargin(0)
+    geombullnode.addShape(bullettmshape, geomtf)
     return geombullnode
 
 def genCollisionMeshMultiNp(nodepath, basenodepath=None, name='autogen'):
@@ -82,7 +86,9 @@ def genCollisionMeshMultiNp(nodepath, basenodepath=None, name='autogen'):
             geomtf = gnd.getTransform(basenodepath)
         geombullmesh = BulletTriangleMesh()
         geombullmesh.addGeom(geom)
-        geombullnode.addShape(BulletTriangleMeshShape(geombullmesh, dynamic=True), geomtf)
+        bullettmshape = BulletTriangleMeshShape(geombullmesh, dynamic=True)
+        bullettmshape.setMargin(0)
+        geombullnode.addShape(bullettmshape, geomtf)
     return geombullnode
 
 def genCollisionMeshGeom(geom, name='autogen'):
@@ -101,5 +107,26 @@ def genCollisionMeshGeom(geom, name='autogen'):
     geombullmesh = BulletTriangleMesh()
     geombullmesh.addGeom(geom)
     geombullnode = BulletRigidBodyNode(name)
-    geombullnode.addShape(BulletTriangleMeshShape(geombullmesh, dynamic=True), geomtf)
+    bullettmshape = BulletTriangleMeshShape(geombullmesh, dynamic=True)
+    bullettmshape.setMargin(0)
+    geombullnode.addShape(bullettmshape, geomtf)
     return geombullnode
+
+def genCollisionPlane(updirection = Vec3(0,0,1), offset = 0, name = 'autogen'):
+    """
+    generate a plane bulletrigidbody node
+
+    :param updirection: the normal parameter of bulletplaneshape at panda3d
+    :param offset: the d parameter of bulletplaneshape at panda3d
+    :param name:
+    :return: bulletrigidbody
+
+    author: weiwei
+    date: 20170202, tsukuba
+    """
+
+    bulletplnode = BulletRigidBodyNode(name)
+    bulletplshape = BulletPlaneShape(Vec3(0, 0, 1), 0)
+    bulletplshape.setMargin(0)
+    bulletplnode.addShape(bulletplshape)
+    return bulletplnode

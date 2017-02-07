@@ -203,7 +203,7 @@ def genHrp5mnp(hrp5robot, jawwidthrgt = None, jawwidthlft = None):
     # rgthnd
     hrp5robotrgthnd = rtq85.Rtq85()
     hrp5robotrgtarmlj9_rotmat = pg.cvtMat4(hrp5robot.rgtarm[9]['rotmat'], hrp5robot.rgtarm[9]['linkpos'])
-    pg.plotAxisSelf(hrp5mnp, hrp5robot.rgtarm[9]['linkend'], hrp5robotrgtarmlj9_rotmat)
+    # pg.plotAxisSelf(hrp5mnp, hrp5robot.rgtarm[9]['linkend'], hrp5robotrgtarmlj9_rotmat)
     hrp5robotrgthnd.setMat(hrp5robotrgtarmlj9_rotmat)
     hrp5robotrgthnd.reparentTo(hrp5mnp)
     if jawwidthrgt is not None:

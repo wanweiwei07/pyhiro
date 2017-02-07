@@ -490,7 +490,7 @@ if __name__=='__main__':
     debugNode.showBoundingBoxes(False)
     debugNode.showNormals(False)
     debugNP = bullcldrnp.attachNewNode(debugNode)
-    # debugNP.show()
+    debugNP.show()
 
     base.world.setDebugNode(debugNP.node())
 
