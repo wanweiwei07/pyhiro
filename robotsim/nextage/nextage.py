@@ -3,6 +3,7 @@ import exceptions as ep
 import utils.robotmath as rm
 import pandaplotutils.pandactrl as pandactrl
 import pandaplotutils.pandageom as pg
+import nxtik
 
 class NxtRobot():
     def __init__(self):

@@ -108,8 +108,8 @@ class Freegrip(fgcp.FreegripContactpairs):
         self.counter = 0
 
         while self.counter < self.facetpairs.shape[0]:
-            print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
-            print self.gripcontactpairs_precc
+            # print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
+            # print self.gripcontactpairs_precc
 
             facetpair = self.facetpairs[self.counter]
             facetidx0 = facetpair[0]
@@ -579,17 +579,39 @@ if __name__=='__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,100])
     this_dir, this_filename = os.path.split(__file__)
-    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
-    objpath = os.path.join(this_dir, "objects", "tool.stl")
+    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
-    freegriptst = Freegrip(objpath, ser=True, torqueresist = 50)
+    freegriptst = Freegrip(objpath, ser=False, torqueresist = 50)
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
                         togglesamples_refcls=False, togglenormals_refcls=False)
+
+
+    # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath2 = os.path.join(this_dir, "objects", "planewheel.stl")
+    # objpath3 = os.path.join(this_dir, "objects", "planelowerbody.stl")
+    # objpath4 = os.path.join(this_dir, "objects", "planefrontstay.stl")
+    # objpath5 = os.path.join(this_dir, "objects", "planerearstay.stl")
+    # objpaths = [objpath0, objpath1, objpath2, objpath3, objpath4, objpath5]
+    # import time
+    # fo = open("foo.txt", "w")
+    # for objpath in objpaths:
+    #     tic = time.clock()
+    #     freegriptst = Freegrip(objpath, ser=False, torqueresist = 50)
+    #     freegriptst.removeFgrpcc(base)
+    #     freegriptst.removeHndcc(base)
+    #     toc = time.clock()
+    #     print toc-tic
+    #     fo.write(os.path.basename(objpath)+' '+str(toc-tic)+'\n')
+    # fo.close()
+
+
     # geom = None
     # for i, faces in enumerate(freegriptst.objtrimesh.facets()):
     #     rgba = [np.random.random(),np.random.random(),np.random.random(),1]
@@ -621,8 +643,8 @@ if __name__=='__main__':
     #
     # taskMgr.doMethodLater(.5, updateshow, "tickTask")
 
-    freegriptst.removeFgrpcc(base)
-    freegriptst.removeHndcc(base)
+    # freegriptst.removeFgrpcc(base)
+    # freegriptst.removeHndcc(base)
 
     # gdb = db.GraspDB()
     # freegriptst.saveToDB(gdb)
@@ -657,5 +679,5 @@ if __name__=='__main__':
     # freegriptst.bulletworld.setDebugNode(debugNP.node())
     # taskMgr.add(updateworld, "updateworld", extraArgs=[freegriptst.bulletworld], appendTask=True)
 
-    freegriptst.showAllGrips()
+    # freegriptst.showAllGrips()
     base.run()

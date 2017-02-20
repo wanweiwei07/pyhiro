@@ -105,7 +105,7 @@ class FreegripContactpairs(object):
         samples, face_idx = sample.sample_surface_even(self.objtrimesh,
                                                        count=(1000 if nverts*numpointsoververts > 1000 \
                                                                   else nverts*numpointsoververts))
-        print nverts
+        # print nverts
         self.objsamplepnts = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.objsamplenrmls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         for i, faces in enumerate(self.facets):
@@ -143,8 +143,8 @@ class FreegripContactpairs(object):
         self.objsamplenrmls_ref = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.facet2dbdries = []
         for i, faces in enumerate(self.facets):
-            print "removebadsample"
-            print i,len(self.facets)
+            # print "removebadsample"
+            # print i,len(self.facets)
             facetp = None
             face0verts = self.objtrimesh.vertices[self.objtrimesh.faces[faces[0]]]
             facetmat = robotmath.rotmatfacet(self.facetnormals[i], face0verts[0], face0verts[1])
@@ -276,8 +276,8 @@ class FreegripContactpairs(object):
         self.objsamplepnts_refcls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         self.objsamplenrmls_refcls = np.ndarray(shape=(self.facets.shape[0],), dtype=np.object)
         for i, facet in enumerate(self.facets):
-            print "cluster"
-            print i,len(self.facets)
+            # print "cluster"
+            # print i,len(self.facets)
             self.objsamplepnts_refcls[i] = []
             self.objsamplenrmls_refcls[i] = []
             X = self.objsamplepnts_ref[i]
@@ -346,15 +346,15 @@ class FreegripContactpairs(object):
         nfacets = self.facets.shape[0]
         self.facetpairs = list(itertools.combinations(range(nfacets), 2))
         for facetpair in self.facetpairs:
-            print "facetpair"
-            print facetpair, len(self.facetpairs)
+            # print "facetpair"
+            # print facetpair, len(self.facetpairs)
             self.gripcontactpairs.append([])
             self.gripcontactpairnormals.append([])
             self.gripcontactpairfacets.append([])
             # if one of the facet doesnt have samples, jump to next
             if self.objsamplepnts_refcls[facetpair[0]].shape[0] is 0 or \
                             self.objsamplepnts_refcls[facetpair[1]].shape[0] is 0:
-                print "no sampled points"
+                # print "no sampled points"
                 continue
             # check if the faces are opposite and parallel
             dotnorm = np.dot(self.facetnormals[facetpair[0]], self.facetnormals[facetpair[1]])
@@ -694,9 +694,13 @@ if __name__=='__main__':
 
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
-    objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
+    # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
+    objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
     freegriptst = FreegripContactpairs(objpath)
+    print len(freegriptst.objtrimesh.faces)
     # freegriptst.objtrimesh.show()
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])

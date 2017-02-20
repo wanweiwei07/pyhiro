@@ -153,7 +153,7 @@ class FreeTabletopPlacement(object):
                         # add hand model to bulletworld
                         hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
                         result = self.bulletworldhp.contactTest(hndbullnode)
-                        print result.getNumContacts()
+                        # print result.getNumContacts()
                         if not result.getNumContacts():
                             self.tpsgriprotmats[-1].append(tpsgriprotmat)
                             cct0 = self.tpsmat4s[-1].xformPoint(self.freegripcontacts[j][0])
@@ -396,6 +396,25 @@ if __name__ == '__main__':
     gdb = db.GraspDB()
     tps = FreeTabletopPlacement(objpath, gdb)
 
+    # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath2 = os.path.join(this_dir, "objects", "planewheel.stl")
+    # objpath3 = os.path.join(this_dir, "objects", "planelowerbody.stl")
+    # objpath4 = os.path.join(this_dir, "objects", "planefrontstay.stl")
+    # objpath5 = os.path.join(this_dir, "objects", "planerearstay.stl")
+    # objpaths = [objpath0, objpath1, objpath2, objpath3, objpath4, objpath5]
+    # import time
+    # fo = open("foo.txt", "w")
+    # for objpath in objpaths:
+    #     tic = time.clock()
+    #     tps = FreeTabletopPlacement(objpath, gdb)
+    #     tps.removebadfacets(base, doverh=.2)
+    #     toc = time.clock()
+    #     print toc-tic
+    #     fo.write(os.path.basename(objpath)+' '+str(toc-tic)+'\n')
+    # fo.close()
+
+
     # # plot obj and its convexhull
     # geom = pandageom.packpandageom(tps.objtrimesh.vertices,
     #                                tps.objtrimesh.face_normals,
@@ -440,5 +459,5 @@ if __name__ == '__main__':
     #
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldhp], appendTask=True)
 
-    tps.grpshow(base)
+    # tps.grpshow(base)
     base.run()

@@ -35,7 +35,7 @@ def plotstick(pandanp, nxtrobot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.arr
                                thickness=20, rgba=lftrgba)
         i = nxtrobot.lftarm[i]['child']
 
-def genNxtmnp(nxtrobot):
+def genNxtmnp(nxtrobot, jawwidthrgt = None, jawwidthlft = None):
     """
     generate a panda3d nodepath for the nxtrobot
     mnp indicates this function generates a mesh nodepath
@@ -164,12 +164,16 @@ def genNxtmnp(nxtrobot):
     nxtlftarmlj5_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos'])
     nxtrgthnd.setMat(nxtlftarmlj5_rotmat)
     nxtrgthnd.reparentTo(nxtmnp)
+    if jawwidthrgt is not None:
+        nxtrgthnd.setJawwidth(jawwidthrgt)
 
     # lfthnd
     nxtlfthnd = rtq85.Rtq85()
     nxtlftarmlj5_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[6]['rotmat'], nxtrobot.lftarm[6]['linkpos'])
     nxtlfthnd.setMat(nxtlftarmlj5_rotmat)
     nxtlfthnd.reparentTo(nxtmnp)
+    if jawwidthlft is not None:
+        nxtlfthnd.setJawwidth(jawwidthlft)
 
     return nxtmnp
 

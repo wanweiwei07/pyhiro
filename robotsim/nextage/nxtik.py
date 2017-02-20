@@ -165,7 +165,7 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
                 # nxtmnp.reparentTo(base.render)
             else:
                 nxtrobot.movearmfk6(armjntssave, armid)
-                print "No feasible IK"
+                # print "No feasible IK"
                 return None
     nxtrobot.movearmfk6(armjntssave, armid)
 

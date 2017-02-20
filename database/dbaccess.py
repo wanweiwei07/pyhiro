@@ -93,7 +93,7 @@ class GraspDB(object):
             idrobot = result[0][0]
         else:
             sql = "INSERT INTO robot(name) VALUES ('%s')" % robot.name
-            idrobot = gdb.execute(sql)
+            idrobot = self.execute(sql)
         return idrobot
 
     def __del__(self):
