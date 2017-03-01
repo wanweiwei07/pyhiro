@@ -5,7 +5,6 @@ import numpy as np
 from utils import dbcvt as dc
 from panda3d.core import *
 
-
 class GraspDB(object):
 
     def __init__(self):
@@ -34,11 +33,11 @@ class GraspDB(object):
             if sql[:3] == 'SEL':
                 return list(self.cursor.fetchall())
 
-    def loadFreeAirGrip(self, objname):
+    def loadFreeAirGrip(self, objname, handname = "rtq85"):
         """
         load self.freegripid, etc. from mysqldatabase
 
-
+        :param handname which hand to use, rtq85 by default
         :return: a list of [freegripid, freegripcontacts, freegripnormals, freegriprotmats, freegripjawwidth]
 
         author: weiwei
@@ -54,12 +53,13 @@ class GraspDB(object):
 
         sql = "SELECT freeairgrip.idfreeairgrip, freeairgrip.contactpnt0, freeairgrip.contactpnt1, \
                 freeairgrip.contactnormal0, freeairgrip.contactnormal1, freeairgrip.rotmat, \
-                freeairgrip.jawwidth FROM freeairgrip, object \
-                WHERE freeairgrip.idobject = object.idobject AND object.objname like '%s'" % objname
+                freeairgrip.jawwidth FROM freeairgrip, hand, object \
+                WHERE freeairgrip.idobject = object.idobject AND object.objname like '%s' \
+                AND freeairgrip.idhand = hand.idhand AND hand.name like '%s'" % (objname, handname)
         data = self.execute(sql)
         if len(data) != 0:
             for i in range(len(data)):
-                freegripid.append(data[i][0])
+                freegripid.append(int(data[i][0]))
                 freegripcontacts.append([dc.strToV3(data[i][1]), dc.strToV3(data[i][2])])
                 freegripnormals.append([dc.strToV3(data[i][3]), dc.strToV3(data[i][4])])
                 freegriprotmats.append(dc.strToMat4(data[i][5]))
@@ -85,7 +85,26 @@ class GraspDB(object):
             retworlda = 50
         return [rethandx, retworldz, retworlda, Vec3(0,0,1)]
 
-    def selectRobot(self, robot):
+    def loadIdHand(self, handname):
+        sql = "SELECT idhand FROM hand WHERE name = '%s'" % handname
+        result = self.execute(sql)
+        if len(result) != 0:
+            idhand = int(result[0][0])
+        else:
+            assert "No hand found in hand table!"
+        return idhand
+
+
+    def loadIdArm(self, armname):
+        sql = "SELECT idarm FROM arm WHERE name = '%s'" % armname
+        result = self.execute(sql)
+        if len(result) != 0:
+            idarm = int(result[0][0])
+        else:
+            assert "No arm found in arm table!"
+        return idarm
+
+    def loadIdRobot(self, robot):
         # select idrobot
         sql = "SELECT idrobot FROM robot WHERE robot.name='%s'" % robot.name
         result = self.execute(sql)

@@ -17,10 +17,9 @@ from utils import robotmath as rm
 from database import dbaccess as db
 from panda3d.bullet import BulletDebugNode
 
-
 class Freegrip(fgcp.FreegripContactpairs):
 
-    def __init__(self, objpath, ser=False, torqueresist = 50):
+    def __init__(self, objpath, handpkg, ser=False, torqueresist = 50):
         """
         initialization
 
@@ -40,9 +39,10 @@ class Freegrip(fgcp.FreegripContactpairs):
             self.saveSerialized("tmpcp.pickle")
         else:
             self.loadSerialized("tmpcp.pickle", objpath)
-        self.rtq85hnd = None
-        self.rtq85fgrpcc_uninstanced = None
-        self.loadRtq85Models()
+        self.handpkg = handpkg
+        self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
+        self.handfgrpcc_uninstanced = handpkg.newHandFgrpcc()
+        self.handname = handpkg.getHandName()
         # gripcontactpairs_precc is the gripcontactpairs ([[p0,p1,p2],[p0',p1',p2']] pairs) after precc (collision free)
         # gripcontactpairnormals_precc is the gripcontactpairnormals ([[n0,n1,n2],[n0',n1',n2']] pairs) after precc
         # likewise, gripcontactpairfacets_precc is the [faceid0, faceid1] pair corresponding to the upper two
@@ -71,14 +71,14 @@ class Freegrip(fgcp.FreegripContactpairs):
         # for dbupdate
         self.dbobjname = os.path.splitext(os.path.basename(objpath))[0]
 
-    def loadRtq85Models(self):
-        """
-        load the rtq85 model and its fgrprecc model
-        :return:
-        """
-        self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
-        rtq85pccpath = Filename.fromOsSpecific(os.path.join(this_dir, "robotiq85/rtq85egg", "robotiq_85_tip_precc.egg"))
-        self.rtq85fgrpcc_uninstanced = loader.loadModel(rtq85pccpath)
+    # def loadRtq85Models(self):
+    #     """
+    #     load the rtq85 model and its fgrprecc model
+    #     :return:
+    #     """
+    #     self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
+    #     handfgrpccpath = Filename.fromOsSpecific(os.path.join(this_dir, "robotiq85/rtq85egg", "robotiq_85_tip_precc.egg"))
+    #     self.handfgrpcc_uninstanced = loader.loadModel(handfgrpccpath)
 
     def removeHndcc(self, base, discretesize=8):
         """
@@ -121,30 +121,30 @@ class Freegrip(fgcp.FreegripContactpairs):
                     cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
                     cctnormal0 = self.gripcontactpairnormals_precc[self.counter][j][0]
                     cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
-                    tmprtq85 = self.rtq85hnd
+                    tmphand = self.hand
                     # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
                     # save initial hand pose
-                    initmat = tmprtq85.getMat()
+                    initmat = tmphand.getMat()
                     fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))
-                    tmprtq85.setJawwidth(fgrdist)
-                    tmprtq85.lookAt(cctnormal0[0], cctnormal0[1], cctnormal0[2])
+                    tmphand.setJawwidth(fgrdist)
+                    tmphand.lookAt(cctnormal0[0], cctnormal0[1], cctnormal0[2])
                     rotax = [0, 1, 0]
                     rotangle = 360.0 / discretesize * angleid
                     rotmat = rm.rodrigues(rotax, rotangle)
-                    tmprtq85.setMat(pandageom.cvtMat4(rotmat) * tmprtq85.getMat())
-                    axx = tmprtq85.getMat().getRow3(0)
+                    tmphand.setMat(pandageom.cvtMat4(rotmat) * tmphand.getMat())
+                    axx = tmphand.getMat().getRow3(0)
                     # 130 is the distance from hndbase to fingertip
                     cctcenter = (cctpnt0 + cctpnt1) / 2 + 145 * np.array([axx[0], axx[1], axx[2]])
-                    tmprtq85.setPos(Point3(cctcenter[0], cctcenter[1], cctcenter[2]))
+                    tmphand.setPos(Point3(cctcenter[0], cctcenter[1], cctcenter[2]))
 
                     # collision detection
-                    hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np, base.render)
+                    hndbullnode = cd.genCollisionMeshMultiNp(tmphand.rtq85np, base.render)
                     self.bulletworld.attachRigidBody(hndbullnode)
                     result = self.bulletworld.contactTest(self.objmeshbullnode)
 
                     if not result.getNumContacts():
                         self.gripcontacts.append(contactpair)
-                        self.griprotmats.append(tmprtq85.getMat())
+                        self.griprotmats.append(tmphand.getMat())
                         self.gripjawwidth.append(fgrdist)
                         self.gripcontactnormals.append(self.gripcontactpairnormals_precc[self.counter][j])
                         # pg.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
@@ -157,7 +157,7 @@ class Freegrip(fgcp.FreegripContactpairs):
 
                     self.bulletworld.removeRigidBody(hndbullnode)
                     # reset initial hand pose
-                    tmprtq85.setMat(initmat)
+                    tmphand.setMat(initmat)
             self.counter+=1
         self.counter = 0
 
@@ -195,22 +195,22 @@ class Freegrip(fgcp.FreegripContactpairs):
                 cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
                 cctnormal0 = self.facetnormals[facetidx0]
                 cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
-                rtq85pcc0 = NodePath("rtq85fgrpcc0")
-                self.rtq85fgrpcc_uninstanced.instanceTo(rtq85pcc0)
-                rtq85pcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
-                rtq85pcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1],
+                handfgrpcc0 = NodePath("handfgrpcc0")
+                self.handfgrpcc_uninstanced.instanceTo(handfgrpcc0)
+                handfgrpcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
+                handfgrpcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1],
                                  cctpnt0[2] + cctnormal0[2])
-                rtq85pcc1 = NodePath("rtq85fgrpcc1")
-                self.rtq85fgrpcc_uninstanced.instanceTo(rtq85pcc1)
-                rtq85pcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
-                rtq85pcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1],
+                handfgrpcc1 = NodePath("handpcc1")
+                self.handfgrpcc_uninstanced.instanceTo(handfgrpcc1)
+                handfgrpcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
+                handfgrpcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1],
                                  cctpnt1[2] + cctnormal1[2])
 
 
                 # prepare the model for collision detection
-                facetmesh0bullnode = cd.genCollisionMeshNp(rtq85pcc0, base.render)
+                facetmesh0bullnode = cd.genCollisionMeshNp(handfgrpcc0, base.render)
                 self.bulletworld.attachRigidBody(facetmesh0bullnode)
-                facetmesh1bullnode = cd.genCollisionMeshNp(rtq85pcc1, base.render)
+                facetmesh1bullnode = cd.genCollisionMeshNp(handfgrpcc1, base.render)
                 self.bulletworld.attachRigidBody(facetmesh1bullnode)
                 result = self.bulletworld.contactTest(self.objmeshbullnode)
                 self.bulletworld.removeRigidBody(facetmesh0bullnode)
@@ -237,6 +237,8 @@ class Freegrip(fgcp.FreegripContactpairs):
         # save to database
         gdb = db.GraspDB()
 
+        idhand = db.loadIdHand(self.handname)
+
         sql = "SELECT * FROM freeairgrip, object WHERE freeairgrip.idobject = object.idobject AND \
                 object.objname LIKE '%s'" % self.dbobjname
         result = gdb.execute(sql)
@@ -251,11 +253,11 @@ class Freegrip(fgcp.FreegripContactpairs):
             print self.gripcontacts
             for i in range(len(self.gripcontacts)):
                 sql = "INSERT INTO freeairgrip(idobject, contactpnt0, contactpnt1, \
-                        contactnormal0, contactnormal1, rotmat, jawwidth) \
-                       VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
+                        contactnormal0, contactnormal1, rotmat, jawwidth, idhand) \
+                       VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)" % \
                       (idobject, dc.v3ToStr(self.gripcontacts[i][0]), dc.v3ToStr(self.gripcontacts[i][1]),
                        dc.v3ToStr(self.gripcontactnormals[i][0]), dc.v3ToStr(self.gripcontactnormals[i][1]),
-                       dc.mat4ToStr(self.griprotmats[i]), str(self.gripjawwidth[i]))
+                       dc.mat4ToStr(self.griprotmats[i]), str(self.gripjawwidth[i]), idhand)
                 gdb.execute(sql)
         else:
             print "Grasps already saved or duplicated filename!"
@@ -349,20 +351,20 @@ class Freegrip(fgcp.FreegripContactpairs):
             cctnormal11 = -cctnormal01
             cctnormal1raw = (cctnormal10 + cctnormal11)
             cctnormal1 = (cctnormal1raw/np.linalg.norm(cctnormal1raw)).tolist()
-            rtq85pcc0 = NodePath("rtq85fgrpcc0")
-            self.rtq85fgrpcc_uninstanced.instanceTo(rtq85pcc0)
-            rtq85pcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
-            rtq85pcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1], cctpnt0[2] + cctnormal0[2])
-            rtq85pcc1 = NodePath("rtq85fgrpcc1")
-            self.rtq85fgrpcc_uninstanced.instanceTo(rtq85pcc1)
-            rtq85pcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
-            rtq85pcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1], cctpnt1[2] + cctnormal1[2])
-            rtq85pcc =  NodePath("rtq85fgrpcc")
-            rtq85pcc0.reparentTo(rtq85pcc)
-            rtq85pcc1.reparentTo(rtq85pcc)
+            handfgrpcc0 = NodePath("handfgrpcc0")
+            self.handfgrpcc_uninstanced.instanceTo(rtq85pcc0)
+            handfgrpcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
+            handfgrpcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1], cctpnt0[2] + cctnormal0[2])
+            handfgrpcc1 = NodePath("handfgrpcc1")
+            self.handfgrpcc_uninstanced.instanceTo(rtq85pcc1)
+            handfgrpcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
+            handfgrpcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1], cctpnt1[2] + cctnormal1[2])
+            handfgrpcc =  NodePath("handfgrpcc")
+            handfgrpcc0.reparentTo(handfgrpcc)
+            handfgrpcc1.reparentTo(handfgrpcc)
 
             # prepare the model for collision detection
-            facetmeshbullnode = cd.genCollisionMeshMultiNp(rtq85pcc, brchild)
+            facetmeshbullnode = cd.genCollisionMeshMultiNp(handfgrpcc, brchild)
 
             result = self.bulletworld.contactTest(facetmeshbullnode)
 
@@ -372,16 +374,16 @@ class Freegrip(fgcp.FreegripContactpairs):
                 pandageom.plotSphere(brchild, pos=cp.getLocalPointB(), radius=3, rgba=Vec4(0, 0, 1, 1))
 
             if result.getNumContacts():
-                rtq85pcc0.setColor(1, 0, 0, .3)
-                rtq85pcc1.setColor(1, 0, 0, .3)
+                handfgrpcc0.setColor(1, 0, 0, .3)
+                handfgrpcc1.setColor(1, 0, 0, .3)
             else:
-                rtq85pcc0.setColor(1, 1, 1, .3)
-                rtq85pcc1.setColor(1, 1, 1, .3)
+                handfgrpcc0.setColor(1, 1, 1, .3)
+                handfgrpcc1.setColor(1, 1, 1, .3)
 
-            rtq85pcc0.setTransparency(TransparencyAttrib.MAlpha)
-            rtq85pcc1.setTransparency(TransparencyAttrib.MAlpha)
-            rtq85pcc0.reparentTo(brchild)
-            rtq85pcc1.reparentTo(brchild)
+            handfgrpcc0.setTransparency(TransparencyAttrib.MAlpha)
+            handfgrpcc1.setTransparency(TransparencyAttrib.MAlpha)
+            handfgrpcc0.reparentTo(brchild)
+            handfgrpcc1.reparentTo(brchild)
             pandageom.plotArrow(star0, spos=cctpnt0,
                             epos=cctpnt0 + plotoffsetfp*self.facetnormals[facetidx0] + cctnormal0,
                             rgba=[facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
@@ -420,31 +422,31 @@ class Freegrip(fgcp.FreegripContactpairs):
                 cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
                 cctnormal0 = self.facetnormals[facetidx0]
                 cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
-                rtq85pcc0 = NodePath("rtq85fgrpcc0")
-                self.rtq85fgrpcc_uninstanced.instanceTo(rtq85pcc0)
-                rtq85pcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
-                rtq85pcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1], cctpnt0[2] + cctnormal0[2])
-                rtq85pcc1 = NodePath("rtq85fgrpcc1")
-                self.rtq85fgrpcc_uninstanced.instanceTo(rtq85pcc1)
-                rtq85pcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
-                rtq85pcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1], cctpnt1[2] + cctnormal1[2])
+                handfgrpcc0 = NodePath("handfgrpcc0")
+                self.handfgrpcc_uninstanced.instanceTo(handfgrpcc0)
+                handfgrpcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
+                handfgrpcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1], cctpnt0[2] + cctnormal0[2])
+                handfgrpcc1 = NodePath("rtq85fgrpcc1")
+                self.handfgrpcc_uninstanced.instanceTo(handfgrpcc1)
+                handfgrpcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
+                handfgrpcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1], cctpnt1[2] + cctnormal1[2])
 
                 # prepare the model for collision detection
-                facetmesh0bullnode = cd.genCollisionMeshNp(rtq85pcc0, base.render)
+                facetmesh0bullnode = cd.genCollisionMeshNp(handfgrpcc0, base.render)
                 self.bulletworld.attachRigidBody(facetmesh0bullnode)
-                facetmesh1bullnode = cd.genCollisionMeshNp(rtq85pcc1, base.render)
+                facetmesh1bullnode = cd.genCollisionMeshNp(handfgrpcc1, base.render)
                 self.bulletworld.attachRigidBody(facetmesh1bullnode)
                 result = self.bulletworld.contactTest(self.objmeshbullnode)
                 self.bulletworld.removeRigidBody(facetmesh0bullnode)
                 self.bulletworld.removeRigidBody(facetmesh1bullnode)
 
                 if not result.getNumContacts():
-                    rtq85pcc0.setColor(1, 1, 1, .3)
-                    rtq85pcc1.setColor(1, 1, 1, .3)
-                    rtq85pcc0.setTransparency(TransparencyAttrib.MAlpha)
-                    rtq85pcc1.setTransparency(TransparencyAttrib.MAlpha)
-                    rtq85pcc0.reparentTo(base.render)
-                    rtq85pcc1.reparentTo(base.render)
+                    handfgrpcc0.setColor(1, 1, 1, .3)
+                    handfgrpcc1.setColor(1, 1, 1, .3)
+                    handfgrpcc0.setTransparency(TransparencyAttrib.MAlpha)
+                    handfgrpcc1.setTransparency(TransparencyAttrib.MAlpha)
+                    handfgrpcc0.reparentTo(base.render)
+                    handfgrpcc1.reparentTo(base.render)
 
     def removeHndccShow(self, base, discretesize=8):
         """
@@ -572,7 +574,6 @@ class Freegrip(fgcp.FreegripContactpairs):
 
 if __name__=='__main__':
 
-
     # def updateworld(world, task):
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
@@ -585,12 +586,13 @@ if __name__=='__main__':
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
-    freegriptst = Freegrip(objpath, ser=False, torqueresist = 50)
+
+    handpkg = rtq85nm
+    freegriptst = Freegrip(objpath, handpkg, ser=False, torqueresist = 50)
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
                         togglesamples_refcls=False, togglenormals_refcls=False)
-
 
     # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
@@ -610,7 +612,6 @@ if __name__=='__main__':
     #     print toc-tic
     #     fo.write(os.path.basename(objpath)+' '+str(toc-tic)+'\n')
     # fo.close()
-
 
     # geom = None
     # for i, faces in enumerate(freegriptst.objtrimesh.facets()):

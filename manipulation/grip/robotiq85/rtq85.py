@@ -42,6 +42,7 @@ class Rtq85():
         date: 20160627
         '''
         self.rtq85np = NodePath("rtq85hnd")
+        self.handnp = self.rtq85np
         self.jawwidth = jawwidth
 
         this_dir, this_filename = os.path.split(__file__)

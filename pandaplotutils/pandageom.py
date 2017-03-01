@@ -64,6 +64,7 @@ def packpandageom(vertices, facenormals, triangles, name=''):
 
 def packpandanode(vertices, facenormals, triangles, name=''):
     """
+    *** deprecated *** 20170221, use packpandanp instead
     package the vertices and triangles into a panda3d geom
 
     ## input
@@ -90,6 +91,37 @@ def packpandanode(vertices, facenormals, triangles, name=''):
     npnodeobj = NodePath('obj')
     npnodeobj.attachNewNode(geomnodeobj)
     npnodeobj.reparentTo(base.render)
+
+    return npnodeobj
+
+def packpandanp(vertices, facenormals, triangles, name=''):
+    """
+    package the vertices and triangles into a panda3d geom
+    compared with the upper one, this one doesn't reparentto base.render
+
+    ## input
+    vertices:
+        a n-by-3 nparray, each row is a vertex
+    facenormals:
+        a n-by-3 nparray, each row is the normal of a face
+    triangles:
+        a n-by-3 nparray, each row is three idx to the vertices
+    name:
+        not as important
+
+    ## output
+    pandanode
+        a panda node
+
+    author: weiwei
+    date: 20170221
+    """
+
+    objgeom = packpandageom(vertices, facenormals, triangles, name)
+    geomnodeobj = GeomNode('obj')
+    geomnodeobj.addGeom(objgeom)
+    npnodeobj = NodePath('obj')
+    npnodeobj.attachNewNode(geomnodeobj)
 
     return npnodeobj
 
@@ -362,6 +394,8 @@ def plotSphere(nodepath, pos = None, radius=None, rgba=None):
         pos = np.array([0,0,0])
     if rgba is None:
         rgba = np.array([1,1,1,1])
+    if radius is None:
+        radius = 1
 
     spherend = _genSphere(radius)
     spherend.setPos(pos[0], pos[1], pos[2])

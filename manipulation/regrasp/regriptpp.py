@@ -100,18 +100,22 @@ class RegripTpp():
         self.freegriprotmats = freeairgripdata[3]
         self.freegripjawwidth = freeairgripdata[4]
 
-    def __loadGripsToBuildGraph(self):
+    def __loadGripsToBuildGraph(self, armname = "rgt"):
         """
         load tabletopgrips
         retraction distance are also loaded from database
 
         :param robot: an robot defined in robotsim.hrp5 or robotsim.nextage
         :param gdb: an object of the database.GraspDB class
+        :param idarm: value = 1 "lft" or 2 "rgt", which arm to use
         :return:
 
         author: weiwei
         date: 20170112
         """
+
+        # load idarm
+        idarm = gdb.loadIdArm(armname)
 
         # get the global grip ids
         # and prepare the global edges
@@ -149,7 +153,8 @@ class RegripTpp():
                         FROM tabletopgrips,ik WHERE tabletopgrips.idtabletopgrips=ik.idtabletopgrips AND \
                         tabletopgrips.idtabletopplacements = %d AND ik.idrobot=%d AND \
                         ik.feasibility='True' AND ik.feasibility_handx='True' AND ik.feasibility_handxworldz='True' \
-                        AND ik.feasibility_worlda='True' AND ik.feasibility_worldaworldz='True'" % (int(idtps), idrobot)
+                        AND ik.feasibility_worlda='True' AND ik.feasibility_worldaworldz='True' AND ik.idarm = %d" \
+                        % (int(idtps), idrobot, idarm)
                 resultttgs = self.gdb.execute(sql)
                 if len(resultttgs)==0:
                     continue

@@ -16,6 +16,8 @@ from panda3d.core import *
 
 from utils import designpattern
 
+import rtq85
+
 class Rtq85NM():
     '''
     use utils.designpattern.singleton() to get a single instance of this class
@@ -44,6 +46,7 @@ class Rtq85NM():
         date: 20160627
         '''
         self.rtq85np = NodePath("rtq85hnd")
+        self.handnp = self.rtq85np
         self.jawwidth = jawwidth
 
         this_dir, this_filename = os.path.split(__file__)
@@ -375,6 +378,20 @@ class Rtq85NM():
         transmat4.setCol(3, pos)
         self.rtq85np.setMat(transmat4)
         placeholder.setColor(rgba)
+
+def newHandNM(jawwidth = 85, hndcolor = [1,0,0,.1]):
+    return Rtq85NM(jawwidth, hndcolor)
+
+def newHand(jawwidth = 85):
+    return rtq85.Rtq85(jawwidth)
+
+def newHandFgrpcc():
+    handfgrpccpath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_tip_precc.egg"))
+    handfgrpcc = loader.loadModel(handfgrpccpath)
+    return handfgrpcc
+
+def getHandName():
+    return "rtq85"
 
 if __name__=='__main__':
 

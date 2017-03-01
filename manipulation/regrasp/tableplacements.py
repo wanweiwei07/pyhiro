@@ -174,12 +174,12 @@ class TablePlacements(object):
 
         print "Save to DB done!"
 
-    def updateDBwithIK(self, gdb, robot, armid='rgt'):
+    def updateDBwithIK(self, gdb, robot, armname = 'rgt'):
         """
 
         :param gdb:
         :param robot:
-        :param armid:
+        :param armname: the name of the arm used rgt or lft
         :param rethandx: the distance of retract along handx direction, default 50mm
         :param retworldz: the distance of retract along worldz direction, default 50mm
         :param retworlda: the distance of retract along assembly/approaching direction in the world, default 50mm
@@ -189,6 +189,9 @@ class TablePlacements(object):
         date: 20170111
         """
 
+        # load idarm
+        idarm = gdb.loadIdArm(armname)
+
         # load retraction distances
         rethandx, retworldz, retworlda, worldz = gdb.loadIKRet()
         # worlda is default for the general grasps on table top
@@ -196,7 +199,7 @@ class TablePlacements(object):
         worlda = Vec3(0,0,1)
 
         # select idrobot
-        idrobot = gdb.selectRobot(robot)
+        idrobot = gdb.loadIdRobot(robot)
 
         feasibility = {}
         feasibility_handx = {}
@@ -237,31 +240,31 @@ class TablePlacements(object):
             ttgsfgrcenternp_worldaworldz = pg.v3ToNp(ttgsfgrcenterworldaworldz)
             ttgsrotmat3np = pg.mat3ToNp(ttgsrotmat.getUpper3())
 
-            if hrp5robot.numik(ttgsfgrcenternp, ttgsrotmat3np) is not None:
+            if robot.numik(ttgsfgrcenternp, ttgsrotmat3np, armname) is not None:
                 feasibility[ttgsid] = 'True'
             else:
                 feasibility[ttgsid] = 'False'
-            if hrp5robot.numik(ttgsfgrcenternp_handx, ttgsrotmat3np) is not None:
+            if robot.numik(ttgsfgrcenternp_handx, ttgsrotmat3np, armname) is not None:
                 feasibility_handx[ttgsid] = 'True'
             else:
                 feasibility_handx[ttgsid] = 'False'
-            if hrp5robot.numik(ttgsfgrcenternp_handxworldz, ttgsrotmat3np) is not None:
+            if robot.numik(ttgsfgrcenternp_handxworldz, ttgsrotmat3np, armname) is not None:
                 feasibility_handxworldz[ttgsid] = 'True'
             else:
                 feasibility_handxworldz[ttgsid] = 'False'
-            if hrp5robot.numik(ttgsfgrcenternp_worlda, ttgsrotmat3np) is not None:
+            if robot.numik(ttgsfgrcenternp_worlda, ttgsrotmat3np, armname) is not None:
                 feasibility_worlda[ttgsid] = 'True'
             else:
                 feasibility_worlda[ttgsid] = 'False'
-            if hrp5robot.numik(ttgsfgrcenternp_worldaworldz, ttgsrotmat3np) is not None:
+            if robot.numik(ttgsfgrcenternp_worldaworldz, ttgsrotmat3np, armname) is not None:
                 feasibility_worldaworldz[ttgsid] = 'True'
             else:
                 feasibility_worldaworldz[ttgsid] = 'False'
 
             # insert ik table
-            sql = "INSERT IGNORE INTO ik(idrobot, idtabletopgrips, feasibility, feasibility_handx, feasibility_handxworldz, \
-                    feasibility_worlda, feasibility_worldaworldz) VALUES (%d, %d, '%s', '%s', '%s', '%s', '%s')" % \
-                    (idrobot, ttgsid, feasibility[ttgsid], feasibility_handx[ttgsid], feasibility_handxworldz[ttgsid], \
+            sql = "INSERT IGNORE INTO ik(idrobot, idarm, idtabletopgrips, feasibility, feasibility_handx, feasibility_handxworldz, \
+                    feasibility_worlda, feasibility_worldaworldz) VALUES (%d, %d, %d, '%s', '%s', '%s', '%s', '%s')" % \
+                    (idrobot, idarm, ttgsid, feasibility[ttgsid], feasibility_handx[ttgsid], feasibility_handxworldz[ttgsid], \
                      feasibility_worlda[ttgsid], feasibility_worldaworldz[ttgsid])
             gdb.execute(sql)
 
@@ -310,11 +313,11 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
     print objpath
     tps = TablePlacements(objpath)
@@ -362,9 +365,10 @@ if __name__ == '__main__':
             grids.append([x,y,0])
     gdb = db.GraspDB()
     # tps.saveToDB(grids, gdb)
-    tps.grpshow(base, gdb)
+    # tps.grpshow(base, gdb)
     # tps.updateDBwithIK(gdb, hrprobot)
-    tps.updateDBwithIK(gdb, nxtrobot)
+    tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
+    tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
