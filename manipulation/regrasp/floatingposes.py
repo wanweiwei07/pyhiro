@@ -73,7 +73,7 @@ class FloatingPoses(object):
 
         self.gdb = gdb
 
-        self.loadFreeAirGrip(base, serfgps)
+        self.__loadFreeAirGrip(base, serfgps)
 
         # for IK
         self.floatinggripikfeas_rgt = []
@@ -81,7 +81,17 @@ class FloatingPoses(object):
         self.floatinggripikfeas_lft = []
         self.floatinggripikfeas_handx_lft = []
 
-    def loadFreeAirGrip(self, base, serfgps):
+        # for ik-feasible pairs
+        self.floatinggrippairsids = []
+        self.floatinggrippairshndmat4s = []
+        self.floatinggrippairscontacts = []
+        self.floatinggrippairsnormals = []
+        self.floatinggrippairsjawwidths = []
+        self.floatinggrippairsidfreeairs = []
+
+        self.__genPandaRotmat4()
+
+    def __loadFreeAirGrip(self, base, serfgps):
         """
         load self.freegripids, etc. from mysqldatabase
 
@@ -103,6 +113,33 @@ class FloatingPoses(object):
         self.freegripjawwidth = freeairgripdata[4]
 
         self.genHandPairs(base, serfgps)
+
+    def __genPandaRotmat4(self, icolevel=1, angles=[0,45,90,135,180,225,270,315]):
+        """
+        generate panda3d rotmat4 using icospheres and rotationaangle each origin-vertex vector of the icosphere
+
+        :param icolevel, the default value 1 = 42vertices
+        :param angles, 8 directions by default
+        :return: a list of [pandarotmat4, ...] size of the inner list is size of the angles
+
+        author: weiwei
+        date: 20170221, tsukuba
+        """
+
+        self.mat4list = []
+        self.icos = trimesh.creation.icosphere(icolevel)
+        initmat4 = self.objnp.getMat()
+        for vert in self.icos.vertices:
+            self.mat4list.append([])
+            self.objnp.lookAt(vert[0], vert[1], vert[2])
+            ytozmat4 = Mat4.rotateMat(-90, self.objnp.getMat().getRow3(0))
+            newobjmat4 = self.objnp.getMat()*ytozmat4
+            for angle in angles:
+                tmppandamat4 = Mat4.rotateMat(angle, newobjmat4.getRow3(2))
+                tmppandamat4 = newobjmat4*tmppandamat4
+                self.mat4list[-1].append(tmppandamat4)
+            self.objnp.setMat(initmat4)
+        self.floatingposemat4 = [e for l in self.mat4list for e in l]
 
     def genHandPairs(self, base, ser=False):
         self.handpairList = []
@@ -264,33 +301,6 @@ class FloatingPoses(object):
                     self.floatinggripjawwidth.append(floatinggripjawwidths)
                     self.floatinggripidfreeair.append(floatinggripidfreeairs)
 
-    def genPandaRotmat4(self, icolevel=1, angles=[0,45,90,135,180,225,270,315]):
-        """
-        generate panda3d rotmat4 using icospheres and rotationaangle each origin-vertex vector of the icosphere
-
-        :param icolevel, the default value 1 = 42vertices
-        :param angles, 8 directions by default
-        :return: a list of [pandarotmat4, ...] size of the inner list is size of the angles
-
-        author: weiwei
-        date: 20170221, tsukuba
-        """
-
-        self.mat4list = []
-        self.icos = trimesh.creation.icosphere(icolevel)
-        initmat4 = self.objnp.getMat()
-        for vert in self.icos.vertices:
-            self.mat4list.append([])
-            self.objnp.lookAt(vert[0], vert[1], vert[2])
-            ytozmat4 = Mat4.rotateMat(-90, self.objnp.getMat().getRow3(0))
-            newobjmat4 = self.objnp.getMat()*ytozmat4
-            for angle in angles:
-                tmppandamat4 = Mat4.rotateMat(angle, newobjmat4.getRow3(2))
-                tmppandamat4 = newobjmat4*tmppandamat4
-                self.mat4list[-1].append(tmppandamat4)
-            self.objnp.setMat(initmat4)
-        self.floatingposemat4 = [e for l in self.mat4list for e in l]
-
     def transformGrips(self):
         """
         transform the freeair grips to all rotmat4 in self.gridsfloatingposemat4s
@@ -373,10 +383,16 @@ class FloatingPoses(object):
         date: 20170301
         """
 
-        for fpid in range(len(self.floatingposemat4)):
+        tic = time.clock()
+        for fpid in range(len(self.gridsfloatingposemat4s)):
+            toc = time.clock()
+            print toc-tic
+            if fpid != 0:
+                print "remaining time", (toc-tic)*len(self.gridsfloatingposemat4s)/fpid-(toc-tic)
+            print fpid, len(self.gridsfloatingposemat4s)
             # gen correspondence between freeairgripid and index
             # indfgoffa means index of floatinggrips whose freeairgripid are xxx
-            indfgoffa = []
+            indfgoffa = {}
             for i in range(len(self.floatinggripidfreeair[fpid])):
                 indfgoffa[self.floatinggripidfreeair[fpid][i]] = i
             # handidpair_indfg is the pairs using index of floatinggrips
@@ -384,9 +400,85 @@ class FloatingPoses(object):
             for handidpair in self.handpairList:
                 handidpair_indfg.append([indfgoffa[handidpair[0]], indfgoffa[handidpair[1]]])
                 # if handidpair_indfg[0] is right, 1 is left
-                self.floatinggripids[handidpair_indfg[0]]
-                self.floatinggripids[handidpair_indfg[1]]
+                sql = "INSERT IGNORE INTO floatinggripspairs VALUES (%d, %d)" % \
+                        (self.floatinggripids[fpid][handidpair_indfg[-1][0]], self.floatinggripids[fpid][handidpair_indfg[-1][1]])
+                self.gdb.execute(sql)
                 # if 1 is left, 0 is right
+                sql = "INSERT IGNORE INTO floatinggripspairs VALUES (%d, %d)" % \
+                        (self.floatinggripids[fpid][handidpair_indfg[-1][1]], self.floatinggripids[fpid][handidpair_indfg[-1][0]])
+                self.gdb.execute(sql)
+
+    def loadIKFeasibleFGPairsFromDB(self, robot):
+        """
+        load the IK FeasibleFGPairs
+        :return:
+
+        author: weiwei
+        date: 20170301
+        """
+
+        self.loadFromDB()
+        self.loadIKFromDB(robot)
+
+        idrobot = self.gdb.loadIdRobot(robot)
+        idarmrgt = self.gdb.loadIdArm('rgt')
+        idarmlft = self.gdb.loadIdArm('lft')
+
+        self.floatinggrippairsids = []
+        self.floatinggrippairshndmat4s = []
+        self.floatinggrippairscontacts = []
+        self.floatinggrippairsnormals = []
+        self.floatinggrippairsjawwidths = []
+        self.floatinggrippairsidfreeairs = []
+        for fpid in range(len(self.gridsfloatingposemat4s)):
+            sql = "SELECT floatingposes.idfloatingposes FROM floatingposes, object WHERE floatingposes.idobject = object.idobject \
+                            AND object.objname LIKE '%s' AND floatingposes.rotmat LIKE '%s'" % \
+                  (self.dbobjname, dc.mat4ToStr(self.gridsfloatingposemat4s[fpid]))
+            result = self.gdb.execute(sql)
+            if len(result) != 0:
+                idfloatingposes = result[0][0]
+                floatinggrippairsids = []
+                floatinggrippairshndmat4s = []
+                floatinggrippairscontacts = []
+                floatinggrippairsnormals = []
+                floatinggrippairsjawwidths = []
+                floatinggrippairsidfreeairs = []
+                sql = "SELECT floatinggripspairs.idfloatinggrips0, floatinggripspairs.idfloatinggrips1, \
+                        fg0.contactpoint0, fg0.contactpoint1, fg0.contactnormal0, fg0.contactnormal1, fg0.rotmat, \
+                        fg0.jawwidth, fg0.idfreeairgrip, \
+                        fg1.contactpoint0, fg1.contactpoint1, fg1.contactnormal0, fg1.contactnormal1, fg1.rotmat, \
+                        fg1.jawwidth, fg1.idfreeairgrip FROM floatinggripspairs, floatinggrips fg0, floatinggrips fg1, \
+                        ikfloatinggrips ikfg0, ikfloatinggrips ikfg1  WHERE \
+                        floatinggripspairs.idfloatinggrips0 = fg0.idfloatinggrips AND \
+                        floatinggripspairs.idfloatinggrips1 = fg1.idfloatinggrips AND \
+                        fg0.idfloatingposes = %d AND fg1.idfloatingposes = %d AND \
+                        fg0.idfloatinggrips = ikfg0.idfloatinggrips AND ikfg0.feasibility like 'True' AND ikfg0.feasibility_handx like 'True' AND \
+                        ikfg0.idrobot = %d AND ikfg0.idarm = %d AND \
+                        fg1.idfloatinggrips = ikfg1.idfloatinggrips AND ikfg1.feasibility like 'True' AND ikfg1.feasibility_handx like 'True' AND \
+                        ikfg1.idrobot = %d AND ikfg1.idarm = %d" % (idfloatingposes, idfloatingposes, idrobot, idarmrgt, idrobot, idarmlft)
+                result = self.gdb.execute(sql)
+                if len(result) != 0:
+                    for resultrow in result:
+                        floatinggrippairsids.append([resultrow[0], resultrow[1]])
+                        floatinggrippairshndmat4s.append([dc.strToMat4(resultrow[6]), dc.strToMat4(resultrow[13])])
+                        rgtcct0 = dc.strToV3(resultrow[2])
+                        rgtcct1 = dc.strToV3(resultrow[3])
+                        lftcct0 = dc.strToV3(resultrow[9])
+                        lftcct1 = dc.strToV3(resultrow[10])
+                        floatinggrippairscontacts.append([[rgtcct0, rgtcct1], [lftcct0, lftcct1]])
+                        rgtcctn0 = dc.strToV3(resultrow[4])
+                        rgtcctn1 = dc.strToV3(resultrow[5])
+                        lftcctn0 = dc.strToV3(resultrow[11])
+                        lftcctn1 = dc.strToV3(resultrow[12])
+                        floatinggrippairsnormals.append([[rgtcctn0, rgtcctn1], [lftcctn0, lftcctn1]])
+                        floatinggrippairsjawwidths.append([float(resultrow[7]), float(resultrow[14])])
+                        floatinggrippairsidfreeairs.append([int(resultrow[8]), int(resultrow[15])])
+                self.floatinggrippairsids.append(floatinggrippairsids)
+                self.floatinggrippairshndmat4s.append(floatinggrippairshndmat4s)
+                self.floatinggrippairscontacts.append(floatinggrippairscontacts)
+                self.floatinggrippairsnormals.append(floatinggrippairsnormals)
+                self.floatinggrippairsjawwidths.append(floatinggrippairsjawwidths)
+                self.floatinggrippairsidfreeairs.append(floatinggrippairsidfreeairs)
 
     def updateDBwithIK(self, robot):
         """
@@ -405,12 +497,12 @@ class FloatingPoses(object):
         self.floatinggripikfeas_lft = []
         self.floatinggripikfeas_handx_lft = []
         tic = time.clock()
-        for fpid in range(len(self.floatingposemat4)):
-            print fpid, len(self.floatingposemat4)
+        for fpid in range(len(self.gridsfloatingposemat4s)):
             toc = time.clock()
             print toc-tic
             if fpid != 0:
-                print "remaining time", (toc-tic)*len(self.floatingposemat4)/fpid-(toc-tic)
+                print "remaining time", (toc-tic)*len(self.gridsfloatingposemat4s)/fpid-(toc-tic)
+            print fpid, len(self.gridsfloatingposemat4s)
             ### right hand
             armname = 'rgt'
             feasibility = []
@@ -424,7 +516,7 @@ class FloatingPoses(object):
                 handx =  hndrotmat4.getRow3(0)
                 # check the angle between handx and minus y
                 minusworldy = Vec3(0,-1,0)
-                if Vec3(handx).angleDeg(minusworldy) < 45:
+                if Vec3(handx).angleDeg(minusworldy) < 60:
                     fpgsfgrcenternp_handx = pg.v3ToNp(fpgsfgrcenter+handx*rethandx)
                     if robot.numik(fpgsfgrcenternp, fpgsrotmat3np, armname) is not None:
                         feasibility[i] = 'True'
@@ -444,8 +536,8 @@ class FloatingPoses(object):
                 fpgsrotmat3np = pg.mat3ToNp(hndrotmat4.getUpper3())
                 handx =  hndrotmat4.getRow3(0)
                 # check the angle between handx and minus y
-                minusworldy = Vec3(0,1,0)
-                if Vec3(handx).angleDeg(minusworldy) < 45:
+                plusworldy = Vec3(0,1,0)
+                if Vec3(handx).angleDeg(plusworldy) < 60:
                     fpgsfgrcenternp_handx = pg.v3ToNp(fpgsfgrcenter+handx*rethandx)
                     if robot.numik(fpgsfgrcenternp, fpgsrotmat3np, armname) is not None:
                         feasibility[i] = 'True'
@@ -464,7 +556,7 @@ class FloatingPoses(object):
         :return:
         """
 
-        for fpid in range(len(self.floatingposemat4)):
+        for fpid in range(len(self.gridsfloatingposemat4s)):
             # right arm
             idarm = self.gdb.loadIdArm('rgt')
             for i, idfloatinggrips in enumerate(self.floatinggripids[fpid]):
@@ -482,7 +574,7 @@ class FloatingPoses(object):
                          self.floatinggripikfeas_handx_lft[fpid][i])
                 gdb.execute(sql)
 
-    def loadIKfromDB(self, robot):
+    def loadIKFromDB(self, robot):
         """
         load the feasibility of IK from db
 
@@ -493,13 +585,13 @@ class FloatingPoses(object):
         date: 20170301
         """
 
-        idrobot = gdb.loadIdRobot(robot)
+        idrobot = self.gdb.loadIdRobot(robot)
 
         self.floatinggripikfeas_rgt = []
         self.floatinggripikfeas_handx_rgt = []
         self.floatinggripikfeas_lft = []
         self.floatinggripikfeas_handx_lft = []
-        for fpid in range(len(self.floatingposemat4)):
+        for fpid in range(len(self.gridsfloatingposemat4s)):
             # right arm
             feasibility = []
             feasibility_handx = []
@@ -509,7 +601,7 @@ class FloatingPoses(object):
                 feasibility_handx.append('False')
                 sql = "SELECT feasibility, feasibility_handx FROM ikfloatinggrips WHERE \
                         idrobot = %d AND idarm = %d and idfloatinggrips = %d" % (idrobot, idarm, idfloatinggrips)
-                result = gdb.execute(sql)
+                result = self.gdb.execute(sql)
                 if len(result) != 0:
                     feasibility[i] = result[0][0]
                     feasibility_handx[i] = result[0][1]
@@ -524,7 +616,7 @@ class FloatingPoses(object):
                 feasibility_handx.append('False')
                 sql = "SELECT feasibility, feasibility_handx FROM ikfloatinggrips WHERE \
                         idrobot = %d AND idarm = %d and idfloatinggrips = %d" % (idrobot, idarm, idfloatinggrips)
-                result = gdb.execute(sql)
+                result = self.gdb.execute(sql)
                 if len(result) != 0:
                     feasibility[i] = result[0][0]
                     feasibility_handx[i] = result[0][1]
@@ -545,10 +637,10 @@ class FloatingPoses(object):
         objnp = pg.packpandanp(self.objtrimesh.vertices, self.objtrimesh.face_normals, self.objtrimesh.faces)
         objnp.setMat(self.gridsfloatingposemat4s[fpid])
         objnp.reparentTo(parentnp)
-        for i, hndrotmat4 in enumerate(self.floatinggripmat4s[fpid]):
-            if i == 2:
+        for i, hndrotmat4 in enumerate(self.gridsfloatingposemat4s[fpid]):
+            if i == 7:
                 # show grasps
-                hand0 = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .1])
+                hand0 = self.handpkg.newHandNM(hndcolor=[0, 1, 0, 1])
                 hand0.setMat(hndrotmat4)
                 hand0.setJawwidth(self.floatinggripjawwidth[fpid][i])
                 hand0.reparentTo(parentnp)
@@ -559,6 +651,7 @@ class FloatingPoses(object):
                                        if self.floatinggripidfreeair[fpid][i1]==handidpair[1]]
                         print pairedilist
                         i1 = pairedilist[0]
+                        # if self.floatinggripikfeas_lft[fpid][i1] == 'True':
                         hand1 = self.handpkg.newHandNM(hndcolor=[0, 1, 1, 1])
                         hndrotmat4 = self.floatinggripmat4s[fpid][i1]
                         hand1.setMat(hndrotmat4)
@@ -569,11 +662,39 @@ class FloatingPoses(object):
                                        if self.floatinggripidfreeair[fpid][i1]==handidpair[0]]
                         print pairedilist
                         i1 = pairedilist[0]
+                        # if self.floatinggripikfeas_lft[fpid][i1] == 'True':
                         hand1 = self.handpkg.newHandNM(hndcolor=[0, 1, 1, 1])
                         hndrotmat4 = self.floatinggripmat4s[fpid][i1]
                         hand1.setMat(hndrotmat4)
                         hand1.setJawwidth(self.floatinggripjawwidth[fpid][i1])
                         hand1.reparentTo(parentnp)
+
+    def plotOneFPandGPairs(self, parentnp, fpid=0):
+        """
+        plot the gpairss at a specific rotmat4
+
+        :param fpid: the index of self.floatingposemat4
+        :return:
+
+        author: weiwei
+        date: 20170301, tsukuba
+        """
+
+        objnp = pg.packpandanp(self.objtrimesh.vertices, self.objtrimesh.face_normals, self.objtrimesh.faces)
+        objnp.setMat(self.gridsfloatingposemat4s[fpid])
+        objnp.reparentTo(parentnp)
+        print self.floatinggrippairshndmat4s[fpid]
+        for i, hndrotmat4pair in enumerate(self.floatinggrippairshndmat4s[fpid]):
+            # if i == 2:
+            # show grasps
+            hand0 = self.handpkg.newHandNM(hndcolor=[1, 1, 0, 1])
+            hand0.setMat(hndrotmat4pair[0])
+            hand0.setJawwidth(self.floatinggrippairsjawwidths[fpid][i][0])
+            hand0.reparentTo(parentnp)
+            hand1 = self.handpkg.newHandNM(hndcolor=[0, 1, 1, 1])
+            hand1.setMat(hndrotmat4pair[1])
+            hand1.setJawwidth(self.floatinggrippairsjawwidths[fpid][i][1])
+            hand1.reparentTo(parentnp)
 
 if __name__=="__main__":
 
@@ -593,23 +714,30 @@ if __name__=="__main__":
     this_dir, this_filename = os.path.split(__file__)
     objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     fpose = FloatingPoses(objpath, gdb, handpkg, base, True)
-    fpose.genPandaRotmat4()
     # fpose.showIcomat4s(base.render)
 
+    # usage:
+    # genFPandGs generate floatingposes and grips
+    # saveToDB save the generated FP and Gs into database
+    # updateDBwithFGPairs compute the FGpairs without considering ik
+    # updateDBwithIK compute the ik feasible FGs
+    # loadIKFeasibleFGPairsFromDB load DBFGpairs and DBwithIK and compute the IK-feasible FGpairs
+
     # grids = []
-    # for x in range(300,501,100):
+    # for x in range(400,401,100):
     #     for y in [0]:
-    #         for z in range(300,600,100):
+    #         for z in range(400,401,100):
     #             grids.append([x,y,z])
     # fpose.genFPandGs(grids)
     # fpose.saveToDB()
-    fpose.loadFromDB()
+    # fpose.updateDBwithFGPairs()
     nxtrobot = nextage.NxtRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
-    fpose.loadIKfromDB(nxtrobot)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):
     #     fpose.plotOneFPandG(base.render, i)
-    fpose.plotOneFPandG(base.render, 0)
+    fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
+    # fpose.plotOneFPandG(base.render, 0)
+    fpose.plotOneFPandGPairs(base.render, 3)
 
     poseid = [0]
 
