@@ -51,7 +51,7 @@ class RegripTppFp():
         self.globalgripids = []
 
         # for removing the grasps at start and goal
-        self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
+        self.robothand = handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
 
         # plane to remove hand
         self.bulletworld = BulletWorld()
@@ -134,7 +134,7 @@ class RegripTppFp():
         """
 
         # load idarm
-        idarm = gdb.loadIdArm(armname)
+        idarm = self.gdb.loadIdArm(armname)
 
         # get the global grip ids
         # and prepare the global edges
@@ -230,13 +230,15 @@ class RegripTppFp():
                     fpgidfreeair = self.floatingposes.floatinggrippairsidfreeairs[fpind][pairind][iele]
                     ccts = self.floatingposes.floatinggrippairscontacts[fpind][pairind][iele]
                     hndrotmat4 = hndrotmat4pair[iele]
-                    fpgfgrcenter = (ccts[0]+ccts[1])/2
+                    fpgfgrcenter = (Vec3(ccts[0][0],ccts[0][1],ccts[0][2])+Vec3(ccts[1][0],ccts[1][1],ccts[1][2]))/2
                     fpgfgrcenterhandx = fpgfgrcenter+hndrotmat4.getRow3(0)*self.rethandx
+                    fpgfgrcenternp = pg.v3ToNp(fpgfgrcenter)
+                    fpgfgrcenterhandxnp = pg.v3ToNp(fpgfgrcenterhandx)
                     jawwidth =self.floatingposes.floatinggrippairsjawwidths[fpind][pairind][iele]
                     hndrotmat3np = pg.mat3ToNp(hndrotmat4.getUpper3())
                     fprotmat4 = objrotmat4
-                    self.regg.add_node('ho'+armname+str(fpgid), fgrcenter = fpgfgrcenter,
-                                       fgrcenterhandx = fpgfgrcenterhandx, jawwidth = jawwidth,
+                    self.regg.add_node('ho'+armname+str(fpgid), fgrcenter = fpgfgrcenternp,
+                                       fgrcenterhandx = fpgfgrcenterhandxnp, jawwidth = jawwidth,
                                        hndrotmat3np = hndrotmat3np, floatingposerotmat4 = fprotmat4,
                                        floatingposerotmat4handx = fprotmat4, floatingposeind = fpind,
                                        floatingposegrippairind = pairind, globalgripid = fpgidfreeair)
@@ -277,17 +279,17 @@ class RegripTppFp():
             ttgsrotmatx0y0.setCell(3,1,0)
             ttgsrotmatx0y0 = rotmat * ttgsrotmatx0y0
             # check if the hand collide with tabletop
-            tmprtq85 = self.rtq85hnd
+            tmphnd = self.robothand
             # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-            initmat = tmprtq85.getMat()
-            initjawwidth = tmprtq85.jawwidth
+            initmat = tmphnd.getMat()
+            initjawwidth = tmphnd.jawwidth
             # set jawwidth to 80 to avoid collision with surrounding obstacles
             # set to gripping with is unnecessary
             # tmprtq85.setJawwidth(self.freegripjawwidth[j])
-            tmprtq85.setJawwidth(80)
-            tmprtq85.setMat(ttgsrotmatx0y0)
+            tmphnd.setJawwidth(80)
+            tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=startrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -336,8 +338,8 @@ class RegripTppFp():
                     nodeidofglobalidinstartrgt[ttgsidfreeair]='startrgt'+str(j)
                     self.startrgtnodeids.append('startrgt'+str(j))
                     # tmprtq85.reparentTo(base.render)
-            tmprtq85.setMat(initmat)
-            tmprtq85.setJawwidth(initjawwidth)
+            tmphnd.setMat(initmat)
+            tmphnd.setJawwidth(initjawwidth)
 
         if len(self.startrgtnodeids) == 0:
             print "No available starting grip for right hand!"
@@ -356,17 +358,17 @@ class RegripTppFp():
             ttgsrotmatx0y0.setCell(3,1,0)
             ttgsrotmatx0y0 = rotmat * ttgsrotmatx0y0
             # check if the hand collide with tabletop
-            tmprtq85 = self.rtq85hnd
+            tmphnd = self.robothand
             # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-            initmat = tmprtq85.getMat()
-            initjawwidth = tmprtq85.jawwidth
+            initmat = tmphnd.getMat()
+            initjawwidth = tmphnd.jawwidth
             # set jawwidth to 80 to avoid collision with surrounding obstacles
             # set to gripping with is unnecessary
             # tmprtq85.setJawwidth(self.freegripjawwidth[j])
-            tmprtq85.setJawwidth(80)
-            tmprtq85.setMat(ttgsrotmatx0y0)
+            tmphnd.setJawwidth(80)
+            tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=startrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -415,8 +417,8 @@ class RegripTppFp():
                     nodeidofglobalidinstartlft[ttgsidfreeair]='startlft'+str(j)
                     self.startlftnodeids.append('startlft'+str(j))
                     # tmprtq85.reparentTo(base.render)
-            tmprtq85.setMat(initmat)
-            tmprtq85.setJawwidth(initjawwidth)
+            tmphnd.setMat(initmat)
+            tmphnd.setJawwidth(initjawwidth)
 
         if len(self.startlftnodeids) == 0:
             print "No available starting grip for left hand!"
@@ -462,14 +464,14 @@ class RegripTppFp():
             ttgsrotmatx0y0.setCell(3,1,0)
             ttgsrotmatx0y0 = rotmat * ttgsrotmatx0y0
             # check if the hand collide with tabletop
-            tmprtq85 = self.rtq85hnd
+            tmphnd = self.robothand
             # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-            initmat = tmprtq85.getMat()
-            initjawwidth = tmprtq85.jawwidth
-            tmprtq85.setJawwidth(self.freegripjawwidth[j])
-            tmprtq85.setMat(ttgsrotmatx0y0)
+            initmat = tmphnd.getMat()
+            initjawwidth = tmphnd.jawwidth
+            tmphnd.setJawwidth(self.freegripjawwidth[j])
+            tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=goalrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -517,8 +519,8 @@ class RegripTppFp():
                                        angleid = 'na', tabletopposition = tabletopposition)
                     nodeidofglobalidingoalrgt[ttgsidfreeair]='goalrgt'+str(j)
                     self.goalrgtnodeids.append('goalrgt'+str(j))
-            tmprtq85.setMat(initmat)
-            tmprtq85.setJawwidth(initjawwidth)
+            tmphnd.setMat(initmat)
+            tmphnd.setJawwidth(initjawwidth)
 
         if len(self.goalrgtnodeids) == 0:
             print "No available goal grip for right hand!"
@@ -536,14 +538,14 @@ class RegripTppFp():
             ttgsrotmatx0y0.setCell(3,1,0)
             ttgsrotmatx0y0 = rotmat * ttgsrotmatx0y0
             # check if the hand collide with tabletop
-            tmprtq85 = self.rtq85hnd
+            tmphnd = self.robothand
             # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-            initmat = tmprtq85.getMat()
-            initjawwidth = tmprtq85.jawwidth
-            tmprtq85.setJawwidth(self.freegripjawwidth[j])
-            tmprtq85.setMat(ttgsrotmatx0y0)
+            initmat = tmphnd.getMat()
+            initjawwidth = tmphnd.jawwidth
+            tmphnd.setJawwidth(self.freegripjawwidth[j])
+            tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=goalrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -591,8 +593,8 @@ class RegripTppFp():
                                        angleid = 'na', tabletopposition = tabletopposition)
                     nodeidofglobalidingoallft[ttgsidfreeair]='goallft'+str(j)
                     self.goallftnodeids.append('goallft'+str(j))
-            tmprtq85.setMat(initmat)
-            tmprtq85.setJawwidth(initjawwidth)
+            tmphnd.setMat(initmat)
+            tmphnd.setJawwidth(initjawwidth)
 
         if len(self.goallftnodeids) == 0:
             print "No available goal grip for left hand!"

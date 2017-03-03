@@ -177,6 +177,10 @@ class Rtq85NM():
         # read-only property
         return self.__jawwidthclosed
 
+    @property
+    def hndnp(self):
+        return self.rtq85np
+
     def setJawwidth(self, jawwidth):
         '''
         set the jawwidth of rtq85hnd

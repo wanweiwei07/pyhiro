@@ -28,6 +28,26 @@ class NxtRobot():
         return self.__initjnts
 
     @property
+    def initrgtjntsr(self):
+        # read-only property
+        return np.array([self.__initjnts[i] for i in [0,3,4,5,6,7,8]])
+
+    @property
+    def initlftjntsr(self):
+        # read-only property
+        return  np.array([self.__initjnts[i] for i in [0,9,10,11,12,13,14]])
+
+    @property
+    def initrgtjnts(self):
+        # read-only property
+        return np.array([self.__initjnts[i] for i in [3,4,5,6,7,8]])
+
+    @property
+    def initlftjnts(self):
+        # read-only property
+        return  np.array([self.__initjnts[i] for i in [9,10,11,12,13,14]])
+
+    @property
     def rgtarm(self):
         # read-only property
         return self.__rgtarm
@@ -115,7 +135,7 @@ class NxtRobot():
 
         self.movewaist(rotangle=armjnts[0])
 
-    def move15(self, nxjnts):
+    def movealljnts(self, nxjnts):
         """
         move all joints of the nextage robo
 
@@ -149,7 +169,7 @@ class NxtRobot():
         date: 20161108
         """
 
-        self.move15(self.initjnts)
+        self.movealljnts(self.initjnts)
 
     def getarmjnts6(self, armid="rgt"):
         """
