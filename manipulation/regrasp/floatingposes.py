@@ -179,7 +179,7 @@ class FloatingPoses(object):
         """
 
         self.gridsfloatingposemat4s = []
-        self.genPandaRotmat4(icolevel, angles)
+        self.__genPandaRotmat4(icolevel, angles)
         for gridposition in grids:
             for posemat4 in self.floatingposemat4:
                 tmpposemat4 = Mat4(posemat4)

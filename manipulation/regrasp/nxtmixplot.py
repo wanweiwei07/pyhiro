@@ -85,11 +85,11 @@ def getMotionSequence(regrip, id, choice):
                 armjntsgrp = regrip.robot.numikr(grppos, grprot, armid = 'lft')
                 armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid = 'lft')
                 armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid = 'lft')
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandx[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrphandx[0], regrip.robot.initrgtjnts), armjntsgrphandx[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrpworlda[0], regrip.robot.initrgtjnts), armjntsgrpworlda[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrpworldaworldz[0], regrip.robot.initrgtjnts), armjntsgrpworldaworldz[1:]]))
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -120,7 +120,7 @@ def getMotionSequence(regrip, id, choice):
             armjntsgrphandx = []
             armjntsgrphandxworldz = []
             # choice
-            if nid.startswith('startrgt'):
+            if nid.startswith('goalrgt'):
                 armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid = 'rgt')
                 armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid = 'rgt')
                 armjntsgrp = regrip.robot.numikr(grppos, grprot, armid = 'rgt')
@@ -138,7 +138,7 @@ def getMotionSequence(regrip, id, choice):
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-            if nid.startswith('startlft'):
+            if nid.startswith('goallft'):
                 armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid = 'lft')
                 armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid = 'lft')
                 armjntsgrp = regrip.robot.numikr(grppos, grprot, armid = 'lft')
@@ -203,11 +203,11 @@ def getMotionSequence(regrip, id, choice):
                 armjntsgrp = regrip.robot.numikr(grppos, grprot, armid = 'lft')
                 armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid = 'lft')
                 armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid = 'lft')
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandx[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda[1:]]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrphandx[0], regrip.robot.initrgtjnts), armjntsgrphandx[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrpworlda[0], regrip.robot.initrgtjnts), armjntsgrpworlda[1:]]))
+                numikrlist.append(np.concatenate([np.append(armjntsgrpworldaworldz[0], regrip.robot.initrgtjnts), armjntsgrpworldaworldz[1:]]))
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -599,9 +599,9 @@ def getMotionSequence(regrip, id, choice):
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
-                jawwidth.append([regrip.robothand.jawwidthopen])
-                jawwidth.append([regrip.robothand.jawwidthopen])
-                jawwidth.append([regrip.robothand.jawwidthopen])
+                jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
             if nid.startswith('goallft'):
                 armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid = 'lft')
                 armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid = 'lft')
@@ -638,7 +638,8 @@ if __name__=='__main__':
     handpkg = rtq85nm
     nxtrobot = nextage.NxtRobot()
 
-    base = pandactrl.World(lookatp=[400,0,400])
+    base = pandactrl.World(camp=[0,0,5000], lookatp=[0,0,0])
+    # base = pandactrl.World(camp=[300,-2000,1000], lookatp=[300,0,0])
 
     # ttube.stl
     this_dir, this_filename = os.path.split(__file__)
@@ -687,7 +688,7 @@ if __name__=='__main__':
     pltfig = plt.figure()
     regrip.plotgraph(pltfig)
     id = 0
-    choice = 'startrgtgoallft'
+    choice = 'startrgtgoalrgt'
     regrip.plotshortestpath(pltfig, id = id, choice = choice)
     plt.axis("equal")
     plt.show()

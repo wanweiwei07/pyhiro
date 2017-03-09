@@ -211,7 +211,7 @@ class TablePlacements(object):
                 tabletopgrips.rotmat FROM tabletopgrips, tabletopplacements, freetabletopplacement, object WHERE \
                  tabletopgrips.idtabletopplacements = tabletopplacements.idtabletopplacements AND \
                   tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
-                   freetabletopplacement.idobject = object.idobject AND object.objname LIKE '%s'" % self.dbobjname
+                   freetabletopplacement.idobject = object.idobject AND object.name LIKE '%s'" % self.dbobjname
         result = gdb.execute(sql)
         if len(result) == 0:
             raise ValueError("Plan the tabletopgrips first!")
@@ -273,7 +273,7 @@ class TablePlacements(object):
         sql = "SELECT tabletopplacements.idtabletopplacements, tabletopplacements.rotmat \
                 FROM tabletopplacements,freetabletopplacement,object,angle WHERE \
                 tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
-                freetabletopplacement.idobject = object.idobject AND object.objname LIKE '%s' AND \
+                freetabletopplacement.idobject = object.idobject AND object.name LIKE '%s' AND \
                 tabletopplacements.idangle = angle.idangle AND \
                 freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 35, 45)
         result = gdb.execute(sql)
@@ -313,10 +313,13 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
+    # done 20170307
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
+    # done 20170307
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
+    # done 20170307
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
     print objpath

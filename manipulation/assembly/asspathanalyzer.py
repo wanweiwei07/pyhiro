@@ -2,6 +2,7 @@
 
 import os
 import trimesh
+import manipulation.grip.freegrip.FreeAirGrip as FreeAirGrip
 
 class AssPathAnalyzer(object):
     """
@@ -11,7 +12,7 @@ class AssPathAnalyzer(object):
     an example is: [(obj1, identity), (obj2, obj2to1RelMat4), (obj3, obj3to2RelMat4), ...]
     """
 
-    def __init__(self, asspath, gdb):
+    def __init__(self, gdb, asspath, handpkg):
         """
 
         :param asspath: an assembly path, see the definition in the leading text
@@ -21,10 +22,30 @@ class AssPathAnalyzer(object):
         date: 20170227
         """
 
-        self.basetrimeshList = []
-        self.objtrimesh = trimesh.load_mesh(objpath)
-
+        self.handpkg = handpkg
+        self.objTrimeshList = []
+        self.objFAGList = [] # Fag = free air grip
+        self.objRotmat4List = []
+        for objpath, rotmat4 in asspath:
+            self.objTrimeshList.append(trimesh.load_mesh(objpath))
+            curRotmat4 = rotmat4
+            for prevRotmat4 in self.objRotmat4List[::-1]:
+                curRotmat4 = prevRotmat4*curRotmat4
+            self.objRotMat4List.append(curRotmat4)
+            dbobjname = os.path.splitext(os.path.basename(objpath))[0]
+            self.objFAGList.append(FreeAirGrip(gdb, dbobjname, self.handpkg.getHandName()))
         pass
+
+    def __setupAssemDB(self):
+        """
+        save assembly sequence to DB
+
+        :return:
+        author: weiwei
+        date: 20170306
+        """
+
+
 
     def genFreeGrasps(self, relMat4):
         """
@@ -56,7 +77,6 @@ class AssPathAnalyzer(object):
         """
 
         pass
-
 
 if __name__ == '__main__':
     pass

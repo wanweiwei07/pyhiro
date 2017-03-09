@@ -122,7 +122,7 @@ class RegripTpp():
         # for each globalgripid, find all its tabletopids (pertaining to placements)
         globalidsedges = {}
         sql = "SELECT idfreeairgrip FROM freeairgrip,object WHERE freeairgrip.idobject=object.idobject AND \
-                object.objname LIKE '%s'" % self.dbobjname
+                object.name LIKE '%s'" % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) == 0:
             raise ValueError("Plan freeairgrip first!")
@@ -136,7 +136,7 @@ class RegripTpp():
                 tabletopplacements.idangle=angle.idangle AND \
                 tabletopplacements.idfreetabletopplacement=freetabletopplacement.idfreetabletopplacement AND \
                 freetabletopplacement.idobject=object.idobject AND \
-                object.objname LIKE '%s' AND angle.value IN (0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0)" \
+                object.name LIKE '%s' AND angle.value IN (0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0)" \
                 % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) != 0:
@@ -147,7 +147,7 @@ class RegripTpp():
             self.fttpsids = list(set(map(int, tpsrows[:,2])))
             self.nfttps = len(self.fttpsids)
 
-            idrobot = self.gdb.selectRobot(self.robot)
+            idrobot = self.gdb.loadIdRobot(self.robot)
             for i, idtps in enumerate(tpsrows[:,0]):
                 sql = "SELECT tabletopgrips.idtabletopgrips, contactpnt0, contactpnt1, rotmat, jawwidth, idfreeairgrip \
                         FROM tabletopgrips,ik WHERE tabletopgrips.idtabletopgrips=ik.idtabletopgrips AND \
@@ -450,7 +450,7 @@ class RegripTpp():
             xyplacementspos[ttpsid] = xypos
             for j, anglevalue in enumerate(self.angles):
                 self.xyzglobalgrippos[ttpsid][anglevalue]={}
-                xypos = [radiusrot*math.cos(anglevalue), radiusrot*math.sin(anglevalue)]
+                xypos = [radiusrot*math.cos(math.radians(anglevalue)), radiusrot*math.sin(math.radians(anglevalue))]
                 xydiscreterotspos[ttpsid][anglevalue] = \
                     [xyplacementspos[ttpsid][0]+xypos[0], xyplacementspos[ttpsid][1]+xypos[1]]
                 for k, globalgripid in enumerate(self.globalgripids):
@@ -725,25 +725,28 @@ if __name__=='__main__':
     gdb = db.GraspDB()
 
     hrp5robot = hrp5.Hrp5Robot()
+    nxtrobot = nextage.NxtRobot()
+    handpkg = rtq85nm
+
 
     base = pandactrl.World(camp=[700,300,600], lookatp=[0,0,0])
 
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "ttube.stl")
-    regrip = RegripTpp(objpath, hrp5robot, gdb)
+    objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planewheel.stl")
+    regrip = RegripTpp(objpath, nxtrobot, gdb)
 
-    startrotmat4 = Mat4(-0.70710670948,-0.70710682869,0.0,0.0,
-                        0.70710682869,-0.70710670948,0.0,0.0,
-                        0.0,-0.0,-1.0,0.0,
-                        300.004150391,-599.998901367,38.0383911133,1.0)
+    startrotmat4 =  Mat4(1.0,0.0,0.0,0.0,\
+                     0.0,0.0,1.0,0.0,\
+                     0.0,-1.0,0.0,0.0,\
+                     350,400,0.0,1.0)
     # goalrotmat4 = Mat4(0.707106769085,-0.707106769085,0.0,0.0,
     #                    4.32978030171e-17,4.32978030171e-17,-1.0,0.0,
     #                    0.707106769085,0.707106769085,6.12323426293e-17,0.0,
     #                    499.998474121,400.003753662,44.9995155334,1.0)
-    goalrotmat4 = Mat4(-0.707106769085,-0.70710682869,0.0,0.0,
-                       4.32978063259e-17,-4.32978030171e-17,-1.0,0.0,
-                       0.70710682869,-0.707106769085,6.12323426293e-17,0.0,
-                       400.003753662,600.001525879,44.9995155334,1.0)
+    goalrotmat4 =  Mat4(1.0,0.0,0.0,0.0,\
+                     0.0,0.0,1.0,0.0,\
+                     0.0,-1.0,0.0,0.0,\
+                     350,400,0.0,1.0)
 
     regrip.findshortestpath(startrotmat4, goalrotmat4, base)
 

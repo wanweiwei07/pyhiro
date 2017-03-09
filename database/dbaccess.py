@@ -54,7 +54,7 @@ class GraspDB(object):
         sql = "SELECT freeairgrip.idfreeairgrip, freeairgrip.contactpnt0, freeairgrip.contactpnt1, \
                 freeairgrip.contactnormal0, freeairgrip.contactnormal1, freeairgrip.rotmat, \
                 freeairgrip.jawwidth FROM freeairgrip, hand, object \
-                WHERE freeairgrip.idobject = object.idobject AND object.objname like '%s' \
+                WHERE freeairgrip.idobject = object.idobject AND object.name like '%s' \
                 AND freeairgrip.idhand = hand.idhand AND hand.name like '%s'" % (objname, handname)
         data = self.execute(sql)
         if len(data) != 0:
@@ -94,7 +94,6 @@ class GraspDB(object):
             assert "No hand found in hand table!"
         return idhand
 
-
     def loadIdArm(self, armname):
         sql = "SELECT idarm FROM arm WHERE name = '%s'" % armname
         result = self.execute(sql)
@@ -104,7 +103,47 @@ class GraspDB(object):
             assert "No arm found in arm table!"
         return idarm
 
+    def loadIdObject(self, objname):
+        sql = "SELECT idobject FROM object WHERE name = '%s'" % objname
+        result = self.execute(sql)
+        if len(result) != 0:
+            idobj = int(result[0][0])
+        else:
+            assert "No object named " + objname + " found in object table!"
+        return idobj
+
     def loadIdRobot(self, robot):
+        # select idrobot
+        sql = "SELECT idrobot FROM robot WHERE robot.name='%s'" % robot.name
+        result = self.execute(sql)
+        if len(result) != 0:
+            idrobot = result[0][0]
+        else:
+            sql = "INSERT INTO robot(name) VALUES ('%s')" % robot.name
+            idrobot = self.execute(sql)
+        return idrobot
+
+    def loadIdAssembly(self, dbobj0name, rotmat0, dbobj1name, rotmat1, assdirect1to0):
+        # select assembly id
+        # return [] if not found
+        idobj0 = self.loadIdObject(dbobj0name)
+        idobj1 = self.loadIdObject(dbobj1name)
+        strrotmat0 = dc.mat4ToStr(rotmat0)
+        strrotmat1 = dc.mat4ToStr(rotmat1)
+        strassdirect1to0 = dc.v3ToStr(assdirect1to0)
+        sql = "SELECT idassembly FROM assembly WHERE assembly.idobject0 = %d AND assembly.idobject1 = %d AND \
+                assembly.rotmat0 LIKE '%s' AND assembly.rotmat1 LIKE '%s' AND assembly.assdirect1to0 LIKE '%s'" % \
+              (idobj0, idobj1, strrotmat0, strrotmat1, strassdirect1to0)
+        result = self.execute(sql)
+        if len(result) != 0:
+            idassembly = result[0][0]
+        else:
+            sql = "INSERT INTO assembly(idobject0, rotmat0, idobject1, rotmat1, assdirect1to0) VALUES (%d, '%s', %d, '%s', '%s')" % \
+                  (idobj0, strrotmat0, idobj1, strrotmat1, strassdirect1to0)
+            idassembly = self.execute(sql)
+        return idassembly
+
+    def checkExistenceAssembly(self, objname):
         # select idrobot
         sql = "SELECT idrobot FROM robot WHERE robot.name='%s'" % robot.name
         result = self.execute(sql)

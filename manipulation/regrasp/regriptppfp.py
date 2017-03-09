@@ -220,6 +220,7 @@ class RegripTppFp():
                     self.regg.add_edge(*edge, weight=1, edgetype = 'transit')
             if len(globalidsedges) == 0:
                 raise ValueError("Plan tabletopgrips first!")
+
             # add floatingposes
             for fpind, objrotmat4 in enumerate(self.floatingposes.gridsfloatingposemat4s):
                 for pairind, hndrotmat4pair in enumerate(self.floatingposes.floatinggrippairshndmat4s[fpind]):
@@ -698,7 +699,7 @@ class RegripTppFp():
                         self.directshortestpaths_startlftgoalrgt[-1]=self.directshortestpaths_startlftgoalrgt[-1][:i+1]
                         break
 
-        # startlft goallf
+        # startlft goallft
         if len(self.startlftnodeids) > 0 and len(self.goallftnodeids) > 0:
             startgrip = self.startlftnodeids[0]
             goalgrip = self.goallftnodeids[0]
@@ -742,7 +743,7 @@ class RegripTppFp():
             xyplacementspos[ttpsid] = xypos
             for j, anglevalue in enumerate(self.angles):
                 self.xyzglobalgrippos[ttpsid][anglevalue]={}
-                xypos = [radiusrot*math.cos(anglevalue), radiusrot*math.sin(anglevalue)]
+                xypos = [radiusrot*math.cos(math.radians(anglevalue)), radiusrot*math.sin(math.radians(anglevalue))]
                 xydiscreterotspos[ttpsid][anglevalue] = \
                     [xyplacementspos[ttpsid][0]+xypos[0], xyplacementspos[ttpsid][1]+xypos[1]]
                 for k, globalgripid in enumerate(self.globalgripids):
@@ -992,15 +993,15 @@ class RegripTppFp():
         ax.add_collection(hotransferec)
         ax.add_collection(hotransitec)
         ax.add_collection(startrgttransferec)
-        # ax.add_collection(startlfttransferec)
+        ax.add_collection(startlfttransferec)
         ax.add_collection(goalrgttransferec)
         ax.add_collection(goallfttransferec)
         ax.add_collection(startgoalrgttransferec)
-        # ax.add_collection(startgoallfttransferec)
-        ax.add_collection(startrgttransitec)
+        ax.add_collection(startgoallfttransferec)
+        # ax.add_collection(startrgttransitec)
         # ax.add_collection(startlfttransitec)
-        ax.add_collection(goalrgttransitec)
-        ax.add_collection(goallfttransitec)
+        # ax.add_collection(goalrgttransitec)
+        # ax.add_collection(goallfttransitec)
 
         # for reggnode, reggnodedata in self.regg.nodes(data=True):
         #     placementid =  reggnodedata['placementid']
@@ -1160,7 +1161,7 @@ if __name__=='__main__':
     regrip.findshortestpath(startrotmat4, goalrotmat4, base)
     pltfig = plt.figure()
     regrip.plotgraph(pltfig)
-    regrip.plotshortestpath(pltfig, choice = 'startrgtgoalrgt')
+    # regrip.plotshortestpath(pltfig, choice = 'startrgtgoalrgt')
 
     plt.axis("equal")
     plt.show()

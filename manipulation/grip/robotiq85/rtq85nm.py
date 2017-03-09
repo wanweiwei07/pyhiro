@@ -324,6 +324,14 @@ class Rtq85NM():
 
         self.rtq85np.removeNode()
 
+    def detachNode(self):
+        """
+
+        :return:
+        """
+
+        self.rtq85np.detachNode()
+
     def lookAt(self, direct0, direct1, direct2):
         """
         set the Y axis of the hnd

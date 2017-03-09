@@ -572,6 +572,23 @@ class Freegrip(fgcp.FreegripContactpairs):
             # tmprtq85.setJawwidth(80)
             tmprtq85.reparentTo(base.render)
 
+class FreeAirGrip(object):
+    """
+    access data from db
+    """
+
+    def __init__(self, gdb, objname, handpkg):
+
+        freeairgripdata = gdb.loadFreeAirGrip(objname, handname = handpkg.getHandName())
+        if freeairgripdata is None:
+            raise ValueError("Plan the freeairgrip first!")
+
+        self.freegripids = freeairgripdata[0]
+        self.freegripcontacts = freeairgripdata[1]
+        self.freegripnormals = freeairgripdata[2]
+        self.freegriprotmats = freeairgripdata[3]
+        self.freegripjawwidth = freeairgripdata[4]
+
 if __name__=='__main__':
 
     # def updateworld(world, task):
