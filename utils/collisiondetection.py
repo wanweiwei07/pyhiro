@@ -126,7 +126,7 @@ def genCollisionPlane(updirection = Vec3(0,0,1), offset = 0, name = 'autogen'):
     """
 
     bulletplnode = BulletRigidBodyNode(name)
-    bulletplshape = BulletPlaneShape(Vec3(0, 0, 1), 0)
+    bulletplshape = BulletPlaneShape(Vec3(0, 0, 1), offset)
     bulletplshape.setMargin(0)
     bulletplnode.addShape(bulletplshape)
     return bulletplnode

@@ -2,7 +2,7 @@
 
 import os
 import trimesh
-import manipulation.grip.freegrip.FreeAirGrip as FreeAirGrip
+from manipulation.grip.freegrip import FreeAirGrip as FreeAirGrip
 
 class AssPathAnalyzer(object):
     """
@@ -79,4 +79,18 @@ class AssPathAnalyzer(object):
         pass
 
 if __name__ == '__main__':
-    pass
+    from panda3d.core import *
+    import pandaplotutils.pandactrl as pandactrl
+    import pandaplotutils.pandageom as pg
+    base = pandactrl.World(lookatp=[0,0,0])
+
+    this_dir, this_filename = os.path.split(__file__)
+    obj0path = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
+    obj0Mat4 = Mat4.identMat()
+    obj0trimesh = trimesh.load_mesh(obj0path)
+    obj0np = pg.packpandanp(obj0trimesh.vertices, obj0trimesh.face_normals, obj0trimesh.faces)
+    obj0np.setMat(obj0Mat4)
+    obj0np.setColor(1,.5,.5)
+    obj0np.reparentTo(base.render)
+
+    base.run()

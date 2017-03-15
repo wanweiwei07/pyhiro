@@ -248,12 +248,13 @@ class RegripTpp(object):
 
         # plane to remove hand
         self.bulletworld = BulletWorld()
-        self.planebullnode = cd.genCollisionPlane()
+        self.planebullnode = cd.genCollisionPlane(offset = -53)
         self.bulletworld.attachRigidBody(self.planebullnode)
 
         # add tabletop plane model to bulletworld
         this_dir, this_filename = os.path.split(__file__)
-        ttpath = Filename.fromOsSpecific(os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "supports", "tabletop.egg"))
+        # TODO: change the shape of nxt.egg
+        ttpath = Filename.fromOsSpecific(os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "supports", "tabletop_nxt.egg"))
         self.ttnodepath = NodePath("tabletop")
         ttl = loader.loadModel(ttpath)
         ttl.instanceTo(self.ttnodepath)

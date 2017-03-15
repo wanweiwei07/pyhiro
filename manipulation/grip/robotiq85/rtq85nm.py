@@ -398,6 +398,7 @@ def newHand(jawwidth = 85):
     return rtq85.Rtq85(jawwidth)
 
 def newHandFgrpcc():
+    this_dir, this_filename = os.path.split(__file__)
     handfgrpccpath = Filename.fromOsSpecific(os.path.join(this_dir, "rtq85egg", "robotiq_85_tip_precc.egg"))
     handfgrpcc = loader.loadModel(handfgrpccpath)
     return handfgrpcc
@@ -424,7 +425,7 @@ if __name__=='__main__':
         return task.cont
 
     base = pandactrl.World(lookatp=[0,0,0])
-    rtq85hnd = Rtq85NM(hndcolor=[.1,.1,0.1,.2])
+    rtq85hnd = Rtq85NM(hndcolor=[.5,.5,0.5,.7])
     rtq85hnd.setJawwidth(70)
     rtq85hnd.reparentTo(base.render)
 
@@ -513,13 +514,15 @@ if __name__=='__main__':
         print cp.getLocalPointA()
         pandageom.plotSphere(base, pos=cp.getLocalPointA(), radius=10, rgba=Vec4(1,0,0,1))
 
+    pandageom.plotAxisSelf(base.render, spos = Vec3(0,0,0))
+
     debugNode = BulletDebugNode('Debug')
     debugNode.showWireframe(True)
     debugNode.showConstraints(True)
     debugNode.showBoundingBoxes(False)
     debugNode.showNormals(False)
     debugNP = bullcldrnp.attachNewNode(debugNode)
-    debugNP.show()
+    # debugNP.show()
 
     base.world.setDebugNode(debugNP.node())
 

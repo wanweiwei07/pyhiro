@@ -62,7 +62,7 @@ class Freegrip(fgcp.FreegripContactpairs):
         # prepare the model for collision detection
         self.objgeom = pandageom.packpandageom(self.objtrimesh.vertices, self.objtrimesh.face_normals, self.objtrimesh.faces)
         self.objmeshbullnode = cd.genCollisionMeshGeom(self.objgeom)
-        self.bulletworld.attachRigidBody(self.objmeshbullnode)
+        # self.bulletworld.attachRigidBody(self.objmeshbullnode)
 
         # for plot
         self.rtq85plotlist = []

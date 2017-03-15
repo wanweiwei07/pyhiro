@@ -705,7 +705,7 @@ if __name__=='__main__':
                 objmnp[0].detachNode()
             print counter[0]
             print numikrms[counter[0]]
-            nxtrobot.movealljnts(np.append(np.array([numikrms[counter[0]][0], 0, 0]), numikrms[counter[0]][1:]))
+            nxtrobot.movejnts15(np.append(np.array([numikrms[counter[0]][0], 0, 0]), numikrms[counter[0]][1:]))
             nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot, jawwidthrgt=jawwidth[counter[0]][0], jawwidthlft=jawwidth[counter[0]][1])
             nxtrobot.goinitpose()
             nxtmnp[0].reparentTo(base.render)

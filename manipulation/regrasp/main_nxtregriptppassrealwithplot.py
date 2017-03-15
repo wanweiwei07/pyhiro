@@ -471,10 +471,10 @@ if __name__=='__main__':
     obj1Mat4.setCell(3,1,32)
     obj1Mat4.setCell(3,2,10)
 
-    sprotmat4 = Mat4(0.0,0.0,1.0,0.0,\
-                     0.0,1.0,0.0,0.0,\
+    sprotmat4 = Mat4(0.0,0.0,-1.0,0.0,\
+                     0.0,-1.0,0.0,0.0,\
                      -1.0,0.0,0.0,0.0,\
-                     400,-300,-35.0,1.0)
+                     400,-200,-37.0,1.0)
 
     # sprotmat4 = Mat4(1.0,0.0,0.0,0.0,\
     #                  0.0,1.0,0.0,0.0,\
@@ -502,14 +502,24 @@ if __name__=='__main__':
     regrip.plotshortestpath(ax, id = id)
     plt.axis("equal")
     plt.show()
-    #
+    # set execute
+    import robotcon.nextage as nxtcon
+    import robotcon.rtq85 as rtq85con
+    nxts = nxtcon.NxtSocket()
+    rtq85rs = rtq85con.Rtq85Socket(handname = 'rgt')
+    rtq85ls = rtq85con.Rtq85Socket(handname = 'lft')
+    rtq85rs.initialize()
+    rtq85ls.initialize()
+    rtq85rs.openhandto(regrip.robothand.jawwidthopen)
+    rtq85ls.openhandto(regrip.robothand.jawwidthopen)
+    nxts.initialize()
+    # values
     [numikrms, objms0, objms1, jawwidth] = genMotionSequence(regrip, id = id)
     nxtmnp = [None]
     obj0mnp = [None]
     obj1mnp = [None]
     counter = [0]
     def updateshow(objms0, objms1, numikrms, jawwidth, nxtmnp, obj0mnp, obj1mnp, counter, nxtrobot, obj0path, obj1path, task):
-        base.win.saveScreenshot(Filename(str(counter[0])+'.jpg'))
         if counter[0] < len(numikrms):
             if nxtmnp[0] is not None:
                 nxtmnp[0].detachNode()
@@ -517,8 +527,6 @@ if __name__=='__main__':
                 obj0mnp[0].detachNode()
             if obj1mnp[0] is not None:
                 obj1mnp[0].detachNode()
-            print counter[0]
-            print numikrms[counter[0]]
             nxtrobot.movejnts15(np.append(np.array([numikrms[counter[0]][0], 0, 0]), numikrms[counter[0]][1:]))
             nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot, jawwidthrgt=jawwidth[counter[0]][0], jawwidthlft=jawwidth[counter[0]][1])
             nxtrobot.goinitpose()
@@ -531,36 +539,52 @@ if __name__=='__main__':
             obj1mnp[0].setMat(objms1[counter[0]])
             # pg.plotAxisSelf(base.render,objms1[counter[0]].getRow3(3), objms[counter[0]])
             obj1mnp[0].reparentTo(base.render)
-            counter[0] += 1
+            if counter[0] >= 1:
+                print base.inputmgr.keyMap['space']
+                if base.inputmgr.keyMap['space'] is False:
+                    pass
+                else:
+                    c2e = counter[0]-1
+                    nxts.movejnts15(np.append(np.array([numikrms[c2e][0], 0, 0]), numikrms[c2e][1:]))
+                    if jawwidth[c2e][0] < 85:
+                        rtq85rs.openhandto(0)
+                    else:
+                        rtq85rs.openhandto(85)
+                    if jawwidth[c2e][1] < 85:
+                        rtq85ls.openhandto(0)
+                    else:
+                        rtq85ls.openhandto(85)
+                    counter[0] += 1
+                    base.inputmgr.keyMap['space'] = False
+            else:
+                counter[0] += 1
         else:
-            if nxtmnp[0] is not None:
-                nxtmnp[0].detachNode()
-            nxtrobot.goinitpose()
-            nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot)
-            nxtmnp[0].reparentTo(base.render)
-            # counter[0] = 0
-            return task.done
-            pass
-        return task.again
-    taskMgr.doMethodLater(1, updateshow, "updateshow",
-                          extraArgs = [objms0, objms1, numikrms, jawwidth, nxtmnp, obj0mnp, obj1mnp, counter, nxtrobot, obj0path, obj1path],
-                          appendTask = True)
+            if base.inputmgr.keyMap['space'] is True:
+                c2e = counter[0]-1
+                nxts.movejnts15(np.append(np.array([numikrms[c2e][0], 0, 0]), numikrms[c2e][1:]))
+                if jawwidth[c2e][0] < 85:
+                    rtq85rs.openhandto(0)
+                else:
+                    rtq85rs.openhandto(85)
+                if jawwidth[c2e][1] < 85:
+                    rtq85ls.openhandto(0)
+                else:
+                    rtq85ls.openhandto(85)
+                # if nxtmnp[0] is not None:
+                #     nxtmnp[0].detachNode()
+                # nxtrobot.goinitpose()
+                # nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot)
+                # nxtmnp[0].reparentTo(base.render)
+                # counter[0] = 0
+                return task.done
 
-    # # one time show for start and end
-    # objstart = pg.genObjmnp(objpath, color=Vec4(.7, .7, 0, 1))
-    # objstart.setMat(startrotmat4)
-    # objend = pg.genObjmnp(objpath, color=Vec4(.3, .3, 0, .5))
-    # objend.setMat(goalrotmat4)
-    #
-    # objstart.reparentTo(base.render)
-    # objend.reparentTo(base.render)
-    #
-    # this_dir, this_filename = os.path.split(__file__)
-    # ttpath = Filename.fromOsSpecific(
-    #     os.path.join(os.path.split(this_dir)[0] + os.sep, "grip", "supports", "tabletop.egg"))
-    # ttnodepath = NodePath("tabletop")
-    # ttl = loader.loadModel(ttpath)
-    # ttl.instanceTo(ttnodepath)
-    # ttnodepath.reparentTo(base.render)
+        return task.again
+
+
+    taskMgr.add(updateshow, "updateshow",
+                extraArgs = [objms0, objms1, numikrms, jawwidth, nxtmnp, obj0mnp, obj1mnp, counter, nxtrobot, obj0path, obj1path],
+                appendTask = True)
+
+    # # plot one frame
 
     base.run()

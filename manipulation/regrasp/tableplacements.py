@@ -70,13 +70,13 @@ class TablePlacements(object):
         # save tabletopplacements
         sql = "SELECT idtabletopplacements FROM tabletopplacements,freetabletopplacement,object WHERE \
                 tabletopplacements.idfreetabletopplacement=freetabletopplacement.idfreetabletopplacement AND \
-                 freetabletopplacement.idobject=object.idobject AND object.objname LIKE '%s'" % self.dbobjname
+                 freetabletopplacement.idobject=object.idobject AND object.name LIKE '%s'" % self.dbobjname
         result = gdb.execute(sql)
         if len(result) == 0:
             # 1) select the freetabletopplacement
             sql = "SELECT freetabletopplacement.idfreetabletopplacement, freetabletopplacement.rotmat \
                         FROM freetabletopplacement,object WHERE freetabletopplacement.idobject = object.idobject \
-                        AND object.objname LIKE '%s'" % self.dbobjname
+                        AND object.name LIKE '%s'" % self.dbobjname
             result = gdb.execute(sql)
             if len(result) == 0:
                 raise ValueError("Plan the freetabletopplacement first!")
@@ -110,13 +110,13 @@ class TablePlacements(object):
         # save tabletopgrips
         sql = "SELECT tabletopgrips.idtabletopgrips FROM tabletopgrips,freeairgrip,object WHERE \
                 tabletopgrips.idfreeairgrip=freeairgrip.idfreeairgrip AND \
-                 freeairgrip.idobject=object.idobject AND object.objname LIKE '%s'" % self.dbobjname
+                 freeairgrip.idobject=object.idobject AND object.name LIKE '%s'" % self.dbobjname
         result = gdb.execute(sql)
         if len(result) == 0:
             sql = "SELECT freetabletopplacement.idfreetabletopplacement \
                     FROM freetabletopplacement,object WHERE \
                     freetabletopplacement.idobject = object.idobject AND \
-                    object.objname LIKE '%s'" % self.dbobjname
+                    object.name LIKE '%s'" % self.dbobjname
             result = gdb.execute(sql)
             if len(result) == 0:
                 raise ValueError("Plan the freetabletopplacement  first!")
@@ -313,13 +313,12 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    # done 20170307
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
     # done 20170307
     objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
-    # done 20170307
+    # done 20170313
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
     print objpath
@@ -365,7 +364,7 @@ if __name__ == '__main__':
     grids = []
     for x in range(300,501,100):
         for y in range(-600,601,200):
-            grids.append([x,y,0])
+            grids.append([x,y,-55])
     gdb = db.GraspDB()
     # tps.saveToDB(grids, gdb)
     # tps.grpshow(base, gdb)

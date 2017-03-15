@@ -13,13 +13,15 @@ class InputManager(DirectObject):
         self.lastm1pos = None
         self.lastm2pos = None
         self.rotatecenternp = None
-        self.keyMap = {"mouse1": False, "mouse2": False, "wheel_up": False, "wheel_down": False}
+        self.keyMap = {"mouse1": False, "mouse2": False, "wheel_up": False, "wheel_down": False, "space": False}
         self.accept("mouse1", self.__setKey, ["mouse1", True])
         self.accept("mouse1-up", self.__setKey, ["mouse1", False])
         self.accept("mouse2", self.__setKey, ["mouse2", True])
         self.accept("mouse2-up", self.__setKey, ["mouse2", False])
         self.accept("wheel_up", self.__setKey, ["wheel_up", True])
         self.accept("wheel_down", self.__setKey, ["wheel_down", True])
+        self.accept("space", self.__setKey, ["space", True])
+        self.accept("space-up", self.__setKey, ["space", False])
         self.setupMouseAim()
 
     def __setKey(self, key, value):

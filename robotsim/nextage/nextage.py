@@ -135,7 +135,7 @@ class NxtRobot():
 
         self.movewaist(rotangle=armjnts[0])
 
-    def movealljnts(self, nxjnts):
+    def movejnts15(self, nxjnts):
         """
         move all joints of the nextage robo
 
@@ -169,7 +169,7 @@ class NxtRobot():
         date: 20161108
         """
 
-        self.movealljnts(self.initjnts)
+        self.movejnts15(self.initjnts)
 
     def getarmjnts6(self, armid="rgt"):
         """
