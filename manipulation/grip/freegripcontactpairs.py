@@ -47,6 +47,7 @@ class FreegripContactpairs(object):
         self.gripcontactpairs = None
         self.gripcontactpairnormals = None
         self.gripcontactpairfacets = None
+        self.gripcontactrotangles = None
         # for plot
         self.facetcolorarray = None
         self.counter = 0
@@ -309,11 +310,12 @@ class FreegripContactpairs(object):
                 self.objsamplepnts_refcls[i] = np.empty(shape=(0,0))
                 self.objsamplenrmls_refcls[i] = np.empty(shape=(0,0))
 
-    def planContactpairs(self, torqueresist = 50):
+    def planContactpairs(self, torqueresist = 50, fgrtipdist = 82):
         """
         find the grasps using parallel pairs
 
         :param: torqueresist the maximum allowable distance to com
+        :param: fgrtipdist the maximum dist between finger tips
         :return:
 
         author: weiwei
@@ -380,9 +382,9 @@ class FreegripContactpairs(object):
                     result = bulletworldray.rayTestClosest(pFrom, pTo)
                     if result.hasHit():
                         hitpos = result.getHitPos()
-                        # avoid large torque
-                        if np.linalg.norm(np.array(facet0pnt.tolist())-np.array([hitpos[0], hitpos[1], hitpos[2]])) < 82:
+                        if np.linalg.norm(np.array(facet0pnt.tolist())-np.array([hitpos[0], hitpos[1], hitpos[2]])) < fgrtipdist:
                             fgrcenter = (np.array(facet0pnt.tolist())+np.array([hitpos[0], hitpos[1], hitpos[2]]))/2.0
+                            # avoid large torque
                             if np.linalg.norm(self.objtrimesh.center_mass - fgrcenter) < torqueresist:
                                 self.gripcontactpairs[-1].append([facet0pnt.tolist(), [hitpos[0], hitpos[1], hitpos[2]]])
                                 self.gripcontactpairnormals[-1].append([[facet0normal[0], facet0normal[1], facet0normal[2]],

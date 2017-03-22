@@ -19,11 +19,11 @@ from utils import collisiondetection as cd
 import trimesh
 from utils import robotmath
 from utils import dbcvt as dc
-import sandmmbs.sdmbs as sdmbs
+import sandmmbs.sdmbs_sanddata as sdmbstipsd
 
 class Freesuc(object):
 
-    def __init__(self, ompath, handpkg, ser=False):
+    def __init__(self, ompath, handpkg, ser=False, torqueresist = 50):
         self.objtrimesh = None
         # the sampled points and their normals
         self.objsamplepnts = None
@@ -51,6 +51,9 @@ class Freesuc(object):
         self.succontacts = []
         self.succontactnormals = []
 
+        self.objcenter = [0,0,0]
+        self.torqueresist = torqueresist
+
         if ser is False:
             self.loadObjModel(ompath)
             self.saveSerialized("tmpfsc.pickle")
@@ -68,6 +71,15 @@ class Freesuc(object):
         self.objgeom = pandageom.packpandageom(self.objtrimesh.vertices, self.objtrimesh.face_normals, self.objtrimesh.faces)
         self.objmeshbullnode = cd.genCollisionMeshGeom(self.objgeom)
         self.bulletworld.attachRigidBody(self.objmeshbullnode)
+        # object center
+        self.objcenter = [0,0,0]
+        for pnt in self.objtrimesh.vertices:
+            self.objcenter[0]+=pnt[0]
+            self.objcenter[1]+=pnt[1]
+            self.objcenter[2]+=pnt[2]
+        self.objcenter[0] = self.objcenter[0]/self.objtrimesh.vertices.shape[0]
+        self.objcenter[1] = self.objcenter[1]/self.objtrimesh.vertices.shape[0]
+        self.objcenter[2] = self.objcenter[2]/self.objtrimesh.vertices.shape[0]
 
     def loadSerialized(self, filename, ompath):
         self.objtrimesh=trimesh.load_mesh(ompath)
@@ -328,7 +340,7 @@ class Freesuc(object):
         self.succontacts = []
         self.succontactnormals = []
 
-        plotoffsetfp = 6
+        plotoffsetfp = 3
 
         self.counter = 0
 
@@ -339,16 +351,19 @@ class Freesuc(object):
             for i in range(self.objsamplepnts_refcls[self.counter].shape[0]):
                 for angleid in range(discretesize):
                     cctpnt = self.objsamplepnts_refcls[self.counter][i] + plotoffsetfp * self.objsamplenrmls_refcls[self.counter][i]
-                    cctnrml = self.objsamplenrmls_refcls[self.counter][i]
-                    rotangle = 360.0 / discretesize * angleid
-                    tmphand = self.hand
-                    tmphand.attachTo(cctpnt[0], cctpnt[1], cctpnt[2], cctnrml[0], cctnrml[1], cctnrml[2], rotangle)
-                    hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
-                    result = self.bulletworld.contactTest(hndbullnode)
-                    if not result.getNumContacts():
-                        self.succontacts.append(self.objsamplepnts_refcls[self.counter][i])
-                        self.succontactnormals.append(self.objsamplenrmls_refcls[self.counter][i])
-                        self.sucrotmats.append(tmphand.getMat())
+                    # check torque resistance
+                    print Vec3(cctpnt[0],cctpnt[1],cctpnt[2]).length()
+                    if Vec3(cctpnt[0],cctpnt[1],cctpnt[2]).length() < self.torqueresist:
+                        cctnrml = self.objsamplenrmls_refcls[self.counter][i]
+                        rotangle = 360.0 / discretesize * angleid
+                        tmphand = self.hand
+                        tmphand.attachTo(cctpnt[0], cctpnt[1], cctpnt[2], cctnrml[0], cctnrml[1], cctnrml[2], rotangle)
+                        hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
+                        result = self.bulletworld.contactTest(hndbullnode)
+                        if not result.getNumContacts():
+                            self.succontacts.append(self.objsamplepnts_refcls[self.counter][i])
+                            self.succontactnormals.append(self.objsamplenrmls_refcls[self.counter][i])
+                            self.sucrotmats.append(tmphand.getMat())
             self.counter+=1
         self.counter = 0
 
@@ -373,7 +388,8 @@ class Freesuc(object):
         plotoffsetf = .0
         for i, facet in enumerate(self.facets):
             geom = pandageom.packpandageom(self.objtrimesh.vertices+np.tile(plotoffsetf*i*self.facetnormals[i],
-                                                                            [self.objtrimesh.vertices.shape[0],1]),
+                                                                            [self.objtrimesh.vertices.shape[0],1]), \
+                                           # -np.tile(self.objcenter,[self.objtrimesh.vertices.shape[0],1]),
                                            self.objtrimesh.face_normals[facet], self.objtrimesh.faces[facet])
             node = GeomNode('piece')
             node.addGeom(geom)
@@ -532,9 +548,9 @@ if __name__=='__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
 
-    handpkg = sdmbs
+    handpkg = sdmbstipsd
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "sandpart.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "sandpart2.stl")
     freesuctst = Freesuc(objpath, handpkg = handpkg)
     print len(freesuctst.objtrimesh.faces)
     # freegriptst.objtrimesh.show()
@@ -552,24 +568,33 @@ if __name__=='__main__':
     freesuctst.removeHndcc(base)
     for i, hndrot in enumerate(freesuctst.sucrotmats):
         tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
-        tmphand.setMat(hndrot)
-        # tmphand.reparentTo(base.render)
+        centeredrot = Mat4(hndrot)
+        # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
+        tmphand.setMat(centeredrot)
+        tmphand.reparentTo(base.render)
 
-    # import csv
-    # file = open('sandmedia.csv', 'wb')
-    # writer = csv.writer(file)
-    # writer.writerow(['Autopick'])
-    # writer.writerow(['Version 0.1'])
-    # writer.writerow(['See slides for hand base, hand coordinates'])
-    # writer.writerow(['HandX', 'Y', 'Z', 'RX', 'RY', 'RZ', '#Tool', 'WorkX', 'Y', 'Z','RX', 'RY', 'RZ', '#Model', 'HandRotmat4'])
-    #
-    # for i, hndrot in enumerate(freesuctst.sucrotmats):
-    #     tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
-    #     tmphand.setMat(hndrot)
-    #     rpyvec3 = tmphand.getHpr()
-    #     writer.writerow([str(hndrot.getRow3(3)[0]),str(hndrot.getRow3(3)[0]), str(hndrot.getRow3(3)[0]), \
-    #                      str(rpyvec3[1]), str(rpyvec3[2]), str(rpyvec3[0]),'T0','0','0','0','0','0','0','M0', dc.mat4ToStr(hndrot)])
-    # file.close()
+    import csv
+    file = open('sandmedia_cvt.csv', 'wb')
+    writer = csv.writer(file)
+    writer.writerow(['Autopick'])
+    writer.writerow(['Version 0.11'])
+    writer.writerow(['See slides for hand base, hand coordinates'])
+    writer.writerow(['HandX', 'Y', 'Z', 'RX', 'RY', 'RZ', '#Tool', 'WorkX', 'Y', 'Z','RX', 'RY', 'RZ', '#Model', 'HandRotmat4'])
+
+    import math
+    from trimesh import transformations as tf
+    from pandaplotutils import pandageom as pg
+    for i, hndrot in enumerate(freesuctst.sucrotmats):
+        tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
+        centeredrot = Mat4(hndrot)
+        # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
+        tmphand.setMat(centeredrot)
+        rotmatnp = pg.mat3ToNp(tmphand.getMat().getUpper3())
+        rpyangles3 = tf.euler_from_matrix(rotmatnp, 'sxyz')
+        writer.writerow([str(centeredrot.getRow3(3)[0]),str(centeredrot.getRow3(3)[1]), str(centeredrot.getRow3(3)[2]), \
+                         str(math.degrees(rpyangles3[0])), str(math.degrees(rpyangles3[1])), str(math.degrees(rpyangles3[2])),\
+                         'T0','0','0','0','0','0','0','M0', dc.mat4ToStr(centeredrot)])
+    file.close()
     #
     # def updateshow0(freegriptst, task):
     #     npc = base.render.findAllMatches("**/piece")
