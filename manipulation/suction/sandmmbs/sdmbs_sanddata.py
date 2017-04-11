@@ -44,6 +44,9 @@ class SdmbsSd():
         # read-only property
         return self.__sdmbs
 
+    def setColor(self, r, g, b, a):
+        self.__sdmbs.setColor(r,g,b,a)
+
     def setPose(self, pgvec3):
         """
         set the pose of the hand
@@ -183,7 +186,7 @@ if __name__=='__main__':
     sdmbs = SdmbsSd()
     sdmbs.attachTo(0,0,0,0,1,1,15)
     print sdmbs.getHpr()
-    sdmbs.reparentTo(base.render)
+    # sdmbs.reparentTo(base.render)
     handbullnp = cd.genCollisionMeshNp(sdmbs.handnp)
     # second hand
     sdmbs1 = SdmbsSd()

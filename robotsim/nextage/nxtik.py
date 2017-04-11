@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import exceptions as ep
-
+import utils.robotmath as rm
 
 def eubik(pos, armid="rgt"):
     """
@@ -155,6 +155,7 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
             return armjntsreturn
         else:
             armjntsiter += dq
+            armjntsiter = rm.cvtRngPM180(armjntsiter)
             if nxtrobot.chkrng6(armjntsiter) or i < 10:
                 nxtrobot.movearmfk6(armjntsiter, armid)
                 import nxtplot

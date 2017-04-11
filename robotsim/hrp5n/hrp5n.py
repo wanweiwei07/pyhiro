@@ -7,20 +7,22 @@ import hrp5nik
 
 class Hrp5NRobot():
     def __init__(self):
-        # initjnts has 20 elements where the first two are for the head,
+        # initjnts has 21 elements where the first three are for the base and head,
         # the remaining 18 are for each of the two 9-dof arms
         self.__name = 'hrp5n'
         # initjnts[0] = waist, 0,0 = head, 0,45,-20,...-30,0,0 = rgt, 0,45,20,...,30,0,0 = lft
-        self.__initjnts = np.array([0,0,0,0,45,-20,0,-150,0,-30,0,0,0,45,20,0,-150,0,30,0,0]);
+        self.__initjnts = np.array([0,0,0,0,45,-20,0,-150,0,0,0,0,0,45,20,0,-150,0,0,0,0]);
         # self.__initjnts = np.array([0,0,0,0,45,-20,0,-75,0,-30,0,0,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-64,82,-27,109,-111,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-68,77,-32,109,-122,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
-        # define the six joints for ik
-        # these sixjoints are used instead of the last 6 joints
-        self.__sixjoints = [2,3,4,5,6,9]
+        # define the target joints for ik
+        # waist 0 should not be in the list
+        # self.__targetjoints = [2,3,4,5,6,9]
+        self.__targetjoints = [1,2,3,4,5,6,7,8,9]
+        # self.__sixjoints = [2,4,5,6,7,9]
         self.__base = self.__rgtarm[0]
         self.goinitpose()
 
@@ -54,44 +56,38 @@ class Hrp5NRobot():
         # read-only property
         return self.__sixjoints
 
-    def movewaistshoulder(self, waistrot, shoulderrot, armid="rgt"):
-        """
-        rotate the shoulderwaist of the robot
+    @property
+    def targetjoints(self):
+        # read-only property
+        return self.__targetjoints
 
-        :param waistrot: in degree
-        :param shoulderrot: in degree
+    def movewaist(self, rotangle=0):
+        """
+        rotate the base of the robot
+
+        :param rotangle: in degree
         :return: null
 
         author: weiwei
-        date: 20170112
+        date: 20170410
         """
 
-        if armid!="rgt" and armid!="lft":
-            raise ep.ValueError("Armid must be 'rgt' or 'lft'")
-
-        armlj = self.rgtarm
-        if armid == "lft":
-            armlj = self.lftarm
-
         # right arm
-        self.rgtarm[0]['rotangle'] = waistrot
+        self.rgtarm[0]['rotangle'] = rotangle
         self.rgtarm[0]['rotmat'] = rm.rodrigues(self.rgtarm[0]['rotax'], self.rgtarm[0]['rotangle'])
         self.rgtarm[0]['linkend'] = np.squeeze(np.dot(self.rgtarm[0]['rotmat'], self.rgtarm[0]['linkvec'].reshape((-1,))))+self.rgtarm[0]['linkpos']
 
         # left arm
-        self.lftarm[0]['rotangle'] = waistrot
+        self.lftarm[0]['rotangle'] = rotangle
         self.lftarm[0]['rotmat'] = rm.rodrigues(self.lftarm[0]['rotax'], self.lftarm[0]['rotangle'])
         self.lftarm[0]['linkend'] = np.squeeze(np.dot(self.lftarm[0]['rotmat'], self.lftarm[0]['linkvec'].reshape((-1,))))+self.lftarm[0]['linkpos']
-
-        # shoulder
-        armlj[1]['rotangle'] = shoulderrot
 
         self.__updatefk(self.rgtarm)
         self.__updatefk(self.lftarm)
 
-    def movearmfk6(self, armjnts, armid="rgt"):
+    def movearmfk(self, armjnts, armid="rgt"):
         """
-        move the last 6 joints of armlj using forward kinematics
+        move the joints of armlj specified by targetjoints using forward kinematics, waist is not included
 
         :param armjnts: a 1-by-6 ndarray where each element indicates the angle of a joint (in degree)
         :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
@@ -109,7 +105,7 @@ class Hrp5NRobot():
             armlj = self.lftarm
 
         counter = 0
-        for i in self.__sixjoints:
+        for i in self.__targetjoints:
             armlj[i]['rotangle'] = armjnts[counter]
             counter += 1
         self.__updatefk(armlj)
@@ -134,17 +130,17 @@ class Hrp5NRobot():
             armlj = self.lftarm
 
         counter = 0
-        for i in self.__sixjoints:
-            armlj[i]['rotangle'] = armjnts[2][counter]
+        for i in self.__targetjoints:
+            armlj[i]['rotangle'] = armjnts[1][counter]
             counter += 1
 
-        self.movewaistshoulder(armjnts[0], armjnts[1], armid)
+        self.movewaist(armjnts[0])
 
-    def movealljnts(self, hrp5njnts):
+    def movealljnts(self, robotjnts):
         """
-        move all joints of the nextage robo
+        move all joints of the  robo
 
-        :param hrp5jnts: the definition as self.initjntss
+        :param robotjnts: the definition as self.initjntss
         :return: null
 
         author: weiwei
@@ -154,12 +150,12 @@ class Hrp5NRobot():
         # right arm
         i = 1
         while i != -1:
-            self.rgtarm[i]['rotangle'] = hrp5njnts[i+2]
+            self.rgtarm[i]['rotangle'] = robotjnts[i+2]
             i = self.rgtarm[i]['child']
         # left arm
         i = 1
         while i != -1:
-            self.lftarm[i]['rotangle'] = hrp5njnts[i+11]
+            self.lftarm[i]['rotangle'] = robotjnts[i+11]
             i = self.lftarm[i]['child']
 
         self.__updatefk(self.rgtarm)
@@ -167,7 +163,7 @@ class Hrp5NRobot():
 
     def goinitpose(self):
         """
-        move the hrp5n robot to initial pose
+        move the robot to initial pose
 
         :return: null
 
@@ -177,12 +173,12 @@ class Hrp5NRobot():
 
         self.movealljnts(self.initjnts)
 
-    def getarmjnts6(self, armid="rgt"):
+    def getarmjnts(self, armid="rgt"):
         """
-        get the last 6 joints of the specified armid
+        get the target joints of the specified armid
 
         :param armid:
-        :return: armjnts: a 1-by-6 numpy ndarray
+        :return: armjnts: a 1-by-x numpy ndarray
 
         author: weiwei
         date: 20161205, tsukuba
@@ -195,39 +191,32 @@ class Hrp5NRobot():
         if armid == "lft":
             armlj = self.lftarm
 
-        armjnts = np.zeros(6)
+        armjnts = np.zeros(len(self.__targetjoints))
         counter = 0
-        for i in self.__sixjoints:
+        for i in self.__targetjoints:
             armjnts[counter] = armlj[i]['rotangle']
             counter += 1
 
         return armjnts
 
-    def getjntwaistshoulder(self, armid="rgt"):
+    def getjntwaist(self):
         """
-        get the rot angle of robot shoulder and waist
+        get the rot angle of robot waist
 
-        :return: [waistangle, shoulderangle] in degree
+        :return: waistangle in degree
 
          author: weiwei
          date: 20170112
         """
 
-        if armid!="rgt" and armid!="lft":
-            raise ep.ValueError("Armid must be 'rgt' or 'lft'")
+        return self.base['rotangle']
 
-        armlj = self.rgtarm
-        if armid == "lft":
-            armlj = self.lftarm
-
-        return [self.base['rotangle'], armlj[1]['rotangle']]
-
-    def chkrng6(self, armjnts, armid="rgt"):
+    def chkrng(self, armjnts, armid="rgt"):
         """
         check if the given armjnts is inside the oeprating range of the speificed armid
         this function doesn't check the waist
 
-        :param armjnts: a 1-by-6 numpy ndarray indicating the last 6 joints of a manipulator
+        :param armjnts: a 1-by-6 numpy ndarray indicating the targejoints of a manipulator
         :param armid: a string "rgt" or "lft"
         :return: True or False indicating inside the range or not
 
@@ -243,11 +232,11 @@ class Hrp5NRobot():
             armlj = self.lftarm
 
         counter = 0
-        for i in self.__sixjoints:
+        for i in self.__targetjoints:
             if armjnts[counter] < armlj[i]["rngmin"] or armjnts[counter] > armlj[i]["rngmax"]:
-                # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
-                # print "Angle is " + str(armjnts[counter])
-                # print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
+                print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                print "Angle is " + str(armjnts[counter])
+                print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
                 return False
             counter += 1
 
@@ -255,7 +244,7 @@ class Hrp5NRobot():
 
     def __initrgtlj(self):
         """
-        Init hrp5n's rgt arm links and joints
+        Init rgt arm links and joints
 
         ## note
         x is facing forward, y is facing left, z is facing upward
@@ -657,15 +646,18 @@ if __name__=="__main__":
     from manipulation.grip.hrp5three import hrp5threenm
     handpkg = hrp5threenm
     hrp5nmnp = hrp5nplot.genHrp5mnp(hrp5nrobot, handpkg)
-    hrp5nmnp.reparentTo(base.render)
+    # hrp5nmnp.reparentTo(base.render)
 
-    objpos = np.array([300,-200,0])
+    objpos = np.array([500,-300,300])
     # objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
-    objrot = np.array([[0,-1,0],[0,0,-1],[1,0,0]])
-    objpos = np.array([401.67913818,-644.12841797,83.24006653])
-    objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
-                        [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
-                        [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
+    objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
+    # objrotmat4 = pg.npToMat4(objrot)
+    # objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
+    # objrot = pg.mat3ToNp(objrotmat4.getUpper3())
+    # objpos = np.array([401.67913818,-644.12841797,0])
+    # objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
+    #                     [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
+    #                     [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
     # lfthnd
     # objpos = np.array([180,130,100])
     # objrot = np.array([[0,0,-1],[1,0,0],[0,-1,0]])
@@ -676,12 +668,12 @@ if __name__=="__main__":
     #     hrp5plot.plotstick(base.render, hrp5robot)
     #     hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
     #     hrp5mnp.reparentTo(base.render)
-    armjntsgoal = hrp5nrobot.numik(objpos, objrot, armid)
+    armjntsgoal = hrp5nrobot.numikr(objpos, objrot, armid)
     if armjntsgoal is not None:
-        hrp5nrobot.movearmfk6(armjntsgoal, armid)
+        hrp5nrobot.movearmfkr(armjntsgoal, armid)
         hrp5nplot.plotstick(base.render, hrp5nrobot)
-        hrp5nmnp = hrp5nplot.genHrp5mnp(hrp5nrobot)
-        # hrp5mnp.reparentTo(base.render)
+        hrp5nmnp_nm = hrp5nplot.genHrp5mnp_nm(hrp5nrobot, handpkg)
+        hrp5nmnp_nm.reparentTo(base.render)
 
     # goal hand
     # from manipulation.grip.robotiq85 import rtq85nm
@@ -702,7 +694,8 @@ if __name__=="__main__":
     # # pg.plotAxis(base.render, pandamat4)
     # # nxtplot.plotmesh(base, nxtrobot)
     # # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
-    pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,0,1])
+    # pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,0,1])
+    pg.plotAxisSelf(base.render, objpos, pg.npToMat4(objrot))
     # pg.plotArrow(base.render, hrp5robot.rgtarm[8]['linkpos'], hrp5robot.rgtarm[8]['linkpos']+hrp5robot.rgtarm[8]['rotax']*1000)
     #
     # # nxtrobot.movearmfk6(armjntsgoal)

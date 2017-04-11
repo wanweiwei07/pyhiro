@@ -179,7 +179,7 @@ class InputManager(DirectObject):
             self.keyMap["wheel_up"] = False
             forward = self.pandabase.cam.getPos()-self.lookatp
             forward.normalize()
-            if (self.pandabase.cam.getPos()-self.lookatp).length() < self.initviewdist*1.5:
+            if (self.pandabase.cam.getPos()-self.lookatp).length() < self.initviewdist*20:
                 newpos = self.pandabase.cam.getPos() + forward* 100
                 self.pandabase.cam.setPos(newpos[0], newpos[1], newpos[2])
                 self.changeCollisionSphere(self.aimSphere.getCenter(), self.aimSphere.getRadius()+50)
@@ -188,8 +188,10 @@ class InputManager(DirectObject):
             self.keyMap["wheel_down"] = False
             forward = self.pandabase.cam.getPos()-self.lookatp
             forward.normalize()
-            if (self.pandabase.cam.getPos()-self.lookatp).length() > self.initviewdist*.5:
+            if (self.pandabase.cam.getPos()-self.lookatp).length() > self.initviewdist*.05:
                 newpos = self.pandabase.cam.getPos() - forward* 100
                 self.pandabase.cam.setPos(newpos[0], newpos[1], newpos[2])
-                self.changeCollisionSphere(self.aimSphere.getCenter(), self.aimSphere.getRadius()-50)
+                camdist = self.pandabase.cam.getPos().length()
+                self.changeCollisionSphere(self.aimSphere.getCenter(), camdist*.6)
+                # self.changeCollisionSphere(self.aimSphere.getCenter(), self.aimSphere.getRadius()-50)
                 # self.pandabase.cam.lookAt(self.lookatp[0], self.lookatp[1], self.lookatp[2])

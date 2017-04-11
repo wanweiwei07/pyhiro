@@ -88,7 +88,7 @@ class Hrp5Three():
         hrp5three_basel.instanceTo(hrp5threebase)
         rotmat4 = Mat4.rotateMat(90, Vec3(0,1,0))
         hrp5threebase.setMat(hrp5threebase.getMat()*rotmat4)
-        hrp5threebase.setPos(0,0,0)
+        hrp5threebase.setPos(-102.7,0,0)
 
         if hndid == 'rgt':
             # lfgr
@@ -134,7 +134,7 @@ class Hrp5Three():
             fgrtippccleft = NodePath("hrp5threerlfgrtippcc")
             lfgrtippcc.instanceTo(fgrtippccleft)
             lrot = fgrtippccleft.getMat()
-            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*70)
+            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*172.7)
             # move rightfgr to +-27 along z axis
             fgrtippccright = NodePath("hrp5threerrfgrtippcc")
             subfgrtippccright0 = NodePath("hrp5threerrfgrtip0pcc")
@@ -146,7 +146,7 @@ class Hrp5Three():
             subfgrtippccright0.reparentTo(fgrtippccright)
             subfgrtippccright1.reparentTo(fgrtippccright)
             rrot = fgrtippccright.getMat()
-            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*70)
+            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*172.7)
 
         if hndid == 'lft':
             # rfgr
@@ -437,11 +437,11 @@ class Hrp5Three():
         self.__hrp5threenp.setMat(self.__hrp5threenp.getMat()*rotmat4x)
         self.__hrp5threefgrtippccnp.setMat(self.__hrp5threefgrtippccnp.getMat()*rotmat4x)
         rotmat4 = Mat4(self.__hrp5threenp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*70
+        handtipvec3 = rotmat4.getRow3(0)*172.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threenp.setMat(rotmat4)
         rotmat4 = Mat4(self.__hrp5threefgrtippccnp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*70
+        handtipvec3 = rotmat4.getRow3(0)*172.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threefgrtippccnp.setMat(rotmat4)
 

@@ -429,8 +429,8 @@ if __name__=='__main__':
     rtq85hnd.setJawwidth(70)
     rtq85hnd.reparentTo(base.render)
 
-    axis = loader.loadModel('zup-axis.egg')
-    axis.reparentTo(base.render)
+    # axis = loader.loadModel('zup-axis.egg')
+    # axis.reparentTo(base.render)
 
     bullcldrnp = base.render.attachNewNode("bulletcollider")
     base.world = BulletWorld()
@@ -514,7 +514,7 @@ if __name__=='__main__':
         print cp.getLocalPointA()
         pandageom.plotSphere(base, pos=cp.getLocalPointA(), radius=10, rgba=Vec4(1,0,0,1))
 
-    pandageom.plotAxisSelf(base.render, spos = Vec3(0,0,0))
+    # pandageom.plotAxisSelf(base.render, spos = Vec3(0,0,0))
 
     debugNode = BulletDebugNode('Debug')
     debugNode.showWireframe(True)

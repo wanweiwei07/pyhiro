@@ -32,7 +32,7 @@ def packpandageom(vertices, facenormals, triangles, name=''):
     vertformat = GeomVertexFormat.getV3n3()
     # vertformat = GeomVertexFormat.getV3n3c4()
     vertexdata = GeomVertexData(name, vertformat, Geom.UHStatic)
-    vertexdata.setNumRows(triangles.shape[0]*3)
+    # vertexdata.setNumRows(triangles.shape[0]*3)
     vertwritter = GeomVertexWriter(vertexdata, 'vertex')
     normalwritter = GeomVertexWriter(vertexdata, 'normal')
     # colorwritter = GeomVertexWriter(vertexdata, 'color')
@@ -57,6 +57,44 @@ def packpandageom(vertices, facenormals, triangles, name=''):
         # print facenormals[i,0], facenormals[i,1], facenormals[i,2]
         # colorwritter.addData4f(1,1,1,1)
         primitive.addVertices(i*3, i*3+1, i*3+2)
+    geom = Geom(vertexdata)
+    geom.addPrimitive(primitive)
+
+    return geom
+
+def packpandageompnts(vertices, colors=[], name=''):
+    """
+    package the vertices and triangles into a panda3d geom
+
+    ## input
+    vertices:
+        a n-by-3 nparray, each row is a vertex
+    colors:
+        a n-by-4 nparray, each row is a rgba
+    name:
+        not as important
+
+    ## output
+    geom
+        a Geom model which is ready to be added to a node
+
+    author: weiwei
+    date: 20170328
+    """
+
+    vertformat = GeomVertexFormat.getV3c4()
+    vertexdata = GeomVertexData(name, vertformat, Geom.UHStatic)
+    vertwritter = GeomVertexWriter(vertexdata, 'vertex')
+    colorwritter = GeomVertexWriter(vertexdata, 'color')
+    primitive = GeomPoints(Geom.UHStatic)
+    for i,vert in enumerate(vertices):
+        vertwritter.addData3f(vert[0], vert[1], vert[2])
+        if len(colors) == 0:
+            # default
+            colorwritter.addData4f(.2, .2, .2, 1)
+        else:
+            colorwritter.addData4f(colors[i][0], colors[i][1], colors[i][2], colors[i][3])
+        primitive.addVertex(i)
     geom = Geom(vertexdata)
     geom.addPrimitive(primitive)
 
@@ -486,8 +524,26 @@ def cvtMat3(npmat3):
                 npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], \
                 npmat3[0, 2], npmat3[1, 2], npmat3[2, 2])
 
+def npToMat4(npmat3, npvec3=np.array([0,0,0])):
+    """
+    # updated from cvtMat4
+    convert numpy.2darray to LMatrix4 defined in Panda3d
+
+    :param npmat3: a 3x3 numpy ndarray
+    :param npvec3: a 1x3 numpy ndarray
+    :return: a LMatrix3f object, see panda3d
+
+    author: weiwei
+    date: 20170322
+    """
+    return Mat4(npmat3[0, 0], npmat3[1, 0], npmat3[2, 0], 0, \
+                npmat3[0, 1], npmat3[1, 1], npmat3[2, 1], 0, \
+                npmat3[0, 2], npmat3[1, 2], npmat3[2, 2], 0, \
+                npvec3[0], npvec3[1], npvec3[2], 1)
+
 def cvtMat4(npmat3, npvec3=np.array([0,0,0])):
     """
+    # use npToMat4 instead
     convert numpy.2darray to LMatrix4 defined in Panda3d
 
     :param npmat3: a 3x3 numpy ndarray
@@ -582,6 +638,19 @@ def v3ToNp(pdv3):
 
     return np.array([pdv3[0], pdv3[1], pdv3[2]])
 
+def npToV3(npv3):
+    """
+    convert a numpy array to Panda3d V3...
+
+    :param npv3:
+    :return: panda3d vec3
+
+    author: weiwei
+    date: 20170322
+    """
+
+    return Vec3(npv3[0], npv3[1], npv3[2])
+
 def plotAxis(nodepath, pandamat4=Mat4.identMat()):
     """
     plot an axis to the scene
@@ -600,7 +669,7 @@ def plotAxis(nodepath, pandamat4=Mat4.identMat()):
     dbgaxisnp.setMat(pandamat4)
     dbgaxisnp.reparentTo(nodepath)
 
-def plotAxisSelf(nodepath, spos, pandamat4=Mat4.identMat(), length=300, thickness = 10):
+def plotAxisSelf(nodepath, spos=Vec3(0,0,0), pandamat4=Mat4.identMat(), length=300, thickness = 10):
     """
     plot an axis to the scene, using self-defined arrows
     note: pos is in the coordiante sys of nodepath
@@ -708,34 +777,39 @@ def genObjmnp(objpath, color = Vec4(1,0,0,1)):
 
     return objmnp
 
+def genPntsnp(verts, colors = [], pntsize = 1):
+    """
+    gen objmnp
+
+    :param objpath:
+    :return:
+    """
+
+    geom = packpandageompnts(verts, colors)
+    node = GeomNode('pnts')
+    node.addGeom(geom)
+    objmnp = NodePath('pnts')
+    objmnp.attachNewNode(node)
+    objmnp.setRenderMode(RenderModeAttrib.MPoint, pntsize)
+
+    return objmnp
+
 if __name__=="__main__":
 
     # show in panda3d
-    from direct.showbase.ShowBase import ShowBase
+    import random
+    import math
     from panda3d.core import *
+    import pandaplotutils.pandactrl as pandactrl
 
-    base = ShowBase()
-    # base.setBackgroundColor(0,0,0)
-    # arrow = genArrow(base, 0.05)
-    arrow = base.loader.loadModel("./geomprim/cylinder.egg")
-    arrow.setPos(0,0,0)
-    arrow.reparentTo(base.render)
-    # arrowpholder = base.render.attachNewNode("arrow")
-    # arrowpholder.setPos(0,0,0)
-    # arrow.instanceTo(arrowpholder)
-    base.camLens.setNearFar(0.01, 40.0)
-    base.camLens.setFov(45.0)
-    base.disableMouse()
-    base.camera.setPos(0, 5, 15)
-    base.camera.lookAt(0, 0, 0)
-    # base.camera.setPos(0, -10, 0)
-    # base.camera.lookAt(arrow)
-    # print base.camera.getPos()
-    # base.oobe()'
+    base = pandactrl.World(camp=[0,0,3000], lookatp=[0,0,0])
 
-    from robotsim.nextage import nxtplot as pandactrl
-
-    # pandactrl.setRenderEffect(base)
-    pandactrl.setLight(base)
+    verts = []
+    for i in range(-500, 500, 5):
+        for j in range(-500, 500,5 ):
+            verts.append([i,j,random.gauss(0, math.sqrt(i*i+j*j))/10])
+    verts = np.array(verts)
+    pntsnp = genPntsnp(verts, pntsize = 10)
+    pntsnp.reparentTo(base.render)
 
     base.run()

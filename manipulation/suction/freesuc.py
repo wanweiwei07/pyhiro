@@ -19,7 +19,7 @@ from utils import collisiondetection as cd
 import trimesh
 from utils import robotmath
 from utils import dbcvt as dc
-import sandmmbs.sdmbs_sanddata as sdmbstipsd
+import manipulation.suction.sandmmbs.sdmbs_sanddata as sdmbstipsd
 
 class Freesuc(object):
 
@@ -73,6 +73,7 @@ class Freesuc(object):
         self.bulletworld.attachRigidBody(self.objmeshbullnode)
         # object center
         self.objcenter = [0,0,0]
+
         for pnt in self.objtrimesh.vertices:
             self.objcenter[0]+=pnt[0]
             self.objcenter[1]+=pnt[1]
@@ -529,7 +530,7 @@ class Freesuc(object):
                                                     rgba=rgbapnts0, length=10)
                         if togglesamples_ref:
                             for j, apnt in enumerate(self.objsamplepnts_ref[i]):
-                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=2.9, rgba=rgbapnts1)
+                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3, rgba=rgbapnts1)
                         if togglenormals_ref:
                             for j, apnt in enumerate(self.objsamplepnts_ref[i]):
                                 pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
@@ -537,7 +538,7 @@ class Freesuc(object):
                                                     rgba=rgbapnts1, length=10)
                         if togglesamples_refcls:
                             for j, apnt in enumerate(self.objsamplepnts_refcls[i]):
-                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3, rgba=rgbapnts2)
+                                pandageom.plotSphere(star, pos=apnt+plotoffsetf*i*self.facetnormals[i], radius=3.5, rgba=rgbapnts2)
                         if togglenormals_refcls:
                             for j, apnt in enumerate(self.objsamplepnts_refcls[i]):
                                 pandageom.plotArrow(star, spos=apnt+plotoffsetf*i*self.facetnormals[i],
@@ -551,50 +552,70 @@ if __name__=='__main__':
     handpkg = sdmbstipsd
     this_dir, this_filename = os.path.split(__file__)
     objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "sandpart2.stl")
-    freesuctst = Freesuc(objpath, handpkg = handpkg)
+    freesuctst = Freesuc(objpath, handpkg = handpkg, torqueresist = 500)
     print len(freesuctst.objtrimesh.faces)
     # freegriptst.objtrimesh.show()
-    freesuctst.removeBadSamples()
+    import time
+    tic = time.clock()
+    freesuctst.removeBadSamples(mindist = 3)
     # freegriptst.clusterFacetSamplesKNN(reduceRatio=15, maxNPnts=5)
     freesuctst.clusterFacetSamplesRNN(reduceRadius=10)
-    freesuctst.segShow(base, togglesamples=False, togglenormals=False,
-                        togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=False, togglenormals_refcls=False, alpha = .7)
     # freesuctst.segShow2(base, togglesamples=True, togglenormals=False,
     #                     togglesamples_ref=True, togglenormals_ref=False,
     #                     togglesamples_refcls=True, togglenormals_refcls=False, specificface = True)
-    import pandaplotutils.pandageom as pg
-    pg.plotAxisSelf(base.render, Vec3(0,0,0))
+    # import pandaplotutils.pandageom as pg
+    # pg.plotAxisSelf(base.render, Vec3(0,0,0))
     freesuctst.removeHndcc(base)
+    toc = time.clock()
+    print toc-tic
+
+    freesuctst.segShow(base, togglesamples=False, togglenormals=False,
+                        togglesamples_ref=False, togglenormals_ref=False,
+                        togglesamples_refcls=True, togglenormals_refcls=True, alpha = 1)
     for i, hndrot in enumerate(freesuctst.sucrotmats):
         tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
         centeredrot = Mat4(hndrot)
         # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
         tmphand.setMat(centeredrot)
-        tmphand.reparentTo(base.render)
+        # tmphand.reparentTo(base.render)
+        tmphand.setColor(.2,.2,.7,.2)
 
-    import csv
-    file = open('sandmedia_cvt.csv', 'wb')
-    writer = csv.writer(file)
-    writer.writerow(['Autopick'])
-    writer.writerow(['Version 0.11'])
-    writer.writerow(['See slides for hand base, hand coordinates'])
-    writer.writerow(['HandX', 'Y', 'Z', 'RX', 'RY', 'RZ', '#Tool', 'WorkX', 'Y', 'Z','RX', 'RY', 'RZ', '#Model', 'HandRotmat4'])
-
+    # # object rotation
     import math
     from trimesh import transformations as tf
     from pandaplotutils import pandageom as pg
-    for i, hndrot in enumerate(freesuctst.sucrotmats):
-        tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
-        centeredrot = Mat4(hndrot)
-        # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
-        tmphand.setMat(centeredrot)
-        rotmatnp = pg.mat3ToNp(tmphand.getMat().getUpper3())
-        rpyangles3 = tf.euler_from_matrix(rotmatnp, 'sxyz')
-        writer.writerow([str(centeredrot.getRow3(3)[0]),str(centeredrot.getRow3(3)[1]), str(centeredrot.getRow3(3)[2]), \
-                         str(math.degrees(rpyangles3[0])), str(math.degrees(rpyangles3[1])), str(math.degrees(rpyangles3[2])),\
-                         'T0','0','0','0','0','0','0','M0', dc.mat4ToStr(centeredrot)])
-    file.close()
+    rpymat = tf.euler_matrix(math.degrees(10),0,0)
+    rpypdmat = pg.cvtMat4(rpymat)
+    objmnp = pandageom.genObjmnp(objpath)
+    objmnp.setMat(objmnp.getMat()*rpypdmat)
+    objmnp.reparentTo(base.render)
+    # for i, hndrot in enumerate(freesuctst.sucrotmats):
+    #     tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.3])
+    #     centeredrot = Mat4(hndrot)
+    #     # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
+    #     tmphand.setMat(centeredrot*rpypdmat)
+    #     tmphand.reparentTo(base.render)
+    #
+    # import csv
+    # file = open('sandmedia_cvt.csv', 'wb')
+    # writer = csv.writer(file)
+    # writer.writerow(['Autopick'])
+    # writer.writerow(['Version 0.11'])
+    # writer.writerow(['See slides for hand base, hand coordinates'])
+    # writer.writerow(['HandX', 'Y', 'Z', 'RX', 'RY', 'RZ', '#Tool', 'WorkX', 'Y', 'Z','RX', 'RY', 'RZ', '#Model', 'HandRotmat4'])
+    #
+    # import math
+    # for i, hndrot in enumerate(freesuctst.sucrotmats):
+    #     tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
+    #     centeredrot = Mat4(hndrot)
+    #     # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
+    #     tmphand.setMat(centeredrot)
+    #     rotmatnp = pg.mat3ToNp(tmphand.getMat().getUpper3())
+    #     rpyangles3 = tf.euler_from_matrix(rotmatnp, 'sxyz')
+    #     writer.writerow([str(centeredrot.getRow3(3)[0]),str(centeredrot.getRow3(3)[1]), str(centeredrot.getRow3(3)[2]), \
+    #                      str(math.degrees(rpyangles3[0])), str(math.degrees(rpyangles3[1])), str(math.degrees(rpyangles3[2])),\
+    #                      'T0','0','0','0','0','0','0','M0', dc.mat4ToStr(centeredrot)])
+    # file.close()
     #
     # def updateshow0(freegriptst, task):
     #     npc = base.render.findAllMatches("**/piece")

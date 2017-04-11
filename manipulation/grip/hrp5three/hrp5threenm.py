@@ -89,7 +89,7 @@ class Hrp5ThreeNM():
         hrp5three_basel.instanceTo(hrp5threebase)
         rotmat4 = Mat4.rotateMat(90, Vec3(0,1,0))
         hrp5threebase.setMat(hrp5threebase.getMat()*rotmat4)
-        hrp5threebase.setPos(0,0,0)
+        hrp5threebase.setPos(-102.7,0,0)
 
         if hndid == 'rgt':
             # lfgr
@@ -201,11 +201,11 @@ class Hrp5ThreeNM():
             subfgrtippccleft0.reparentTo(fgrtippccleft)
             subfgrtippccleft1.reparentTo(fgrtippccleft)
             lrot = fgrtippccleft.getMat()
-            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*70)
+            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*172.7)
             fgrtippccright = NodePath("hrp5threelrfgrtippcc")
             rfgrtippcc.instanceTo(fgrtippccright)
             rrot = fgrtippccright.getMat()
-            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*70)
+            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*172.7)
 
         hrp5threebase.reparentTo(self.__hrp5threenp)
         self.__hrp5threenp.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
@@ -262,7 +262,6 @@ class Hrp5ThreeNM():
 
         self.jawwidth = jawwidth
         fgrangle = self.__jawwidth2fgrangle()
-        print fgrangle
         # right hand
         if self.hndid == "rgt":
             hrp5threelfgr0 = self.__hrp5threenp.find("**/hrp5threelfgr0")
@@ -445,11 +444,11 @@ class Hrp5ThreeNM():
         self.__hrp5threenp.setMat(self.__hrp5threenp.getMat()*rotmat4x)
         self.__hrp5threefgrtippccnp.setMat(self.__hrp5threefgrtippccnp.getMat()*rotmat4x)
         rotmat4 = Mat4(self.__hrp5threenp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*70
+        handtipvec3 = rotmat4.getRow3(0)*172.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threenp.setMat(rotmat4)
         rotmat4 = Mat4(self.__hrp5threefgrtippccnp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*70
+        handtipvec3 = rotmat4.getRow3(0)*172.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threefgrtippccnp.setMat(rotmat4)
 
@@ -494,37 +493,37 @@ if __name__=='__main__':
 
     base = pandactrl.World()
     # first hand
-    hrp5three = newHandNM(hndcolor=[1,0,0,.1])
+    hrp5three = newHandNM(hndcolor=[.5, .5,.5,.7])
     hrp5three.gripAt(0,0,0,0,0,1,35,jawwidth = 35)
     hrp5three.reparentTo(base.render)
-    hrp5three.handpccnp.reparentTo(base.render)
-    handbullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
-    # second hand
-    hrp5three1 = newHandNM()
-    # hrp5three1.reparentTo(base.render)
-    hand1bullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
-
+    # hrp5three.handpccnp.reparentTo(base.render)
+    # handbullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
+    # # second hand
+    # hrp5three1 = newHandNM()
+    # # hrp5three1.reparentTo(base.render)
+    # hand1bullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
+    #
     pg.plotAxisSelf(base.render, Vec3(0,0,0))
+    #
+    # bullcldrnp = base.render.attachNewNode("bulletcollider")
+    # base.world = BulletWorld()
+    #
+    # base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
+    # result = base.world.contactTest(hand1bullnp)
+    # base.world.attachRigidBody(handbullnp)
+    # for contact in result.getContacts():
+    #     cp = contact.getManifoldPoint()
+    #     print cp.getLocalPointA()
+    #     pg.plotSphere(base.render, pos=cp.getLocalPointA(), radius=1, rgba=Vec4(1,0,0,1))
+    #
+    # debugNode = BulletDebugNode('Debug')
+    # debugNode.showWireframe(True)
+    # debugNode.showConstraints(True)
+    # debugNode.showBoundingBoxes(False)
+    # debugNode.showNormals(False)
+    # debugNP = bullcldrnp.attachNewNode(debugNode)
+    # # debugNP.show()
 
-    bullcldrnp = base.render.attachNewNode("bulletcollider")
-    base.world = BulletWorld()
-
-    base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
-    result = base.world.contactTest(hand1bullnp)
-    base.world.attachRigidBody(handbullnp)
-    for contact in result.getContacts():
-        cp = contact.getManifoldPoint()
-        print cp.getLocalPointA()
-        pg.plotSphere(base.render, pos=cp.getLocalPointA(), radius=1, rgba=Vec4(1,0,0,1))
-
-    debugNode = BulletDebugNode('Debug')
-    debugNode.showWireframe(True)
-    debugNode.showConstraints(True)
-    debugNode.showBoundingBoxes(False)
-    debugNode.showNormals(False)
-    debugNP = bullcldrnp.attachNewNode(debugNode)
-    debugNP.show()
-
-    base.world.setDebugNode(debugNP.node())
+    # base.world.setDebugNode(debugNP.node())
 
     base.run()

@@ -426,7 +426,7 @@ class FreegripContactpairs(object):
 
     def segShow(self, base, togglesamples=False, togglenormals=False,
                 togglesamples_ref=False, togglenormals_ref=False,
-                togglesamples_refcls=False, togglenormals_refcls=False):
+                togglesamples_refcls=False, togglenormals_refcls=False, alpha = .1):
         """
 
         :param base:
@@ -452,7 +452,7 @@ class FreegripContactpairs(object):
             star = NodePath('piece')
             star.attachNewNode(node)
             star.setColor(Vec4(facetcolorarray[i][0], facetcolorarray[i][1],
-                               facetcolorarray[i][2], .1))
+                               facetcolorarray[i][2], alpha))
             star.setTransparency(TransparencyAttrib.MAlpha)
 
             star.setTwoSided(True)

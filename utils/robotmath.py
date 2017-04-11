@@ -2,7 +2,6 @@ import numpy as np
 import math
 from scipy import weave
 
-
 # def rodrigues(axis, theta, mat = None):
 #     '''
 #     Compute the rodrigues matrix using the given axis and theta
@@ -150,3 +149,43 @@ def transformmat4(matrix4, point):
 
     point4 = np.array([point[0], point[1], point[2], 1])
     return np.dot(matrix4, point4)
+
+def cvtRngPM180(armjnts):
+    """
+    change the range of armjnts to +-180
+
+    :param armjnts a numpyarray of jnts
+    date: 20170330
+    author: weiwei
+    """
+
+    armjntsnew = armjnts.copy()
+    for i in range(armjntsnew.shape[0]):
+        if armjntsnew[i] < 0:
+            armjntsnew[i] = armjntsnew[i] % -360
+            if armjntsnew[i] < -180:
+                armjntsnew[i] = armjntsnew[i] + 360
+        if armjnts[i] > 0:
+            armjntsnew[i] = armjntsnew[i] % 360
+            if armjntsnew[i] > 180:
+                armjntsnew[i] = armjntsnew[i] - 360
+
+    return armjntsnew
+
+def cvtRngPM360(armjnts):
+    """
+    change the range of armjnts to +-180
+
+    :param armjnts a numpyarray of jnts
+    date: 20170330
+    author: weiwei
+    """
+
+    armjntsnew = armjnts.copy()
+    for i in range(armjntsnew.shape[0]):
+        if armjntsnew[i] < 0:
+            armjntsnew[i] = armjntsnew[i] % -360
+        if armjnts[i] > 0:
+            armjntsnew[i] = armjntsnew[i] % 360
+
+    return armjntsnew

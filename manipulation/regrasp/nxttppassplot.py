@@ -480,26 +480,26 @@ if __name__=='__main__':
     # #                  0.0,1.0,0.0,0.0,\
     # #                  0.0,0.0,1.0,0.0,\
     # #                  350,-200,0.0,1.0)
-    # whrotmat4 = Mat4(1.0,0.0,0.0,0.0,\
-    #                  0.0,0.0,1.0,0.0,\
-    #                  0.0,-1.0,0.0,0.0,\
-    #                  400,350,-50.0,1.0)
-    # assDirect1to0 = Vec3(0, -70, 0)
+    whrotmat4 = Mat4(1.0,0.0,0.0,0.0,\
+                     0.0,0.0,1.0,0.0,\
+                     0.0,-1.0,0.0,0.0,\
+                     400,200,-50.0,1.0)
+    assDirect1to0 = Vec3(0, -70, 0)
 
     sprotmat4 = Mat4(0.0,0.0,-1.0,0.0,\
+                     1.0,0.0,0.0,0.0,\
                      0.0,-1.0,0.0,0.0,\
-                     -1.0,0.0,0.0,0.0,\
                      400,-200,-37.0,1.0)
 
     # sprotmat4 = Mat4(1.0,0.0,0.0,0.0,\
     #                  0.0,1.0,0.0,0.0,\
     #                  0.0,0.0,1.0,0.0,\
     #                  350,-200,0.0,1.0)
-    whrotmat4 = Mat4(1.0,0.0,0.0,0.0,\
-                     0.0,0.0,1.0,0.0,\
-                     0.0,-1.0,0.0,0.0,\
-                     500,350,-50.0,1.0)
-    assDirect1to0 = Vec3(0, -70, 0)
+    # whrotmat4 = Mat4(1.0,0.0,0.0,0.0,\
+    #                  0.0,0.0,1.0,0.0,\
+    #                  0.0,-1.0,0.0,0.0,\
+    #                  500,350,-50.0,1.0)
+    # assDirect1to0 = Vec3(0, -70, 0)
 
     regrip = regriptppass.RegripTppAss(base, obj0path, obj0Mat4, obj1path, obj1Mat4, assDirect1to0, gdb, nxtrobot, handpkg)
 
@@ -513,7 +513,7 @@ if __name__=='__main__':
     pltfig = plt.figure()
     ax = pltfig.add_subplot(111)
     regrip.plotGraph(ax)
-    id = 0
+    id = 27
     regrip.plotshortestpath(ax, id = id)
     plt.axis("equal")
     plt.show()
