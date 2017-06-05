@@ -44,6 +44,9 @@ class Sdmbs():
         # read-only property
         return self.__sdmbs
 
+    def setColor(self, r, g, b, a):
+        self.__sdmbs.setColor(r,g,b,a)
+
     def setPose(self, pgvec3):
         """
         set the pose of the hand

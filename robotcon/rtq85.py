@@ -203,7 +203,7 @@ class Rtq85Socket():
         self.__s.close()
 
 if __name__ == '__main__':
-    rtq85s = Rtq85Socket()
+    rtq85s = Rtq85Socket(handname = 'lft')
 
     import time
     tic = time.clock()

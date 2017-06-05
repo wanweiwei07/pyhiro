@@ -391,10 +391,10 @@ class Rtq85NM():
         self.rtq85np.setMat(transmat4)
         placeholder.setColor(rgba)
 
-def newHandNM(jawwidth = 85, hndcolor = [1,0,0,.1]):
+def newHandNM(hndid = 'rgt', jawwidth = 85, hndcolor = [1,0,0,.1]):
     return Rtq85NM(jawwidth, hndcolor)
 
-def newHand(jawwidth = 85):
+def newHand(hndid = 'rgt', jawwidth = 85):
     return rtq85.Rtq85(jawwidth)
 
 def newHandFgrpcc():
@@ -514,7 +514,7 @@ if __name__=='__main__':
         print cp.getLocalPointA()
         pandageom.plotSphere(base, pos=cp.getLocalPointA(), radius=10, rgba=Vec4(1,0,0,1))
 
-    # pandageom.plotAxisSelf(base.render, spos = Vec3(0,0,0))
+    pandageom.plotAxisSelf(base.render, spos = Vec3(0,0,0))
 
     debugNode = BulletDebugNode('Debug')
     debugNode.showWireframe(True)

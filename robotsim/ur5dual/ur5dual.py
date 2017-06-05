@@ -14,7 +14,7 @@ class Ur5Dual():
         # after that, the first six are for the right arm
         # the remaining 6 are for the left arm
         # self.__initjnts = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
-        self.__initjnts = np.array([0,0,0,-30,-90,120,0,120,0,30,-90,-120,180,-120,0]);
+        self.__initjnts = np.array([0,0,0,-30,-90,120,-145,-90,0,30,-90,-120,-45,90,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         self.__targetjoints = [1,2,3,4,5,6]
@@ -55,6 +55,21 @@ class Ur5Dual():
     def targetjoints(self):
         # read-only property
         return self.__targetjoints
+
+    def gettcpframe(self, armid = 'rgt'):
+        """
+        get the local frame of tcp in Mat4 format
+
+        :param armid:
+        author: weiwei
+        date: 20170412
+        """
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        return pg.cvtMat4(armlj[-1]['rotmat'], armlj[-1]['linkpos'])
 
     def movewaist(self, rotangle=0):
         """
@@ -168,6 +183,24 @@ class Ur5Dual():
         """
 
         self.movealljnts(self.initjnts)
+
+    def gettcp(self, armid = 'rgt'):
+        """
+        get the tcppos, and tcprot of the speficied armid
+
+        :return: [tcppos, tcprot] in nparray
+
+        author: weiwei
+        date: 20170412
+        """
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        tcppos = armlj[-1]['linkend']
+        tcprot = armlj[-1]['rotmat']
+        return [tcppos, tcprot]
 
     def getarmjnts(self, armid="rgt"):
         """
@@ -284,7 +317,7 @@ class Ur5Dual():
         rgtlj[0]['mother'] = -1
         rgtlj[0]['child'] = 1
         rgtlj[0]['linkpos'] = np.array([0,0,0])
-        rgtlj[0]['linkvec'] = np.array([0, -235.00, 1100.00])+np.dot(rm.rodrigues([1,0,0],135), np.array([0,0,89.2]))
+        rgtlj[0]['linkvec'] = np.array([0, -235.00, 965.00])+np.dot(rm.rodrigues([1,0,0],135), np.array([0,0,89.159]))
         rgtlj[0]['rotax'] = np.array([0,0,1])
         rgtlj[0]['rotangle'] = 0
         rgtlj[0]['rotmat'] = np.eye(3)
@@ -366,7 +399,10 @@ class Ur5Dual():
         rgtlj[6]['mother'] = 5
         rgtlj[6]['child'] = -1
         rgtlj[6]['linkpos'] = rgtlj[5]['linkend']
-        rgtlj[6]['linkvec'] = np.array([-172.7,0,0])
+        # for hrp5three
+        # rgtlj[6]['linkvec'] = np.array([-172.7,0,0])
+        # for rtq85
+        rgtlj[6]['linkvec'] = np.array([-13.5-145.0,0,0])
         rgtlj[6]['rotax'] = np.array([1,0,0])
         rgtlj[6]['rotangle'] = 0
         rgtlj[6]['inherentR'] = rm.rodrigues([0,0,1],-90)
@@ -424,7 +460,7 @@ class Ur5Dual():
         lftlj[0]['mother'] = -1
         lftlj[0]['child'] = 1
         lftlj[0]['linkpos'] = np.array([0,0,0])
-        lftlj[0]['linkvec'] = np.array([0, 235.00, 1100.00])+np.dot(rm.rodrigues([1,0,0], -135), np.array([0,0,89.2]))
+        lftlj[0]['linkvec'] = np.array([0, 235.00, 965.00])+np.dot(rm.rodrigues([1,0,0], -135), np.array([0,0,89.159]))
         lftlj[0]['rotax'] = np.array([0,0,1])
         lftlj[0]['rotangle'] = 0
         lftlj[0]['rotmat'] = np.eye(3)
@@ -506,7 +542,10 @@ class Ur5Dual():
         lftlj[6]['mother'] = 5
         lftlj[6]['child'] = -1
         lftlj[6]['linkpos'] = lftlj[5]['linkend']
-        lftlj[6]['linkvec'] = np.array([-172.7,0,0])
+        # for hrp5three
+        # lftlj[6]['linkvec'] = np.array([-172.7,0,0])
+        # for rtq85
+        lftlj[6]['linkvec'] = np.array([-13.5-145.0,0,0])
         lftlj[6]['rotax'] = np.array([1,0,0])
         lftlj[6]['rotangle'] = 0
         lftlj[6]['inherentR'] = rm.rodrigues([0,0,1],-90)
@@ -569,16 +608,18 @@ if __name__=="__main__":
     import ur5dualplot
     # ur5dualplot.plotstick(base.render, ur5dualrobot)
 
-    from manipulation.grip.hrp5three import hrp5threenm
-    handpkg = hrp5threenm
+    # from manipulation.grip.hrp5three import hrp5threenm
+    # handpkg = hrp5threenm
+    from manipulation.grip.robotiq85 import rtq85nm
+    handpkg = rtq85nm
     ur5dualmnp = ur5dualplot.genUr5dualmnp(ur5dualrobot, handpkg)
     ur5dualmnp.reparentTo(base.render)
     pg.plotAxisSelf(base.render, Vec3(0,0,0))
     #
     objpos = np.array([500,-300,600])
-    # objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+    objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
     # objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
-    objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
+    # objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
     # objrotmat4 = pg.npToMat4(objrot)
     # objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
     # objrot = pg.mat3ToNp(objrotmat4.getUpper3())
@@ -601,7 +642,7 @@ if __name__=="__main__":
         ur5dualrobot.movearmfk(armjntsgoal, armid)
         # ur5dualplot.plotstick(base.render, ur5dualrobot)
         ur5mnp = ur5dualplot.genUr5dualmnp(ur5dualrobot, handpkg)
-        # ur5mnp.reparentTo(base.render)
+        ur5mnp.reparentTo(base.render)
 
     # goal hand
     # from manipulation.grip.robotiq85 import rtq85nm

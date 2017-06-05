@@ -84,7 +84,6 @@ def tcperror(ur5dualrobot, tgtpos, tgtrot, armid="rgt"):
     if armid == "lft":
         armlj = ur5dualrobot.lftarm
 
-    print armlj[ur5dualrobot.targetjoints[-1]]["linkend"]
     deltapos = tgtpos - armlj[ur5dualrobot.targetjoints[-1]]["linkend"]
     deltarot = np.dot(tgtrot, armlj[ur5dualrobot.targetjoints[-1]]["rotmat"].transpose())
 
@@ -189,6 +188,30 @@ def numikr(ur5dualrobot, tgtpos, tgtrot, armid="rgt"):
         return None
     else:
         return [anglewa, armjnts]
+
+def numikreltcp(ur5dualrobot, deltax, deltay, deltaz, armid = 'rgt'):
+    """
+    add deltax, deltay, deltaz to the tcp
+    tcp is link[-1].linkpos
+    since the function is relative, moving link[-1].linkend is the same
+
+    :param deltax: float
+    :param deltay:
+    :param deltaz:
+    :return:
+
+    author: weiwei
+    date: 20170412
+    """
+
+    armlj = ur5dualrobot.rgtarm
+    if armid == "lft":
+        armlj = ur5dualrobot.lftarm
+
+    tgtpos = armlj[-1]['linkend']
+    tgtrot = armlj[-1]['rotmat']
+    newtgtpos = tgtpos + np.array([deltax, deltay, deltaz])
+    return numik(ur5dualrobot, newtgtpos, tgtrot, armid)
 
 if __name__=="__main__":
     pos = [300,300,0]

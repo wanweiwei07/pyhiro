@@ -441,7 +441,7 @@ class Hrp5Three():
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threenp.setMat(rotmat4)
         rotmat4 = Mat4(self.__hrp5threefgrtippccnp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*172.7
+        handtipvec3 = rotmat4.getRow3(0)*62.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threefgrtippccnp.setMat(rotmat4)
 
@@ -487,7 +487,7 @@ if __name__=='__main__':
     pg.plotAxisSelf(base.render, Vec3(0,0,0))
 
     bullcldrnp = base.render.attachNewNode("bulletcollider")
-    base.world = BulletWorld()
+    # base.world = BulletWorld()
 
     # base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
     # result = base.world.contactTestPair(handbullnp, hand1bullnp)

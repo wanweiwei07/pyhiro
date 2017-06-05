@@ -74,17 +74,33 @@ def rodrigues(axis, theta):
     date: 20161220
     """
 
-    theta = theta*math.pi/180
-    axis = np.asarray(axis)
+    theta = theta*math.pi/180.0
+    axis = np.array([axis[0], axis[1], axis[2]])
     axis = axis/math.sqrt(np.dot(axis, axis))
+    if theta > 2*math.pi:
+        theta = theta % 2*math.pi
     a = math.cos(theta/2.0)
     b, c, d = -axis*math.sin(theta/2.0)
     aa, bb, cc, dd = a*a, b*b, c*c, d*d
     bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+    return np.array([[aa+bb-cc-dd, 2.0*(bc+ad), 2.0*(bd-ac)],
+                     [2.0*(bc-ad), aa+cc-bb-dd, 2.0*(cd+ab)],
+                     [2.0*(bd+ac), 2.0*(cd-ab), aa+dd-bb-cc]])
 
+def hat(a):
+    """
+    compute the skew symmetric maxtix that corresponds to a cross
+
+    :param a: a 1-by-3 numpy array
+    :return: a 3-by-3 numpy array
+
+    author: weiwei
+    date: 20170421
+    """
+
+    return np.array([[0, -a[2], a[1]],
+                     [a[2], 0, -a[0]],
+                     [-a[1], a[0], 0]])
 
 def rotmatfacet(facetnormal, facetfirstpoint, facetsecondpoint):
     '''

@@ -69,9 +69,9 @@ class Hrp5ThreeNM():
                                                                      "HRP-5P_ConceptDesign_Rfinger_Link2.egg"))
         # finger tips
         leftfgrpccpath = Filename.fromOsSpecific(os.path.join(this_dir, "hrp5threeegg",
-                                                                 "HRP-5P_ConceptDesign_Lfinger_Tippcc.egg"))
+                                                                 "HRP-5P_ConceptDesign_Lfinger_Tippcc_cylinder.egg"))
         rightfgrpccpath = Filename.fromOsSpecific(os.path.join(this_dir, "hrp5threeegg",
-                                                                 "HRP-5P_ConceptDesign_Rfinger_Tippcc.egg"))
+                                                                 "HRP-5P_ConceptDesign_Rfinger_Tippcc_cylinder.egg"))
 
         # loader is a global variable defined by panda3d
         hrp5three_basel = loader.loadModel(hrp5threebasepath)
@@ -448,7 +448,7 @@ class Hrp5ThreeNM():
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threenp.setMat(rotmat4)
         rotmat4 = Mat4(self.__hrp5threefgrtippccnp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*172.7
+        handtipvec3 = rotmat4.getRow3(0)*62.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threefgrtippccnp.setMat(rotmat4)
 
@@ -496,7 +496,7 @@ if __name__=='__main__':
     hrp5three = newHandNM(hndcolor=[.5, .5,.5,.7])
     hrp5three.gripAt(0,0,0,0,0,1,35,jawwidth = 35)
     hrp5three.reparentTo(base.render)
-    # hrp5three.handpccnp.reparentTo(base.render)
+    hrp5three.handpccnp.reparentTo(base.render)
     # handbullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
     # # second hand
     # hrp5three1 = newHandNM()

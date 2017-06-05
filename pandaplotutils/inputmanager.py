@@ -128,9 +128,12 @@ class InputManager(DirectObject):
         rotateangle = curm1vec.signedAngleDeg(lastm1vec, rotatevec)
         if rotateangle > .02 or rotateangle < -.02:
             rotateangle = rotateangle*15
+            rotmat = Mat4(self.pandabase.cam.getMat())
+            posvec = Vec3(self.pandabase.cam.getPos())
+            rotmat.setRow(3, Vec3(0,0,0))
+            self.pandabase.cam.setMat(rotmat*Mat4.rotateMat(rotateangle, rotatevec))
             self.pandabase.cam.setPos(Mat3.rotateMat(rotateangle, rotatevec).\
-                                      xform(self.pandabase.cam.getPos() - self.lookatp) + self.lookatp)
-            self.pandabase.cam.lookAt(self.lookatp)
+                                      xform(posvec - self.lookatp) + self.lookatp)
             self.lastm1pos = self.getMouse1Aim()
 
     def getMouse2Aim(self):

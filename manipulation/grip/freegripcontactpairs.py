@@ -695,12 +695,12 @@ if __name__=='__main__':
     #
 
     this_dir, this_filename = os.path.split(__file__)
-    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
-    objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
+    # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
     freegriptst = FreegripContactpairs(objpath)
     print len(freegriptst.objtrimesh.faces)
     # freegriptst.objtrimesh.show()
@@ -713,6 +713,11 @@ if __name__=='__main__':
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
                         togglesamples_refcls=False, togglenormals_refcls=False)
+
+    # objnp = pandageom.packpandanp(freegriptst.objtrimesh.vertices,
+    #                               freegriptst.objtrimesh.face_normals, freegriptst.objtrimesh.faces)
+    # objnp.setColor(.7,.5,.3,1)
+    # objnp.reparentTo(base.render)
 
     # freegriptst.segShow2(base, togglesamples=True, togglenormals=False,
     #                     togglesamples_ref=False, togglenormals_ref=False,

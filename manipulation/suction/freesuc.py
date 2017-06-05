@@ -19,7 +19,7 @@ from utils import collisiondetection as cd
 import trimesh
 from utils import robotmath
 from utils import dbcvt as dc
-import manipulation.suction.sandmmbs.sdmbs_sanddata as sdmbstipsd
+import manipulation.suction.sandmmbs.sdmbs as sdmbstipsd
 
 class Freesuc(object):
 
@@ -47,9 +47,15 @@ class Freesuc(object):
         self.bulletworld = BulletWorld()
         self.hand = handpkg.newHandNM(hndcolor = [.2,0.7,.2,.3])
 
+        # collision free grasps
         self.sucrotmats = []
         self.succontacts = []
         self.succontactnormals = []
+        # collided grasps
+        self.sucrotmatscld = []
+        self.succontactscld = []
+        self.succontactnormalscld = []
+
 
         self.objcenter = [0,0,0]
         self.torqueresist = torqueresist
@@ -340,6 +346,10 @@ class Freesuc(object):
         self.sucrotmats = []
         self.succontacts = []
         self.succontactnormals = []
+        # collided
+        self.sucrotmatscld = []
+        self.succontactscld = []
+        self.succontactnormalscld = []
 
         plotoffsetfp = 3
 
@@ -365,6 +375,10 @@ class Freesuc(object):
                             self.succontacts.append(self.objsamplepnts_refcls[self.counter][i])
                             self.succontactnormals.append(self.objsamplenrmls_refcls[self.counter][i])
                             self.sucrotmats.append(tmphand.getMat())
+                        else:
+                            self.succontactscld.append(self.objsamplepnts_refcls[self.counter][i])
+                            self.succontactnormalscld.append(self.objsamplenrmls_refcls[self.counter][i])
+                            self.sucrotmatscld.append(tmphand.getMat())
             self.counter+=1
         self.counter = 0
 
@@ -557,7 +571,7 @@ if __name__=='__main__':
     # freegriptst.objtrimesh.show()
     import time
     tic = time.clock()
-    freesuctst.removeBadSamples(mindist = 3)
+    freesuctst.removeBadSamples(mindist = 5)
     # freegriptst.clusterFacetSamplesKNN(reduceRatio=15, maxNPnts=5)
     freesuctst.clusterFacetSamplesRNN(reduceRadius=10)
     # freesuctst.segShow2(base, togglesamples=True, togglenormals=False,
@@ -569,26 +583,39 @@ if __name__=='__main__':
     toc = time.clock()
     print toc-tic
 
-    freesuctst.segShow(base, togglesamples=False, togglenormals=False,
-                        togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=True, togglenormals_refcls=True, alpha = 1)
+    # freesuctst.segShow(base, togglesamples=False, togglenormals=False,
+    #                     togglesamples_ref=False, togglenormals_ref=False,
+    #                     togglesamples_refcls=True, togglenormals_refcls=True, alpha = 1)
+    objnp = pandageom.packpandanp(freesuctst.objtrimesh.vertices,
+                           freesuctst.objtrimesh.face_normals,
+                           freesuctst.objtrimesh.faces, name='')
+    objnp.setColor(.37,.37,.35,1)
+    objnp.reparentTo(base.render)
     for i, hndrot in enumerate(freesuctst.sucrotmats):
-        tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
-        centeredrot = Mat4(hndrot)
-        # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
-        tmphand.setMat(centeredrot)
-        # tmphand.reparentTo(base.render)
-        tmphand.setColor(.2,.2,.7,.2)
+        if i == 1:
+            tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
+            centeredrot = Mat4(hndrot)
+            # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
+            tmphand.setMat(centeredrot)
+            tmphand.reparentTo(base.render)
+            tmphand.setColor(.5,.5,.5,.3)
+    # for i, hndrot in enumerate(freesuctst.sucrotmatscld):
+    #     tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.7])
+    #     centeredrot = Mat4(hndrot)
+    #     # centeredrot.setRow(3,hndrot.getRow3(3)-Vec3(freesuctst.objcenter[0], freesuctst.objcenter[1], freesuctst.objcenter[2]))
+    #     tmphand.setMat(centeredrot)
+    #     tmphand.reparentTo(base.render)
+    #     tmphand.setColor(.7,.3,.3,1)
 
     # # object rotation
-    import math
-    from trimesh import transformations as tf
-    from pandaplotutils import pandageom as pg
-    rpymat = tf.euler_matrix(math.degrees(10),0,0)
-    rpypdmat = pg.cvtMat4(rpymat)
-    objmnp = pandageom.genObjmnp(objpath)
-    objmnp.setMat(objmnp.getMat()*rpypdmat)
-    objmnp.reparentTo(base.render)
+    # import math
+    # from trimesh import transformations as tf
+    # from pandaplotutils import pandageom as pg
+    # rpymat = tf.euler_matrix(math.degrees(10),0,0)
+    # rpypdmat = pg.cvtMat4(rpymat)
+    # objmnp = pandageom.genObjmnp(objpath)
+    # objmnp.setMat(objmnp.getMat()*rpypdmat)
+    # objmnp.reparentTo(base.render)
     # for i, hndrot in enumerate(freesuctst.sucrotmats):
     #     tmphand = handpkg.newHandNM(hndcolor=[.7,.7,.7,.3])
     #     centeredrot = Mat4(hndrot)

@@ -4,6 +4,7 @@ from panda3d.core import *
 from utils import robotmath as rm
 from shapely.geometry import Polygon
 from trimesh import geometry as trigeom
+import math
 import trimesh
 
 def packpandageom(vertices, facenormals, triangles, name=''):
@@ -163,7 +164,7 @@ def packpandanp(vertices, facenormals, triangles, name=''):
 
     return npnodeobj
 
-def randomColorArray(ncolors=1):
+def randomColorArray(ncolors=1, alpha = 1):
     """
     Generate an array of random colors
     if ncolor = 1, returns a 4-element list
@@ -176,10 +177,10 @@ def randomColorArray(ncolors=1):
     """
 
     if ncolors is 1:
-        return [np.random.random(), np.random.random(), np.random.random(), 1]
+        return [np.random.random(), np.random.random(), np.random.random(), alpha]
     colorarray = []
     for i in range(ncolors):
-        colorarray.append([np.random.random(), np.random.random(), np.random.random(), 1])
+        colorarray.append([np.random.random(), np.random.random(), np.random.random(), alpha])
     return colorarray
 
 def _genArrow(length, thickness = 1.5):
@@ -258,7 +259,9 @@ def plotArrow(nodepath, spos = None, epos = None, length = None, thickness = 1.5
 
     arrow.reparentTo(nodepath)
 
-def _genDumbbell(length, thickness = 2, plotname="dumbbell"):
+    return arrow
+
+def _genDumbbell(length, thickness = 2, plotname="dumbbell", headscale = 2):
     """
     Generate a dumbbell node for plot
     This function should not be called explicitly
@@ -290,14 +293,14 @@ def _genDumbbell(length, thickness = 2, plotname="dumbbell"):
     dumbbellhead.instanceTo(dumbbellhead0)
     dumbbellhead.instanceTo(dumbbellhead1)
     # set scale (consider relativitly)
-    dumbbellhead0.setScale(thickness*2, thickness*2, thickness*2)
-    dumbbellhead1.setScale(thickness*2, thickness*2, thickness*2)
+    dumbbellhead0.setScale(thickness*headscale, thickness*headscale, thickness*headscale)
+    dumbbellhead1.setScale(thickness*headscale, thickness*headscale, thickness*headscale)
     dumbbellhead0.reparentTo(dumbbell)
     dumbbellhead1.reparentTo(dumbbell)
 
     return dumbbell
 
-def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 1.5, rgba=None, plotname="dumbbell"):
+def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 1.5, rgba=None, plotname="dumbbell", headscale = 2):
     """
     plot a dumbbell to nodepath
 
@@ -328,7 +331,7 @@ def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 
     if rgba is None:
         rgba = np.array([1,1,1,1])
 
-    dumbbell = _genDumbbell(length, thickness, plotname)
+    dumbbell = _genDumbbell(length, thickness, plotname, headscale)
     dumbbell.setPos(spos[0], spos[1], spos[2])
     dumbbell.lookAt(epos[0], epos[1], epos[2])
     # lookAt points y+ to epos, use the following command to point x+ to epos
@@ -338,6 +341,48 @@ def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 
 
     dumbbell.reparentTo(nodepath)
     return dumbbell
+
+
+def plotLinesegs(nodepath, verts, thickness = 1.5, rgba=None, plotname="linesegs", headscale = 1):
+    """
+    plot a dumbbell to nodepath
+
+    ## input:
+    nodepath:
+        defines which parent should the arrow be attached to
+    verts:
+        1-by-3 nparray or list, verts on the lineseg
+    thickness:
+        will be sent to _genArrow
+    rgba:
+        1-by-4 nparray or list
+
+    author: weiwei
+    date: 20160616
+    """
+
+    if rgba is None:
+        rgba = np.array([1,1,1,1])
+
+    linesegs = NodePath(plotname)
+    for i in range(len(verts)-1):
+        diff0 = verts[i][0]-verts[i+1][0]
+        diff1 = verts[i][1]-verts[i+1][1]
+        diff2 = verts[i][2]-verts[i+1][2]
+        length = math.sqrt(diff0*diff0+diff1*diff1+diff2*diff2)
+        dumbbell = _genDumbbell(length, thickness, plotname, headscale=headscale)
+        dumbbell.setPos(verts[i][0], verts[i][1], verts[i][2])
+        dumbbell.lookAt(verts[i+1][0], verts[i+1][1], verts[i+1][2])
+        dumbbell.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+        dumbbell.setTransparency(TransparencyAttrib.MAlpha)
+    # lookAt points y+ to epos, use the following command to point x+ to epos
+    # http://stackoverflow.com/questions/15126492/panda3d-how-to-rotate-object-so-that-its-x-axis-points-to-a-location-in-space
+    # arrow.setHpr(arrow, Vec3(0,0,90))
+
+        dumbbell.reparentTo(linesegs)
+
+    linesegs.reparentTo(nodepath)
+    return linesegs
 
 # def plotFrame(nodepath, spos = None, epos = None, length = None, thickness = 10, rgba=None):
 #     """
@@ -438,6 +483,7 @@ def plotSphere(nodepath, pos = None, radius=None, rgba=None):
     spherend = _genSphere(radius)
     spherend.setPos(pos[0], pos[1], pos[2])
     spherend.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+    spherend.setTransparency(TransparencyAttrib.MAlpha)
 
     spherend.reparentTo(nodepath)
 
@@ -794,6 +840,54 @@ def genPntsnp(verts, colors = [], pntsize = 1):
 
     return objmnp
 
+def genPolygonsnp(verts, colors = [], thickness = 2.0):
+    """
+    gen objmnp
+
+    :param objpath:
+    :return:
+    """
+
+    segs = LineSegs()
+    segs.setThickness(thickness)
+    if len(colors) == 0:
+        segs.setColor(Vec4(.2, .2, .2, 1))
+    else:
+        segs.setColor(colors[0], colors[1], colors[2], colors[3])
+    for i in range(len(verts)-1):
+        segs.moveTo(verts[i][0], verts[i][1], verts[i][2])
+        segs.drawTo(verts[i+1][0], verts[i+1][1], verts[i+1][2])
+
+    objmnp = NodePath('polygons')
+    objmnp.attachNewNode(segs.create())
+    objmnp.setTransparency(TransparencyAttrib.MAlpha)
+
+    return objmnp
+
+def genLinesegsnp(verts, colors = [], thickness = 2.0):
+    """
+    gen objmnp
+
+    :param objpath:
+    :return:
+    """
+
+    segs = LineSegs()
+    segs.setThickness(thickness)
+    if len(colors) == 0:
+        segs.setColor(Vec4(.2, .2, .2, 1))
+    else:
+        segs.setColor(colors[0], colors[1], colors[2], colors[3])
+    for i in range(len(verts)-1):
+        segs.moveTo(verts[i][0], verts[i][1], verts[i][2])
+        segs.drawTo(verts[i+1][0], verts[i+1][1], verts[i+1][2])
+
+    objmnp = NodePath('linesegs')
+    objmnp.attachNewNode(segs.create())
+    objmnp.setTransparency(TransparencyAttrib.MAlpha)
+
+    return objmnp
+
 if __name__=="__main__":
 
     # show in panda3d
@@ -810,6 +904,5 @@ if __name__=="__main__":
             verts.append([i,j,random.gauss(0, math.sqrt(i*i+j*j))/10])
     verts = np.array(verts)
     pntsnp = genPntsnp(verts, pntsize = 10)
-    pntsnp.reparentTo(base.render)
 
     base.run()
