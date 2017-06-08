@@ -138,7 +138,7 @@ class Freegrip(fgcp.FreegripContactpairs):
                     tmphand.setPos(Point3(cctcenter[0], cctcenter[1], cctcenter[2]))
 
                     # collision detection
-                    hndbullnode = cd.genCollisionMeshMultiNp(tmphand.rtq85np, base.render)
+                    hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
                     result = self.bulletworld.contactTest(hndbullnode)
 
                     if not result.getNumContacts():
@@ -231,13 +231,13 @@ class Freegrip(fgcp.FreegripContactpairs):
         # save to database
         gdb = db.GraspDB()
 
-        idhand = db.loadIdHand(self.handname)
+        idhand = gdb.loadIdHand(self.handname)
 
         sql = "SELECT * FROM freeairgrip, object WHERE freeairgrip.idobject = object.idobject AND \
-                object.objname LIKE '%s'" % self.dbobjname
+                object.name LIKE '%s'" % self.dbobjname
         result = gdb.execute(sql)
         if not result:
-            sql = "SELECT idobject FROM object WHERE objname LIKE '%s'" % self.dbobjname
+            sql = "SELECT idobject FROM object WHERE name LIKE '%s'" % self.dbobjname
             returnlist = gdb.execute(sql)
             if len(returnlist) != 0:
                 idobject = returnlist[0][0]
@@ -651,8 +651,8 @@ if __name__=='__main__':
     freegriptst.removeFgrpcc(base)
     freegriptst.removeHndcc(base)
 
-    # gdb = db.GraspDB()
-    # freegriptst.saveToDB(gdb)
+    gdb = db.GraspDB()
+    freegriptst.saveToDB(gdb)
     #
     # def updateshow(task):
     #     # freegriptst.removeFgrpccShow(base)

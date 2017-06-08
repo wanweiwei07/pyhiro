@@ -72,6 +72,9 @@ class Sdmbs():
 
         self.__sdmbs.setMat(pgrotmat4)
 
+    def getHandName():
+        return "sdmbs"
+
     def getMat(self):
         """
         get the rotation matrix of the hand

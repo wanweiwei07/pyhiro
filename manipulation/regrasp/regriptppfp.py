@@ -150,7 +150,7 @@ class RegripTppFp():
                 tabletopplacements.idangle=angle.idangle AND \
                 tabletopplacements.idfreetabletopplacement=freetabletopplacement.idfreetabletopplacement AND \
                 freetabletopplacement.idobject=object.idobject AND \
-                object.objname LIKE '%s' AND angle.value IN (0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0)" \
+                object.name LIKE '%s' AND angle.value IN (0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0)" \
                 % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) != 0:
@@ -290,7 +290,7 @@ class RegripTppFp():
             tmphnd.setJawwidth(80)
             tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=startrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -369,7 +369,7 @@ class RegripTppFp():
             tmphnd.setJawwidth(80)
             tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=startrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -472,7 +472,7 @@ class RegripTppFp():
             tmphnd.setJawwidth(self.freegripjawwidth[j])
             tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=goalrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -546,7 +546,7 @@ class RegripTppFp():
             tmphnd.setJawwidth(self.freegripjawwidth[j])
             tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.hndnp)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=goalrotmat4.xformPoint(self.freegripcontacts[j][0])

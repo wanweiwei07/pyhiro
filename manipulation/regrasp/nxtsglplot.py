@@ -2,6 +2,7 @@
 
 from robotsim.nextage import nextage
 from robotsim.nextage import nxtplot
+from manipulation.grip.robotiq85 import rtq85nm
 
 from manipulation.regrasp import regriptpp
 from database import dbaccess as db
@@ -50,9 +51,9 @@ def getMotionSequence(regrip):
             armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot)
             armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot)
             numikrlist.append(armjntsgrphandx)
-            jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+            jawwidth.append(regrip.robothand.jawwidthopen)
             numikrlist.append(armjntsgrp)
-            jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+            jawwidth.append(regrip.robothand.jawwidthopen)
             numikrlist.append(armjntsgrp)
             jawwidth.append(grpjawwidth)
             numikrlist.append(armjntsgrpworlda)
@@ -89,11 +90,11 @@ def getMotionSequence(regrip):
             numikrlist.append(armjntsgrp)
             jawwidth.append(grpjawwidth)
             numikrlist.append(armjntsgrp)
-            jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+            jawwidth.append(regrip.robothand.jawwidthopen)
             numikrlist.append(armjntsgrphandx)
-            jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+            jawwidth.append(regrip.robothand.jawwidthopen)
             numikrlist.append(armjntsgrphandxworldz)
-            jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+            jawwidth.append(regrip.robothand.jawwidthopen)
             objmat4worldaworldz = regrip.regg.node[nid]['tabletopplacementrotmatworldaworldz']
             objmat4worlda = regrip.regg.node[nid]['tabletopplacementrotmatworlda']
             objmat4 = regrip.regg.node[nid]['tabletopplacementrotmat']
@@ -121,9 +122,9 @@ def getMotionSequence(regrip):
                 armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot)
                 armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot)
                 numikrlist.append(armjntsgrphandx)
-                jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                jawwidth.append(regrip.robothand.jawwidthopen)
                 numikrlist.append(armjntsgrp)
-                jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                jawwidth.append(regrip.robothand.jawwidthopen)
                 numikrlist.append(armjntsgrp)
                 jawwidth.append(grpjawwidth)
                 numikrlist.append(armjntsgrpworlda)
@@ -160,11 +161,11 @@ def getMotionSequence(regrip):
                 numikrlist.append(np.append(0, armjntsgrp))
                 jawwidth.append(grpjawwidth)
                 numikrlist.append(np.append(0, armjntsgrp))
-                jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                jawwidth.append(regrip.robothand.jawwidthopen)
                 numikrlist.append(np.append(0, armjntsgrphandx))
-                jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                jawwidth.append(regrip.robothand.jawwidthopen)
                 numikrlist.append(np.append(0, armjntsgrphandxworldz))
-                jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                jawwidth.append(regrip.robothand.jawwidthopen)
                 objmat4worldaworldz = regrip.regg.node[nid]['tabletopplacementrotmatworldaworldz']
                 objmat4worlda = regrip.regg.node[nid]['tabletopplacementrotmatworlda']
                 objmat4 = regrip.regg.node[nid]['tabletopplacementrotmat']
@@ -198,11 +199,11 @@ def getMotionSequence(regrip):
                         armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot)
                         armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot)
                         numikrlist.append(np.append(0, armjntsgrphandxworldz))
-                        jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                        jawwidth.append(regrip.robothand.jawwidthopen)
                         numikrlist.append(np.append(0, armjntsgrphandx))
-                        jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                        jawwidth.append(regrip.robothand.jawwidthopen)
                         numikrlist.append(np.append(0, armjntsgrp))
-                        jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                        jawwidth.append(regrip.robothand.jawwidthopen)
                         numikrlist.append(np.append(0, armjntsgrp))
                         jawwidth.append(grpjawwidth)
                         numikrlist.append(np.append(0, armjntsgrpworlda))
@@ -241,11 +242,11 @@ def getMotionSequence(regrip):
                         numikrlist.append(np.append(0, armjntsgrp))
                         jawwidth.append(grpjawwidth)
                         numikrlist.append(np.append(0, armjntsgrp))
-                        jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                        jawwidth.append(regrip.robothand.jawwidthopen)
                         numikrlist.append(np.append(0, armjntsgrphandx))
-                        jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                        jawwidth.append(regrip.robothand.jawwidthopen)
                         numikrlist.append(np.append(0, armjntsgrphandxworldz))
-                        jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                        jawwidth.append(regrip.robothand.jawwidthopen)
                         objmat4worldaworldz = regrip.regg.node[nid]['tabletopplacementrotmatworldaworldz']
                         objmat4worlda = regrip.regg.node[nid]['tabletopplacementrotmatworlda']
                         objmat4 = regrip.regg.node[nid]['tabletopplacementrotmat']
@@ -274,11 +275,11 @@ def getMotionSequence(regrip):
                     armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot)
                     armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot)
                     numikrlist.append(np.append(0, armjntsgrphandxworldz))
-                    jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                    jawwidth.append(regrip.robothand.jawwidthopen)
                     numikrlist.append(np.append(0, armjntsgrphandx))
-                    jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                    jawwidth.append(regrip.robothand.jawwidthopen)
                     numikrlist.append(np.append(0, armjntsgrp))
-                    jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                    jawwidth.append(regrip.robothand.jawwidthopen)
                     numikrlist.append(np.append(0, armjntsgrp))
                     jawwidth.append(grpjawwidth)
                     numikrlist.append(np.append(0, armjntsgrpworlda))
@@ -317,11 +318,11 @@ def getMotionSequence(regrip):
                     numikrlist.append(armjntsgrp)
                     jawwidth.append(grpjawwidth)
                     numikrlist.append(armjntsgrp)
-                    jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                    jawwidth.append(regrip.robothand.jawwidthopen)
                     numikrlist.append(armjntsgrphandx)
-                    jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                    jawwidth.append(regrip.robothand.jawwidthopen)
                     numikrlist.append(armjntsgrphandxworldz)
-                    jawwidth.append(regrip.rtq85hnd.jawwidthopen)
+                    jawwidth.append(regrip.robothand.jawwidthopen)
                     objmat4worldaworldz = regrip.regg.node[nid]['tabletopplacementrotmatworldaworldz']
                     objmat4worlda = regrip.regg.node[nid]['tabletopplacementrotmatworlda']
                     objmat4 = regrip.regg.node[nid]['tabletopplacementrotmat']
@@ -338,28 +339,23 @@ def getMotionSequence(regrip):
 if __name__=='__main__':
     gdb = db.GraspDB()
     nxtrobot = nextage.NxtRobot()
+    handpkg = rtq85nm
 
     base = pandactrl.World(camp=[300,-2000,1000], lookatp=[300,0,0])
 
     # ttube.stl
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "ttube.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "ttube.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "tool.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planelowerbody.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planefrontstay.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planerearstay.stl")
-    regrip = regriptpp.RegripTpp(objpath, nxtrobot, gdb)
+    regrip = regriptpp.RegripTpp(objpath, nxtrobot, handpkg, gdb)
 
     # ttube
-    startrotmat4 = Mat4(0.707106769085,-0.707106769085,0.0,0.0,
-                        4.32978030171e-17,4.32978030171e-17,1.0,0.0,
-                        -0.707106769085,-0.707106769085,6.12323426293e-17,0.0,
-                        250.996246338,-509.99848938,45.0004844666,1.0)
-    goalrotmat4 = Mat4(-0.707106769085, -0.70710682869, 0.0, 0.0,
-                       4.32978063259e-17, -4.32978030171e-17, -1.0, 0.0,
-                       0.70710682869, -0.707106769085, 6.12323426293e-17, 0.0,
-                       300.003753662, 400.001525879, 44.9995155334, 1.0)
+    startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,299.979736328,-400.002502441,-55.0,1.0)
+    goalrotmat4 = Mat4(0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,-1.0,0.0,0.0,0.0,334.749847412,-400.002502441,-39.9999961853,1.0)
     #tool
     # startrotmat4 = Mat4(-0.0176398064941,-0.0176398064941,-0.99968880415,0.0,-0.707106769085,0.707106769085,0.0,0.0,0.706886708736,0.706886708736,-0.0249464549124,0.0,225.010162354,100,44.9175643921,1.0)
     # startrotmat4 = Mat4(0.129405856133,0.129405856133,0.98311150074,0.0,0.707106769085,-0.707106769085,0.0,0.0,0.69516479969,0.69516479969,-0.183007523417,0.0,227.126983643,-327.023590088,74.7615509033,1.0)
@@ -380,43 +376,43 @@ if __name__=='__main__':
 
     # import time
     # tic = time.clock()
-    # regrip.findshortestpath(startrotmat4, goalrotmat4, base)
+    regrip.findshortestpath(startrotmat4, goalrotmat4, base)
     # toc = time.clock()
     # print len(regrip.directshortestpaths[0])
     # print toc-tic
     # assert False
     #
-    # pltfig = plt.figure()
-    # regrip.plotgraph(pltfig)
-    # regrip.plotshortestpath(pltfig)
-    # plt.axis("equal")
-    # plt.show()
+    pltfig = plt.figure()
+    regrip.plotgraph(pltfig)
+    regrip.plotshortestpath(pltfig)
+    plt.axis("equal")
+    plt.show()
     #
-    # [objms, numikrms, jawwidth] = getMotionSequence(regrip)
-    # nxtmnp = [None]
-    # objmnp = [None]
-    # counter = [0]
-    # def updateshow(objms, numikrms, jawwidth, nxtmnp, objmnp, counter, nxtrobot, objpath, task):
-    #     if counter[0] < len(numikrms):
-    #         if nxtmnp[0] is not None:
-    #             nxtmnp[0].detachNode()
-    #         if objmnp[0] is not None:
-    #             objmnp[0].detachNode()
-    #         print counter[0]
-    #         print numikrms[counter[0]]
-    #         nxtrobot.movearmfkr(numikrms[counter[0]])
-    #         nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot, jawwidthrgt=jawwidth[counter[0]])
-    #         nxtrobot.goinitpose()
-    #         nxtmnp[0].reparentTo(base.render)
-    #         objmnp[0] = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))
-    #         objmnp[0].setMat(objms[counter[0]])
-    #         # pg.plotAxisSelf(base.render,objms[counter[0]].getRow3(3), objms[counter[0]])
-    #         objmnp[0].reparentTo(base.render)
-    #         counter[0] += 1
-    #     return task.again
-    # taskMgr.doMethodLater(1, updateshow, "updateshow",
-    #                       extraArgs = [objms, numikrms, jawwidth, nxtmnp, objmnp, counter, nxtrobot, objpath],
-    #                       appendTask = True)
+    [objms, numikrms, jawwidth] = getMotionSequence(regrip)
+    nxtmnp = [None]
+    objmnp = [None]
+    counter = [0]
+    def updateshow(objms, numikrms, jawwidth, nxtmnp, objmnp, counter, nxtrobot, objpath, task):
+        if counter[0] < len(numikrms):
+            if nxtmnp[0] is not None:
+                nxtmnp[0].detachNode()
+            if objmnp[0] is not None:
+                objmnp[0].detachNode()
+            print counter[0]
+            print numikrms[counter[0]]
+            nxtrobot.movearmfkr(numikrms[counter[0]])
+            nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot, jawwidthrgt=jawwidth[counter[0]])
+            nxtrobot.goinitpose()
+            nxtmnp[0].reparentTo(base.render)
+            objmnp[0] = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))
+            objmnp[0].setMat(objms[counter[0]])
+            # pg.plotAxisSelf(base.render,objms[counter[0]].getRow3(3), objms[counter[0]])
+            objmnp[0].reparentTo(base.render)
+            counter[0] += 1
+        return task.again
+    taskMgr.doMethodLater(1, updateshow, "updateshow",
+                          extraArgs = [objms, numikrms, jawwidth, nxtmnp, objmnp, counter, nxtrobot, objpath],
+                          appendTask = True)
 
     # one time show for start and end
     objstart = pg.genObjmnp(objpath, color=Vec4(.7, .7, 0, 1))
@@ -427,12 +423,12 @@ if __name__=='__main__':
     objstart.reparentTo(base.render)
     objend.reparentTo(base.render)
 
-    this_dir, this_filename = os.path.split(__file__)
-    ttpath = Filename.fromOsSpecific(
-        os.path.join(os.path.split(this_dir)[0] + os.sep, "grip", "supports", "tabletop.egg"))
-    ttnodepath = NodePath("tabletop")
-    ttl = loader.loadModel(ttpath)
-    ttl.instanceTo(ttnodepath)
-    ttnodepath.reparentTo(base.render)
+    # this_dir, this_filename = os.path.split(__file__)
+    # ttpath = Filename.fromOsSpecific(
+    #     os.path.join(os.path.split(this_dir)[0] + os.sep, "grip", "supports", "tabletop.egg"))
+    # ttnodepath = NodePath("tabletop")
+    # ttl = loader.loadModel(ttpath)
+    # ttl.instanceTo(ttnodepath)
+    # ttnodepath.reparentTo(base.render)
 
     base.run()

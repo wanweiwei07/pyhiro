@@ -262,7 +262,7 @@ class FloatingPoses(object):
         self.floatinggripjawwidth = []
         self.floatinggripidfreeair = []
         sql = "SELECT * FROM floatingposes, object WHERE floatingposes.idobject = object.idobject \
-                        AND object.objname LIKE '%s'" % self.dbobjname
+                        AND object.name LIKE '%s'" % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) != 0:
             for resultrow in result:
@@ -432,7 +432,7 @@ class FloatingPoses(object):
         self.floatinggrippairsidfreeairs = []
         for fpid in range(len(self.gridsfloatingposemat4s)):
             sql = "SELECT floatingposes.idfloatingposes FROM floatingposes, object WHERE floatingposes.idobject = object.idobject \
-                            AND object.objname LIKE '%s' AND floatingposes.rotmat LIKE '%s'" % \
+                            AND object.name LIKE '%s' AND floatingposes.rotmat LIKE '%s'" % \
                   (self.dbobjname, dc.mat4ToStr(self.gridsfloatingposemat4s[fpid]))
             result = self.gdb.execute(sql)
             if len(result) != 0:
@@ -723,14 +723,14 @@ if __name__=="__main__":
     # updateDBwithIK compute the ik feasible FGs
     # loadIKFeasibleFGPairsFromDB load DBFGpairs and DBwithIK and compute the IK-feasible FGpairs
 
-    # grids = []
-    # for x in range(400,401,100):
-    #     for y in [0]:
-    #         for z in range(400,401,100):
-    #             grids.append([x,y,z])
-    # fpose.genFPandGs(grids)
-    # fpose.saveToDB()
-    # fpose.updateDBwithFGPairs()
+    grids = []
+    for x in range(400,401,100):
+        for y in [0]:
+            for z in range(400,401,100):
+                grids.append([x,y,z])
+    fpose.genFPandGs(grids)
+    fpose.saveToDB()
+    fpose.updateDBwithFGPairs()
     nxtrobot = nextage.NxtRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):

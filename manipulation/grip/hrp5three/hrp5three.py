@@ -335,6 +335,9 @@ class Hrp5Three():
 
         return self.__hrp5threenp.getMat()
 
+    def getHandName():
+        return "hrp5three"
+
     def reparentTo(self, nodepath):
         """
         add to scene, follows panda3d

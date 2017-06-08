@@ -234,9 +234,9 @@ class Hrp5NRobot():
         counter = 0
         for i in self.__targetjoints:
             if armjnts[counter] < armlj[i]["rngmin"] or armjnts[counter] > armlj[i]["rngmax"]:
-                print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
-                print "Angle is " + str(armjnts[counter])
-                print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
+                # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                # print "Angle is " + str(armjnts[counter])
+                # print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
                 return False
             counter += 1
 
@@ -382,28 +382,33 @@ class Hrp5NRobot():
         rgtlj[7]['rotangle'] = 0
         rgtlj[7]['rotmat'] = np.dot(rgtlj[6]['rotmat'], rm.rodrigues(rgtlj[7]['rotax'], rgtlj[7]['rotangle']))
         rgtlj[7]['linkend'] = np.dot(rgtlj[7]['rotmat'], rgtlj[7]['linkvec'])+rgtlj[7]['linkpos']
-        rgtlj[7]['rngmin'] = -(47-rngsafemargin)
-        rgtlj[7]['rngmax'] = +(70-rngsafemargin)
+        # rgtlj[7]['rngmin'] = -(47-rngsafemargin)
+        # rgtlj[7]['rngmax'] = +(70-rngsafemargin)
+        rgtlj[7]['rngmin'] = -(87-rngsafemargin)
+        rgtlj[7]['rngmax'] = +(120-rngsafemargin)
+
 
         # the 8th joint and link
         rgtlj[8]['name'] = 'link8'
         rgtlj[8]['mother'] = 7
         rgtlj[8]['child'] = 9
         rgtlj[8]['linkpos'] = rgtlj[7]['linkend']
-        rgtlj[8]['linkvec'] = np.array([0,77.004,-137.249])
+        rgtlj[8]['linkvec'] = np.array([0,7.004,-67.249])
         rgtlj[8]['rotax'] = np.array([0,1,0])
         rgtlj[8]['rotangle'] = 0
         rgtlj[8]['rotmat'] = np.dot(rgtlj[7]['rotmat'], rm.rodrigues(rgtlj[8]['rotax'], rgtlj[8]['rotangle']))
         rgtlj[8]['linkend'] = np.dot(rgtlj[8]['rotmat'], rgtlj[8]['linkvec'])+rgtlj[8]['linkpos']
-        rgtlj[8]['rngmin'] = -(42-rngsafemargin)
-        rgtlj[8]['rngmax'] = +(42-rngsafemargin)
+        # rgtlj[8]['rngmin'] = -(42-rngsafemargin)
+        # rgtlj[8]['rngmax'] = +(42-rngsafemargin)
+        rgtlj[8]['rngmin'] = -(92-rngsafemargin)
+        rgtlj[8]['rngmax'] = +(92-rngsafemargin)
 
         # the 9th joint and link
         rgtlj[9]['name'] = 'link9'
         rgtlj[9]['mother'] = 8
         rgtlj[9]['child'] = -1
         rgtlj[9]['linkpos'] = rgtlj[8]['linkend']
-        rgtlj[9]['linkvec'] = np.array([-70,0,0])
+        rgtlj[9]['linkvec'] = np.array([-172.7,0,0])
         rgtlj[9]['rotax'] = np.array([1,0,0])
         rgtlj[9]['rotangle'] = 0
         # make sure x direction faces at ee, z directions faces downward
@@ -565,7 +570,7 @@ class Hrp5NRobot():
         lftlj[8]['mother'] = 7
         lftlj[8]['child'] = 9
         lftlj[8]['linkpos'] = lftlj[7]['linkend']
-        lftlj[8]['linkvec'] = np.array([0,-77.004,-137.249])
+        lftlj[8]['linkvec'] = np.array([0,-7.004,-67.249])
         lftlj[8]['rotax'] = np.array([0,1,0])
         lftlj[8]['rotangle'] = 0
         lftlj[8]['rotmat'] = np.dot(lftlj[7]['rotmat'], rm.rodrigues(lftlj[8]['rotax'], lftlj[8]['rotangle']))
@@ -578,7 +583,7 @@ class Hrp5NRobot():
         lftlj[9]['mother'] = 8
         lftlj[9]['child'] = -1
         lftlj[9]['linkpos'] = lftlj[8]['linkend']
-        lftlj[9]['linkvec'] = np.array([-70,0,0])
+        lftlj[9]['linkvec'] = np.array([-172.7,0,0])
         lftlj[9]['rotax'] = np.array([1,0,0])
         lftlj[9]['rotangle'] = 0
         # make sure x direction faces at ee, z directions faces downward
@@ -645,12 +650,14 @@ if __name__=="__main__":
 
     from manipulation.grip.hrp5three import hrp5threenm
     handpkg = hrp5threenm
-    hrp5nmnp = hrp5nplot.genHrp5mnp(hrp5nrobot, handpkg)
+    hrp5nmnp = hrp5nplot.genHrp5Nmnp(hrp5nrobot, handpkg)
     # hrp5nmnp.reparentTo(base.render)
 
-    objpos = np.array([500,-300,300])
-    # objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+    objpos = np.array([400,0,105])
     objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
+
+    objrot = np.array([[0.125178158283, 0.00399381108582, 0.992126166821], [0.98617619276, -0.109927728772, -0.123984932899], [0.108567006886, 0.993931531906, -0.0176991540939]]).T
+    # objrot = np.array([[0,1,0],[0,0,1],[1,0,0]])
     # objrotmat4 = pg.npToMat4(objrot)
     # objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
     # objrot = pg.mat3ToNp(objrotmat4.getUpper3())
@@ -672,9 +679,18 @@ if __name__=="__main__":
     if armjntsgoal is not None:
         hrp5nrobot.movearmfkr(armjntsgoal, armid)
         hrp5nplot.plotstick(base.render, hrp5nrobot)
-        hrp5nmnp_nm = hrp5nplot.genHrp5mnp_nm(hrp5nrobot, handpkg)
+        hrp5nmnp_nm = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
         hrp5nmnp_nm.reparentTo(base.render)
 
+    startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,305.252044678,-400.073120117,-55.0000038147,1.0)
+
+    startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,405.252044678,-199.926864624,-55.0000038147,1.0)
+    import os
+    this_dir, this_filename = os.path.split(__file__)
+    objpath = os.path.join(os.path.split(this_dir)[0], "../manipulation/grip", "objects", "tool.stl")
+    objmnp = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))
+    objmnp.setMat(startrotmat4)
+    objmnp.reparentTo(base.render)
     # goal hand
     # from manipulation.grip.robotiq85 import rtq85nm
     # hrp5robotrgthnd = rtq85nm.Rtq85NM()

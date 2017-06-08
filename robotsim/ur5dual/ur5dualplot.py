@@ -7,7 +7,6 @@ from panda3d.core import *
 
 import pandaplotutils.pandageom as pg
 
-
 def plotstick(pandanp, ur5robot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.array([.5 ,0 ,0 ,0])):
     """
     plot the stick model of the ur5robot robot in panda3d

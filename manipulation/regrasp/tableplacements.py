@@ -16,6 +16,7 @@ from utils import dbcvt as dc
 from utils import robotmath as rm
 from robotsim.nextage import nextage
 from robotsim.hrp5 import hrp5
+from robotsim.hrp5n import hrp5n
 from database import dbaccess as db
 import trimesh
 import time
@@ -33,7 +34,7 @@ class TablePlacements(object):
     "s" is attached to the end of "tabletopplacements"
     """
 
-    def __init__(self, objpath):
+    def __init__(self, objpath, handpkg):
         """
         initialization
 
@@ -46,7 +47,10 @@ class TablePlacements(object):
         self.objtrimesh = trimesh.load_mesh(objpath)
         self.dbobjname = os.path.splitext(os.path.basename(objpath))[0]
 
-    def saveToDB(self, positionlist, gdb, discretesize=8):
+        self.handpkg = handpkg
+        self.handname = handpkg.getHandName()
+
+    def saveToDB(self, positionlist, gdb, discretesize=8.0):
         """
 
         :param positionlist: a list of positions to place the object one the table
@@ -108,9 +112,11 @@ class TablePlacements(object):
             gdb.execute(sql)
 
         # save tabletopgrips
+        idhand = gdb.loadIdHand(self.handname)
         sql = "SELECT tabletopgrips.idtabletopgrips FROM tabletopgrips,freeairgrip,object WHERE \
                 tabletopgrips.idfreeairgrip=freeairgrip.idfreeairgrip AND \
-                 freeairgrip.idobject=object.idobject AND object.name LIKE '%s'" % self.dbobjname
+                 freeairgrip.idobject=object.idobject AND object.name LIKE '%s' AND \
+                  freeairgrip.idhand = %d" % (self.dbobjname, idhand)
         result = gdb.execute(sql)
         if len(result) == 0:
             sql = "SELECT freetabletopplacement.idfreetabletopplacement \
@@ -127,17 +133,21 @@ class TablePlacements(object):
                         freetabletopgrip.contactpoint0, freetabletopgrip.contactpoint1, \
                         freetabletopgrip.contactnormal0, freetabletopgrip.contactnormal1, \
                         freetabletopgrip.rotmat, freetabletopgrip.jawwidth, freetabletopgrip.idfreeairgrip \
-                        FROM tabletopplacements,freetabletopplacement,freetabletopgrip,angle WHERE \
+                        FROM tabletopplacements,freetabletopplacement,freetabletopgrip,freeairgrip,angle WHERE \
                         tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
                         tabletopplacements.idangle = angle.idangle AND \
                         freetabletopgrip.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
-                        freetabletopplacement.idfreetabletopplacement = %d" % idfree
+                        freetabletopgrip.idfreeairgrip = freeairgrip.idfreeairgrip AND \
+                        freeairgrip.idhand = %d AND \
+                        freetabletopplacement.idfreetabletopplacement = %d" % (idhand, idfree)
                 result1 = gdb.execute(sql)
                 if len(result1) == 0:
                     # no grasp availalbe?
                     continue
                 # sql = "INSERT INTO tabletopgrips(contactpnt0, contactpnt1, contactnormal0, \
                 #         contactnormal1, rotmat, jawwidth, idfreeairgrip, idtabletopplacements) VALUES "
+                if len(result1) > 20000:
+                    result1 = result1[0::int(len(result1)/20000.0)]
                 result1 = np.asarray(result1)
                 idtabletopplacementslist = [int(x) for x in result1[:,0]]
                 tabletoppositionlist = [dc.strToV3(x) for x in result1[:,1]]
@@ -275,7 +285,7 @@ class TablePlacements(object):
                 tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
                 freetabletopplacement.idobject = object.idobject AND object.name LIKE '%s' AND \
                 tabletopplacements.idangle = angle.idangle AND \
-                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 35, 45)
+                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 37, 45)
         result = gdb.execute(sql)
         if len(result) != 0:
             for resultrow in result:
@@ -302,27 +312,32 @@ class TablePlacements(object):
                     hndrotmat = dc.strToMat4(resultrow[0])
                     hndjawwidth = float(resultrow[1])
                     # show grasps
-                    tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .1])
-                    tmprtq85.setMat(hndrotmat)
-                    tmprtq85.setJawwidth(hndjawwidth)
-                    tmprtq85.reparentTo(base.render)
+                    tmphnd = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .1])
+                    tmphnd.setMat(hndrotmat)
+                    tmphnd.setJawwidth(hndjawwidth)
+                    tmphnd.reparentTo(base.render)
 
 if __name__ == '__main__':
     nxtrobot = nextage.NxtRobot()
     hrp5robot = hrp5.Hrp5Robot()
+    hrp5n = hrp5n.Hrp5NRobot()
 
     base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
     # done 20170307
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
     # done 20170313
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
+
+    from manipulation.grip.hrp5three import hrp5threenm
+    handpkg = hrp5threenm
+    # handpkg = rtq85nm
     print objpath
-    tps = TablePlacements(objpath)
+    tps = TablePlacements(objpath, handpkg)
 
     # plot obj and its convexhull
     # geom = pandageom.packpandageom(tps.objtrimesh.vertices,
@@ -360,17 +375,20 @@ if __name__ == '__main__':
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
 
-    # build grid space
-    grids = []
-    for x in range(300,501,100):
-        for y in range(-600,601,200):
-            grids.append([x,y,-55])
+    # # build grid space
+    # grids = []
+    # for x in range(300,401,100):
+    #     for y in range(-200,201,200):
+    #         grids.append([x,y,-55])
     gdb = db.GraspDB()
     # tps.saveToDB(grids, gdb)
-    # tps.grpshow(base, gdb)
-    # tps.updateDBwithIK(gdb, hrprobot)
-    tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
-    tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
+    # # # tps.grpshow(base, gdb)
+    # # # tps.updateDBwithIK(gdb, hrprobot)
+    # tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
+    # tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
+    # # tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
+    # # tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
+
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')

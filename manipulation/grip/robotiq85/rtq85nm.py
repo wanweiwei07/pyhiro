@@ -178,7 +178,7 @@ class Rtq85NM():
         return self.__jawwidthclosed
 
     @property
-    def hndnp(self):
+    def handnp(self):
         return self.rtq85np
 
     def setJawwidth(self, jawwidth):

@@ -2,8 +2,11 @@
 
 from robotsim.nextage import nextage
 from robotsim.nextage import nxtplot
+from robotsim.hrp5n import hrp5n
+from robotsim.hrp5n import hrp5nplot
 
 from manipulation.grip.robotiq85 import rtq85nm
+from manipulation.grip.hrp5three import hrp5threenm
 from manipulation.regrasp import regriptppfp
 from database import dbaccess as db
 import pandaplotutils.pandactrl as pandactrl
@@ -637,6 +640,8 @@ if __name__=='__main__':
     gdb = db.GraspDB()
     handpkg = rtq85nm
     nxtrobot = nextage.NxtRobot()
+    # handpkg = hrp5threenm
+    # hrp5nrobot = hrp5n.Hrp5NRobot()
 
     base = pandactrl.World(camp=[0,0,5000], lookatp=[0,0,0])
     # base = pandactrl.World(camp=[300,-2000,1000], lookatp=[300,0,0])

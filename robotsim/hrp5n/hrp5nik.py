@@ -149,6 +149,12 @@ def numik(hrp5nrobot, tgtpos, tgtrot, armid="rgt"):
                 hrp5nrobot.movearmfk(armjntssave, armid)
                 return armjntsreturn
             else:
+                # import hrp5nplot
+                # import manipulation.grip.hrp5three.hrp5three as handpkg
+                # # hrp5nplot.plotstick(base.render, hrp5nrobot)
+                # hrp5nmnp = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
+                # hrp5nmnp.reparentTo(base.render)
+                # print "out of range"
                 hrp5nrobot.movearmfk(armjntssave, armid)
                 return None
         else:
@@ -172,8 +178,8 @@ def numik(hrp5nrobot, tgtpos, tgtrot, armid="rgt"):
                 # nxtmnp.reparentTo(base.render)
                 # import hrp5nplot
                 # import manipulation.grip.hrp5three.hrp5three as handpkg
-                # hrp5nplot.plotstick(base.render, hrp5nrobot)
-                # hrp5nmnp = hrp5nplot.genHrp5mnp_nm(hrp5nrobot, handpkg)
+                # # hrp5nplot.plotstick(base.render, hrp5nrobot)
+                # hrp5nmnp = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
                 # hrp5nmnp.reparentTo(base.render)
             else:
                 # import hrp5plot

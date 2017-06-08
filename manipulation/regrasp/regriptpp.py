@@ -34,8 +34,10 @@ import random
 # regriptpp means regrip using tabletop placements
 class RegripTpp():
 
-    def __init__(self, objpath, robot, gdb):
+    def __init__(self, objpath, robot, handpkg, gdb):
         self.objtrimesh=trimesh.load_mesh(objpath)
+        self.handpkg = handpkg
+        self.handname = handpkg.getHandName()
 
         # for dbaccess
         self.dbobjname = os.path.splitext(os.path.basename(objpath))[0]
@@ -48,19 +50,20 @@ class RegripTpp():
         self.globalgripids = []
 
         # for removing the grasps at start and goal
-        self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
+        self.robothand = handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
 
         # plane to remove hand
         self.bulletworld = BulletWorld()
-        self.planebullnode = cd.genCollisionPlane()
+        self.planebullnode = cd.genCollisionPlane(offset = -55)
         self.bulletworld.attachRigidBody(self.planebullnode)
 
         # add tabletop plane model to bulletworld
-        this_dir, this_filename = os.path.split(__file__)
-        ttpath = Filename.fromOsSpecific(os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "supports", "tabletop.egg"))
-        self.ttnodepath = NodePath("tabletop")
-        ttl = loader.loadModel(ttpath)
-        ttl.instanceTo(self.ttnodepath)
+        # dont forget offset
+        # this_dir, this_filename = os.path.split(__file__)
+        # ttpath = Filename.fromOsSpecific(os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "supports", "tabletop.egg"))
+        # self.ttnodepath = NodePath("tabletop")
+        # ttl = loader.loadModel(ttpath)
+        # ttl.instanceTo(self.ttnodepath)
 
         self.startnodeids = None
         self.goalnodeids = None
@@ -90,7 +93,7 @@ class RegripTpp():
         date: 20170110
         """
 
-        freeairgripdata = self.gdb.loadFreeAirGrip(self.dbobjname)
+        freeairgripdata = self.gdb.loadFreeAirGrip(self.dbobjname, self.handname)
         if freeairgripdata is None:
             raise ValueError("Plan the freeairgrip first!")
 
@@ -115,14 +118,15 @@ class RegripTpp():
         """
 
         # load idarm
-        idarm = gdb.loadIdArm(armname)
+        idarm = self.gdb.loadIdArm(armname)
+        idhand = self.gdb.loadIdHand(self.handname)
 
         # get the global grip ids
         # and prepare the global edges
         # for each globalgripid, find all its tabletopids (pertaining to placements)
         globalidsedges = {}
         sql = "SELECT idfreeairgrip FROM freeairgrip,object WHERE freeairgrip.idobject=object.idobject AND \
-                object.name LIKE '%s'" % self.dbobjname
+                object.name LIKE '%s' AND freeairgrip.idhand = %d" % (self.dbobjname, idhand)
         result = self.gdb.execute(sql)
         if len(result) == 0:
             raise ValueError("Plan freeairgrip first!")
@@ -149,12 +153,14 @@ class RegripTpp():
 
             idrobot = self.gdb.loadIdRobot(self.robot)
             for i, idtps in enumerate(tpsrows[:,0]):
-                sql = "SELECT tabletopgrips.idtabletopgrips, contactpnt0, contactpnt1, rotmat, jawwidth, idfreeairgrip \
-                        FROM tabletopgrips,ik WHERE tabletopgrips.idtabletopgrips=ik.idtabletopgrips AND \
+                sql = "SELECT tabletopgrips.idtabletopgrips, tabletopgrips.contactpnt0, tabletopgrips.contactpnt1, \
+                        tabletopgrips.rotmat, tabletopgrips.jawwidth, tabletopgrips.idfreeairgrip \
+                        FROM tabletopgrips,freeairgrip,ik WHERE tabletopgrips.idtabletopgrips=ik.idtabletopgrips AND \
                         tabletopgrips.idtabletopplacements = %d AND ik.idrobot=%d AND \
                         ik.feasibility='True' AND ik.feasibility_handx='True' AND ik.feasibility_handxworldz='True' \
-                        AND ik.feasibility_worlda='True' AND ik.feasibility_worldaworldz='True' AND ik.idarm = %d" \
-                        % (int(idtps), idrobot, idarm)
+                        AND ik.feasibility_worlda='True' AND ik.feasibility_worldaworldz='True' AND ik.idarm = %d \
+                        AND tabletopgrips.idfreeairgrip = freeairgrip.idfreeairgrip AND \
+                        freeairgrip.idhand = %d" % (int(idtps), idrobot, idarm, idhand)
                 resultttgs = self.gdb.execute(sql)
                 if len(resultttgs)==0:
                     continue
@@ -223,8 +229,9 @@ class RegripTpp():
         nodeidofglobalidinstart= {}
         # the startnodeids is also for quick access
         self.startnodeids = []
-        self.ttnodepath.reparentTo(base.render)
         for j, rotmat in enumerate(self.freegriprotmats):
+            print j, len(self.freegriprotmats)
+            # print rotmat
             ttgsrotmat = rotmat * startrotmat4
             # for collision detection, we move the object back to x=0,y=0
             ttgsrotmatx0y0 = Mat4(startrotmat4)
@@ -232,18 +239,21 @@ class RegripTpp():
             ttgsrotmatx0y0.setCell(3,1,0)
             ttgsrotmatx0y0 = rotmat * ttgsrotmatx0y0
             # check if the hand collide with tabletop
-            tmprtq85 = self.rtq85hnd
-            # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-            initmat = tmprtq85.getMat()
-            initjawwidth = tmprtq85.jawwidth
+            # tmphnd = self.robothand
+            tmphnd = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
+            initmat = tmphnd.getMat()
+            initjawwidth = tmphnd.jawwidth
             # set jawwidth to 80 to avoid collision with surrounding obstacles
             # set to gripping with is unnecessary
-            # tmprtq85.setJawwidth(self.freegripjawwidth[j])
-            tmprtq85.setJawwidth(80)
-            tmprtq85.setMat(ttgsrotmatx0y0)
+            tmphnd.setJawwidth(80)
+            tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
+            # tmphnd.setMat(ttgsrotmat)
+            # tmphnd.reparentTo(base.render)
+            # if j > 3:
+            #     base.run()
             if not result.getNumContacts():
                 ttgscct0=startrotmat4.xformPoint(self.freegripcontacts[j][0])
                 ttgscct1=startrotmat4.xformPoint(self.freegripcontacts[j][1])
@@ -263,6 +273,7 @@ class RegripTpp():
                 ttgsfgrcenternp_worlda = pg.v3ToNp(ttgsfgrcenterworlda)
                 ttgsfgrcenternp_worldaworldz = pg.v3ToNp(ttgsfgrcenterworldaworldz)
                 ttgsrotmat3np = pg.mat3ToNp(ttgsrotmat.getUpper3())
+                print "solving starting iks"
                 ikc = self.robot.numikr(ttgsfgrcenternp, ttgsrotmat3np)
                 ikcx = self.robot.numikr(ttgsfgrcenternp_handx, ttgsrotmat3np)
                 ikca = self.robot.numikr(ttgsfgrcenternp_worlda, ttgsrotmat3np)
@@ -291,8 +302,8 @@ class RegripTpp():
                     nodeidofglobalidinstart[ttgsidfreeair]='start'+str(j)
                     self.startnodeids.append('start'+str(j))
                     # tmprtq85.reparentTo(base.render)
-            tmprtq85.setMat(initmat)
-            tmprtq85.setJawwidth(initjawwidth)
+            tmphnd.setMat(initmat)
+            tmphnd.setJawwidth(initjawwidth)
 
         if len(self.startnodeids) == 0:
             raise ValueError("No available starting grip!")
@@ -314,6 +325,7 @@ class RegripTpp():
         # the goalnodeids is also for quick access
         self.goalnodeids = []
         for j, rotmat in enumerate(self.freegriprotmats):
+            print j, len(self.freegriprotmats)
             ttgsrotmat = rotmat * goalrotmat4
             # for collision detection, we move the object back to x=0,y=0
             ttgsrotmatx0y0 = Mat4(goalrotmat4)
@@ -321,14 +333,13 @@ class RegripTpp():
             ttgsrotmatx0y0.setCell(3,1,0)
             ttgsrotmatx0y0 = rotmat * ttgsrotmatx0y0
             # check if the hand collide with tabletop
-            tmprtq85 = self.rtq85hnd
-            # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-            initmat = tmprtq85.getMat()
-            initjawwidth = tmprtq85.jawwidth
-            tmprtq85.setJawwidth(self.freegripjawwidth[j])
-            tmprtq85.setMat(ttgsrotmatx0y0)
+            tmphnd = self.robothand
+            initmat = tmphnd.getMat()
+            initjawwidth = tmphnd.jawwidth
+            tmphnd.setJawwidth(self.freegripjawwidth[j])
+            tmphnd.setMat(ttgsrotmatx0y0)
             # add hand model to bulletworld
-            hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
+            hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
             if not result.getNumContacts():
                 ttgscct0=goalrotmat4.xformPoint(self.freegripcontacts[j][0])
@@ -347,6 +358,7 @@ class RegripTpp():
                 ttgsfgrcenternp_worlda = pg.v3ToNp(ttgsfgrcenterworlda)
                 ttgsfgrcenternp_worldaworldz = pg.v3ToNp(ttgsfgrcenterworldaworldz)
                 ttgsrotmat3np = pg.mat3ToNp(ttgsrotmat.getUpper3())
+                print "solving goal iks"
                 ikc = self.robot.numikr(ttgsfgrcenternp, ttgsrotmat3np)
                 ikcx = self.robot.numikr(ttgsfgrcenternp_handx, ttgsrotmat3np)
                 ikcxz = self.robot.numikr(ttgsfgrcenternp_handxworldz, ttgsrotmat3np)
@@ -376,8 +388,8 @@ class RegripTpp():
                                        angleid = 'na', tabletopposition = tabletopposition)
                     nodeidofglobalidingoal[ttgsidfreeair]='goal'+str(j)
                     self.goalnodeids.append('goal'+str(j))
-            tmprtq85.setMat(initmat)
-            tmprtq85.setJawwidth(initjawwidth)
+            tmphnd.setMat(initmat)
+            tmphnd.setJawwidth(initjawwidth)
 
         if len(self.goalnodeids) == 0:
             raise ValueError("No available goal grip!")
@@ -412,17 +424,22 @@ class RegripTpp():
         self.shortestpaths = nx.all_shortest_paths(self.regg, source = startgrip, target = goalgrip)
         self.directshortestpaths = []
         # directshortestpaths removed the repeated start and goal transit
-        for path in self.shortestpaths:
-            for i, pathnode in enumerate(path):
-                if isinstance(pathnode, str) and i < len(path)-1:
-                    continue
-                else:
-                    self.directshortestpaths.append(path[i-1:])
-                    break
-            for i, pathnode in enumerate(self.directshortestpaths[-1]):
-                if i > 0 and isinstance(pathnode, str):
-                    self.directshortestpaths[-1]=self.directshortestpaths[-1][:i+1]
-                    break
+        try:
+            for path in self.shortestpaths:
+                print path
+                for i, pathnode in enumerate(path):
+                    if pathnode.startswith('start') and i < len(path)-1:
+                        continue
+                    else:
+                        self.directshortestpaths.append(path[i-1:])
+                        break
+                for i, pathnode in enumerate(self.directshortestpaths[-1]):
+                    if i > 0 and pathnode.startswith('goal'):
+                        self.directshortestpaths[-1]=self.directshortestpaths[-1][:i+1]
+                        break
+        except:
+            print "No path found!"
+            pass
 
     def plotgraph(self, pltfig):
         """
@@ -728,12 +745,11 @@ if __name__=='__main__':
     nxtrobot = nextage.NxtRobot()
     handpkg = rtq85nm
 
-
     base = pandactrl.World(camp=[700,300,600], lookatp=[0,0,0])
 
     this_dir, this_filename = os.path.split(__file__)
     objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planewheel.stl")
-    regrip = RegripTpp(objpath, nxtrobot, gdb)
+    regrip = RegripTpp(objpath, nxtrobot, handpkg, gdb)
 
     startrotmat4 =  Mat4(1.0,0.0,0.0,0.0,\
                      0.0,0.0,1.0,0.0,\

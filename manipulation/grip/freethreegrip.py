@@ -37,7 +37,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
         if ser is False:
             self.removeBadSamples()
-            self.clusterFacetSamplesRNN(reduceRadius=1)
+            self.clusterFacetSamplesRNN(reduceRadius=20)
             self.planContactpairs(torqueresist, self.hand.jawwidthopen)
             self.saveSerialized("tmpcp.pickle")
         else:
@@ -122,26 +122,27 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                 fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
                 if fgrdist > self.hand.jawwidthopen:
                     continue
-                for rotangle in self.gripcontactpairangles_precc[self.counter]:
-                    tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
+                rotangle = self.gripcontactpairangles_precc[self.counter][j]
+                # for rotangle in self.gripcontactpairangles_precc[self.counter]:
+                tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
 
-                    # collision detection
+                # collision detection
 
-                    self.hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
-                    result = self.bulletworld.contactTest(self.hndbullnode)
+                self.hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
+                result = self.bulletworld.contactTest(self.hndbullnode)
 
-                    if not result.getNumContacts():
-                        print "add handcc"
-                        self.gripcontacts.append(contactpair)
-                        self.griprotmats.append(tmphand.getMat())
-                        self.gripjawwidth.append(fgrdist)
-                        self.gripcontactnormals.append(self.gripcontactpairnormals_precc[self.counter][j])
-                        # pg.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
-                        # pg.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
-                        #                 tmprtq85.getMat(), length=30, thickness=2)
+                if not result.getNumContacts():
+                    print "add handcc"
+                    self.gripcontacts.append(contactpair)
+                    self.griprotmats.append(tmphand.getMat())
+                    self.gripjawwidth.append(fgrdist)
+                    self.gripcontactnormals.append(self.gripcontactpairnormals_precc[self.counter][j])
+                    # pg.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
+                    # pg.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
+                    #                 tmprtq85.getMat(), length=30, thickness=2)
 
-                    # reset initial hand pose
-                    tmphand.setMat(initmat)
+                # reset initial hand pose
+                tmphand.setMat(initmat)
             self.counter+=1
         self.counter = 0
 
@@ -179,18 +180,18 @@ class Freethreegrip(fgcp.FreegripContactpairs):
             facetidx1 = facetpair[1]
 
             for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
+                cctpnt0 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
+                cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
+                cctnormal0 = self.facetnormals[facetidx0]
+                cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
+                tmphand = self.hand
+                # save initial hand pose
+                fgrcenter = (cctpnt0+cctpnt1)/2
+                fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
+                if fgrdist > self.hand.jawwidthopen:
+                    continue
                 for angleid in range(discretesize):
-                    cctpnt0 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
-                    cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
-                    cctnormal0 = self.facetnormals[facetidx0]
-                    cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
-                    tmphand = self.hand
-                    # save initial hand pose
-                    fgrcenter = (cctpnt0+cctpnt1)/2
-                    fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
-                    if fgrdist > self.hand.jawwidthopen:
-                        continue
-                    rotangle = 360.0 / discretesize * angleid
+                    rotangle = 360.0 / float(discretesize) * float(angleid)
                     tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
 
                     #dist of cctpnt1 from surface
@@ -269,13 +270,13 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         # save to database
         gdb = db.GraspDB()
 
-        idhand = db.loadIdHand(self.handname)
+        idhand = gdb.loadIdHand(self.handname)
 
         sql = "SELECT * FROM freeairgrip, object WHERE freeairgrip.idobject = object.idobject AND \
-                object.objname LIKE '%s'" % self.dbobjname
+                object.name LIKE '%s' AND freeairgrip.idhand LIKE '%s'" % (self.dbobjname, idhand)
         result = gdb.execute(sql)
         if not result:
-            sql = "SELECT idobject FROM object WHERE objname LIKE '%s'" % self.dbobjname
+            sql = "SELECT idobject FROM object WHERE name LIKE '%s'" % self.dbobjname
             returnlist = gdb.execute(sql)
             if len(returnlist) != 0:
                 idobject = returnlist[0][0]
@@ -369,7 +370,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                 continue
             for angleid in range(discretesize):
                 tmphand = self.handpkg.newHandNM()
-                rotangle = 360.0 / discretesize * angleid
+                rotangle = 360.0 / float(discretesize) * float(angleid)
                 tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2],
                                rotangle, fgrdist)
 
@@ -496,7 +497,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                 continue
             for angleid in range(discretesize):
                 tmphand = self.handpkg.newHandNM()
-                rotangle = 360.0 / discretesize * angleid
+                rotangle = 360.0 / float(discretesize) * float(angleid)
                 tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2],
                                rotangle, fgrdist)
 
@@ -611,29 +612,30 @@ class Freethreegrip(fgcp.FreegripContactpairs):
             fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
             if fgrdist > self.hand.jawwidthopen:
                 continue
-            for rotangle in self.gripcontactpairangles_precc[self.counter]:
-                tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
+            rotangle = self.gripcontactpairangles_precc[self.counter][j]
+            # for rotangle in self.gripcontactpairangles_precc[self.counter]:
+            tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
 
-                # collision detection
+            # collision detection
 
-                self.hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
-                result = self.bulletworld.contactTest(self.hndbullnode)
+            self.hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
+            result = self.bulletworld.contactTest(self.hndbullnode)
 
-                if not result.getNumContacts():
-                    # pandageom.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
-                    # pandageom.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
-                    #                 tmprtq85.getMat(), length=30, thickness=2)
-                    tmphand.setColor([1, 1, 1, .3])
-                    tmphand.reparentTo(base.render)
-                    self.handplotlist.append(tmphand)
-                else:
-                    # for contact in result.getContacts():
-                        # cp = contact.getManifoldPoint()
-                        # pandageom.plotSphere(brchild, pos=cp.getLocalPointA(), radius=3, rgba=Vec4(1, 0, 0, 1))
-                        # pandageom.plotSphere(brchild, pos=cp.getLocalPointB(), radius=3, rgba=Vec4(0, 0, 1, 1))
-                    tmphand.setColor([.5, 0, 0, .3])
-                    tmphand.reparentTo(base.render)
-                    self.handplotlist.append(tmphand)
+            if not result.getNumContacts():
+                # pandageom.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
+                # pandageom.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
+                #                 tmprtq85.getMat(), length=30, thickness=2)
+                tmphand.setColor([1, 1, 1, .3])
+                tmphand.reparentTo(base.render)
+                self.handplotlist.append(tmphand)
+            else:
+                # for contact in result.getContacts():
+                    # cp = contact.getManifoldPoint()
+                    # pandageom.plotSphere(brchild, pos=cp.getLocalPointA(), radius=3, rgba=Vec4(1, 0, 0, 1))
+                    # pandageom.plotSphere(brchild, pos=cp.getLocalPointB(), radius=3, rgba=Vec4(0, 0, 1, 1))
+                tmphand.setColor([.5, 0, 0, .3])
+                tmphand.reparentTo(base.render)
+                self.handplotlist.append(tmphand)
 
     def plotObj(self):
         geomnodeobj = GeomNode('obj')
@@ -653,15 +655,15 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         """
 
         for i in range(len(self.gripcontacts)):
-            for i in range(2,3):
+            # if i < 15 and i > 2:
             #     for i in range(1,50,10):
-                hndrotmat = self.griprotmats[i]
-                hndjawwidth = self.gripjawwidth[i]
-                # show grasps
-                tmphand = handpkg.newHandNM(hndcolor=[.2, .7, .2, .3])
-                tmphand.setMat(hndrotmat)
-                tmphand.setJawwidth(hndjawwidth)
-                tmphand.reparentTo(base.render)
+            hndrotmat = self.griprotmats[i]
+            hndjawwidth = self.gripjawwidth[i]
+            # show grasps
+            tmphand = handpkg.newHandNM(hndcolor=[.2, .7, .2, .3])
+            tmphand.setMat(hndrotmat)
+            tmphand.setJawwidth(hndjawwidth)
+            tmphand.reparentTo(base.render)
 
 class FreeAirGrip(object):
     """
@@ -689,19 +691,19 @@ if __name__=='__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
-    # objpath = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "tool.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
 
     handpkg = hrp5threenm
-    freegriptst = Freethreegrip(objpath, handpkg, ser=False, torqueresist = 100)
+    freegriptst = Freethreegrip(objpath, handpkg, ser=True, torqueresist = 100)
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=False, togglenormals_refcls=False, alpha =.1)
+                        togglesamples_refcls=True, togglenormals_refcls=False, alpha =.1)
 
     # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
@@ -753,22 +755,22 @@ if __name__=='__main__':
     #
     # taskMgr.doMethodLater(.5, updateshow, "tickTask")
 
-    # freegriptst.removeFgrpcc(base)
-    # freegriptst.removeHndcc(base)
+    freegriptst.removeFgrpcc(base)
+    freegriptst.removeHndcc(base)
+    #
+    gdb = db.GraspDB()
+    freegriptst.saveToDB(gdb)
 
-    # gdb = db.GraspDB()
-    # freegriptst.saveToDB(gdb)
-
-    def updateshow(task):
-        freegriptst.removeFgrpccShow(base)
-        # freegriptst.removeFgrpccShowLeft(base)
-        # freegriptst.removeHndccShow(base)
-        # print task.delayTime
-        # if abs(task.delayTime-13) < 1:
-        #     task.delayTime -= 12.85
-        return task.again
-
-    taskMgr.doMethodLater(.2, updateshow, "tickTask")
+    # def updateshow(task):
+    #     # freegriptst.removeFgrpccShow(base)
+    #     # freegriptst.removeFgrpccShowLeft(base)
+    #     freegriptst.removeHndccShow(base)
+    #     # print task.delayTime
+    #     # if abs(task.delayTime-13) < 1:
+    #     #     task.delayTime -= 12.85
+    #     return task.again
+    #
+    # taskMgr.doMethodLater(.2, updateshow, "tickTask")
     # freegriptst.removeFgrpcc(base)
     # freegriptst.removeHndcc(base)
 
@@ -789,5 +791,5 @@ if __name__=='__main__':
     # freegriptst.bulletworld.setDebugNode(debugNP.node())
     # taskMgr.add(updateworld, "updateworld", extraArgs=[freegriptst.bulletworld], appendTask=True)
 
-    # freegriptst.showAllGrips(handpkg)
+    freegriptst.showAllGrips(handpkg)
     base.run()

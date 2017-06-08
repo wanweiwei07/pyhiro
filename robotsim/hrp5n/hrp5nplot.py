@@ -33,7 +33,7 @@ def plotstick(pandanp, hrp5robot, rgtrbga=np.array([.5 ,0 ,0 ,0]), lftrgba=np.ar
                                thickness=20, rgba=lftrgba)
         i = hrp5robot.lftarm[i]['child']
 
-def genHrp5mnp(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
+def genHrp5Nmnp(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     """
     generate a panda3d nodepath for the hrp5robot
     mnp indicates this function generates a mesh nodepath
@@ -359,7 +359,7 @@ def genHrp5mnp(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     return hrp5nmnp
 
 
-def genHrp5mnp_nm(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
+def genHrp5Nmnp_nm(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     """
     generate a panda3d nodepath for the hrp5robot
     mnp indicates this function generates a mesh nodepath

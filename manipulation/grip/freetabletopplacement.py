@@ -21,7 +21,6 @@ from utils import dbcvt as dc
 from utils import robotmath as rm
 from database import dbaccess as db
 
-
 class FreeTabletopPlacement(object):
     """
     manipulation.freetabletopplacement doesn't take into account
@@ -35,7 +34,7 @@ class FreeTabletopPlacement(object):
     "s" is attached to the end of "tabletopplacements"
     """
 
-    def __init__(self, objpath, gdb):
+    def __init__(self, objpath, handpkg, gdb):
         self.objtrimesh=trimesh.load_mesh(objpath)
         self.objcom = self.objtrimesh.center_mass
         self.objtrimeshconv=self.objtrimesh.convex_hull
@@ -49,10 +48,13 @@ class FreeTabletopPlacement(object):
         self.bulletworldray = BulletWorld()
         self.bulletworldhp = BulletWorld()
         # plane to remove hand
-        self.planebullnode = cd.genCollisionPlane()
+        self.planebullnode = cd.genCollisionPlane(offset=0)
         self.bulletworldhp.attachRigidBody(self.planebullnode)
 
-        self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
+        self.handpkg = handpkg
+        self.handname = handpkg.getHandName()
+        self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
+        # self.rtq85hnd = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, .1])
 
         # for dbsave
         # each tpsmat4 corresponds to a set of tpsgripcontacts/tpsgripnormals/tpsgripjawwidth list
@@ -78,7 +80,7 @@ class FreeTabletopPlacement(object):
         date: 20170110
         """
 
-        freeairgripdata = self.gdb.loadFreeAirGrip(self.dbobjname)
+        freeairgripdata = self.gdb.loadFreeAirGrip(self.dbobjname, handname = self.handname)
         if freeairgripdata is None:
             raise ValueError("Plan the freeairgrip first!")
 
@@ -87,6 +89,20 @@ class FreeTabletopPlacement(object):
         self.freegripnormals = freeairgripdata[2]
         self.freegriprotmats = freeairgripdata[3]
         self.freegripjawwidth = freeairgripdata[4]
+
+    def loadFreeTabletopPlacement(self):
+        """
+        load free tabletopplacements
+
+        :return:
+        """
+        tpsmat4s = self.gdb.loadFreeTabletopPlacement(self.dbobjname)
+        if tpsmat4s is not None:
+            self.tpsmat4s = tpsmat4s
+            return True
+        else:
+            self.tpsmat4s = []
+            return False
 
     def removebadfacets(self, base, doverh=.1):
         """
@@ -101,12 +117,6 @@ class FreeTabletopPlacement(object):
         date: 20161213
         """
         self.tpsmat4s = []
-        self.tpsgripcontacts = []
-        self.tpsgripnormals = []
-        self.tpsgriprotmats = []
-        self.tpsgripjawwidth = []
-        # the id of the grip in freeair
-        self.tpsgripidfreeair = []
 
         for i in range(len(self.ocfacets)):
             geom = pg.packpandageom(self.objtrimeshconv.vertices,
@@ -134,38 +144,59 @@ class FreeTabletopPlacement(object):
                 if dist2p/dist2c > doverh:
                     # hit and stable
                     self.tpsmat4s.append(pg.cvtMat4np4(facetmat4))
-                    self.tpsgripcontacts.append([])
-                    self.tpsgripnormals.append([])
-                    self.tpsgriprotmats.append([])
-                    self.tpsgripjawwidth.append([])
-                    self.tpsgripidfreeair.append([])
-                    for j, rotmat in enumerate(self.freegriprotmats):
-                        tpsgriprotmat = rotmat*self.tpsmat4s[-1]
-                        # check if the hand collide with tabletop
-                        tmprtq85 = self.rtq85hnd
-                        # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
-                        initmat = tmprtq85.getMat()
-                        initjawwidth = tmprtq85.jawwidth
-                        # open the hand to ensure it doesnt collide with surrounding obstacles
-                        # tmprtq85.setJawwidth(self.freegripjawwidth[j])
-                        tmprtq85.setJawwidth(80)
-                        tmprtq85.setMat(tpsgriprotmat)
-                        # add hand model to bulletworld
-                        hndbullnode = cd.genCollisionMeshMultiNp(tmprtq85.rtq85np)
-                        result = self.bulletworldhp.contactTest(hndbullnode)
-                        # print result.getNumContacts()
-                        if not result.getNumContacts():
-                            self.tpsgriprotmats[-1].append(tpsgriprotmat)
-                            cct0 = self.tpsmat4s[-1].xformPoint(self.freegripcontacts[j][0])
-                            cct1 = self.tpsmat4s[-1].xformPoint(self.freegripcontacts[j][1])
-                            self.tpsgripcontacts[-1].append([cct0, cct1])
-                            cctn0 = self.tpsmat4s[-1].xformVec(self.freegripnormals[j][0])
-                            cctn1 = self.tpsmat4s[-1].xformVec(self.freegripnormals[j][1])
-                            self.tpsgripnormals[-1].append([cctn0, cctn1])
-                            self.tpsgripjawwidth[-1].append(self.freegripjawwidth[j])
-                            self.tpsgripidfreeair[-1].append(self.freegripid[j])
-                        tmprtq85.setMat(initmat)
-                        tmprtq85.setJawwidth(initjawwidth)
+
+    def gentpsgrip(self, base):
+        """
+        Originally the code of this function is embedded in the removebadfacet function
+        It is separated on 20170608 to enable common usage of placements for different hands
+
+        :return:
+
+        author: weiwei
+        date: 20170608
+        """
+
+        self.tpsgripcontacts = []
+        self.tpsgripnormals = []
+        self.tpsgriprotmats = []
+        self.tpsgripjawwidth = []
+        # the id of the grip in freeair
+        self.tpsgripidfreeair = []
+
+        for i in range(len(self.tpsmat4s)):
+            self.tpsgripcontacts.append([])
+            self.tpsgripnormals.append([])
+            self.tpsgriprotmats.append([])
+            self.tpsgripjawwidth.append([])
+            self.tpsgripidfreeair.append([])
+            for j, rotmat in enumerate(self.freegriprotmats):
+                tpsgriprotmat = rotmat * self.tpsmat4s[i]
+                # check if the hand collide with tabletop
+                # tmprtq85 = self.rtq85hnd
+                tmphnd = self.hand
+                # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[1, 0, 0, 1])
+                initmat = tmphnd.getMat()
+                initjawwidth = tmphnd.jawwidth
+                # open the hand to ensure it doesnt collide with surrounding obstacles
+                # tmprtq85.setJawwidth(self.freegripjawwidth[j])
+                tmphnd.setJawwidth(80)
+                tmphnd.setMat(tpsgriprotmat)
+                # add hand model to bulletworld
+                hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
+                result = self.bulletworldhp.contactTest(hndbullnode)
+                # print result.getNumContacts()
+                if not result.getNumContacts():
+                    self.tpsgriprotmats[-1].append(tpsgriprotmat)
+                    cct0 = self.tpsmat4s[i].xformPoint(self.freegripcontacts[j][0])
+                    cct1 = self.tpsmat4s[i].xformPoint(self.freegripcontacts[j][1])
+                    self.tpsgripcontacts[-1].append([cct0, cct1])
+                    cctn0 = self.tpsmat4s[i].xformVec(self.freegripnormals[j][0])
+                    cctn1 = self.tpsmat4s[i].xformVec(self.freegripnormals[j][1])
+                    self.tpsgripnormals[-1].append([cctn0, cctn1])
+                    self.tpsgripjawwidth[-1].append(self.freegripjawwidth[j])
+                    self.tpsgripidfreeair[-1].append(self.freegripid[j])
+                tmphnd.setMat(initmat)
+                tmphnd.setJawwidth(initjawwidth)
 
     def saveToDB(self):
         """
@@ -188,29 +219,32 @@ class FreeTabletopPlacement(object):
 
         # save freetabletopplacement
         sql = "SELECT * FROM freetabletopplacement,object WHERE freetabletopplacement.idobject = object.idobject \
-                AND object.objname LIKE '%s'" % self.dbobjname
+                AND object.name LIKE '%s'" % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) == 0:
             # the fretabletopplacements for the self.dbobjname is not saved
             sql = "INSERT INTO freetabletopplacement(rotmat, idobject) VALUES "
             for i in range(len(self.tpsmat4s)):
-                sql += "('%s', (SELECT idobject FROM object WHERE objname LIKE '%s')), " % \
+                sql += "('%s', (SELECT idobject FROM object WHERE name LIKE '%s')), " % \
                        (dc.mat4ToStr(self.tpsmat4s[i]), self.dbobjname)
             sql = sql[:-2] + ";"
             self.gdb.execute(sql)
 
         # save freetabletopgrip
-        sql = "SELECT * FROM freetabletopgrip,freetabletopplacement,object WHERE \
+        idhand = gdb.loadIdHand(self.handname)
+        sql = "SELECT * FROM freetabletopgrip,freetabletopplacement,freeairgrip,object WHERE \
                 freetabletopgrip.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
+                freetabletopgrip.idfreeairgrip = freeairgrip.idfreeairgrip AND \
                 freetabletopplacement.idobject = object.idobject AND \
-                object.objname LIKE '%s'" % self.dbobjname
+                object.name LIKE '%s' AND freeairgrip.idhand = %d" % (self.dbobjname, idhand)
         result = self.gdb.execute(sql)
         if len(result) == 0:
             for i in range(len(self.tpsmat4s)):
                 sql = "SELECT freetabletopplacement.idfreetabletopplacement FROM freetabletopplacement,object WHERE \
                         freetabletopplacement.rotmat LIKE '%s' AND \
-                        object.objname LIKE '%s'" % (dc.mat4ToStr(self.tpsmat4s[i]), self.dbobjname)
+                        object.name LIKE '%s'" % (dc.mat4ToStr(self.tpsmat4s[i]), self.dbobjname)
                 result = self.gdb.execute(sql)[0]
+                print result
                 if len(result) != 0:
                     idfreetabletopplacement = result[0]
                     # note self.tpsgriprotmats[i] might be empty (no cd-free grasps)
@@ -320,7 +354,7 @@ class FreeTabletopPlacement(object):
 
         sql = "SELECT freetabletopplacement.idfreetabletopplacement, freetabletopplacement.rotmat \
                        FROM freetabletopplacement,object WHERE \
-                       freetabletopplacement.idobject = object.idobject AND object.objname LIKE '%s'" % self.dbobjname
+                       freetabletopplacement.idobject = object.idobject AND object.name LIKE '%s'" % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) != 0:
             idfreetabletopplacement = int(result[3][0])
@@ -349,6 +383,38 @@ class FreeTabletopPlacement(object):
                 tmprtq85.setJawwidth(hndjawwidth)
                 # tmprtq85.setJawwidth(80)
                 tmprtq85.reparentTo(base.render)
+
+    def showOnePlacementAndAssociatedGrips(self, base):
+        """
+        show one placement and its associated grasps
+        :param base:
+        :return:
+        """
+
+        for i in range(len(self.tpsmat4s)):
+            if i == 0:
+                objrotmat  = self.tpsmat4s[i]
+                # show object
+                geom = pg.packpandageom(self.objtrimesh.vertices,
+                                        self.objtrimesh.face_normals,
+                                        self.objtrimesh.faces)
+                node = GeomNode('obj')
+                node.addGeom(geom)
+                star = NodePath('obj')
+                star.attachNewNode(node)
+                star.setColor(Vec4(.77,0.67,0,1))
+                star.setTransparency(TransparencyAttrib.MAlpha)
+                star.setMat(objrotmat)
+                star.reparentTo(base.render)
+                for j in range(len(self.tpsgriprotmats[i])):
+                    hndrotmat = self.tpsgriprotmats[i][j]
+                    hndjawwidth = self.tpsgripjawwidth[i][j]
+                    # show grasps
+                    tmphnd = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .1])
+                    tmphnd.setMat(hndrotmat)
+                    tmphnd.setJawwidth(hndjawwidth)
+                    # tmprtq85.setJawwidth(80)
+                    tmphnd.reparentTo(base.render)
 
     def ocfacetshow(self, base):
         print self.objcom
@@ -393,8 +459,12 @@ if __name__ == '__main__':
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
     print objpath
+
+    from manipulation.grip.hrp5three import hrp5threenm
+    handpkg = hrp5threenm
+    # handpkg = rtq85nm
     gdb = db.GraspDB()
-    tps = FreeTabletopPlacement(objpath, gdb)
+    tps = FreeTabletopPlacement(objpath, handpkg, gdb)
 
     # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
@@ -446,8 +516,12 @@ if __name__ == '__main__':
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
     #
-    # tps.removebadfacets(base, doverh=.2)
-    # tps.saveToDB()
+    if tps.loadFreeTabletopPlacement():
+        pass
+    else:
+        tps.removebadfacets(base, doverh=.2)
+    tps.gentpsgrip(base)
+    tps.saveToDB()
     #
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
@@ -460,4 +534,5 @@ if __name__ == '__main__':
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldhp], appendTask=True)
 
     # tps.grpshow(base)
+    tps.showOnePlacementAndAssociatedGrips(base)
     base.run()
