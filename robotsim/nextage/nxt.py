@@ -15,6 +15,7 @@ class NxtRobot():
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         self.__base = self.__rgtarm[0]
+        self.__targetjoints = [1,2,3,4,5,6]
         self.goinitpose()
 
     @property
@@ -62,6 +63,11 @@ class NxtRobot():
         # read-only property
         return self.__base
 
+    @property
+    def targetjoints(self):
+        # read-only property
+        return self.__targetjoints
+
     def movewaist(self, rotangle=0):
         """
         rotate the base of the robot
@@ -85,9 +91,34 @@ class NxtRobot():
         self.lftarm[0]['linkend'] = np.squeeze(np.dot(self.lftarm[0]['rotmat'], self.lftarm[0]['linkvec'].reshape((-1,))))+self.lftarm[0]['linkpos']
         self.__updatefk(self.lftarm)
 
-    def movearmfk6(self, armjnts, armid="rgt"):
+    # def movearmfk6(self, armjnts, armid="rgt"):
+    #     """
+    #     move the 6 joints of armlj using forward kinematics
+    #
+    #     :param armjnts: a 1-by-6 ndarray where each element indicates the angle of a joint (in degree)
+    #     :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
+    #     :return: null
+    #
+    #     author: weiwei
+    #     date: 20161205
+    #     """
+    #
+    #     if armid!="rgt" and armid!="lft":
+    #         raise ep.ValueError
+    #
+    #     armlj = self.rgtarm
+    #     if armid == "lft":
+    #         armlj = self.lftarm
+    #     i = 1
+    #     while i!=-1:
+    #         armlj[i]['rotangle'] = armjnts[i-1]
+    #         i = armlj[i]['child']
+    #     self.__updatefk(armlj)
+
+    def movearmfk(self, armjnts, armid="rgt"):
         """
         move the 6 joints of armlj using forward kinematics
+        this function will replace movearmfk6
 
         :param armjnts: a 1-by-6 ndarray where each element indicates the angle of a joint (in degree)
         :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
@@ -103,17 +134,19 @@ class NxtRobot():
         armlj = self.rgtarm
         if armid == "lft":
             armlj = self.lftarm
-        i = 1
-        while i!=-1:
-            armlj[i]['rotangle'] = armjnts[i-1]
-            i = armlj[i]['child']
+
+        counter = 0
+        for i in self.__targetjoints:
+            armlj[i]['rotangle'] = armjnts[counter]
+            counter += 1
+
         self.__updatefk(armlj)
 
     def movearmfkr(self, armjnts, armid ="rgt"):
         """
         move the 7 joints of armlj using forward kinematics
 
-        :param armjnts: a 1-by-7 ndarray where each element indicates the angle of a joint (in degree)
+        :param armjnts: a 1-by-2 ndarray where the 1t ele is waist, the second is the targetjoints list
         :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
         :return: null
 
@@ -127,15 +160,40 @@ class NxtRobot():
         armlj = self.rgtarm
         if armid == "lft":
             armlj = self.lftarm
-            
-        i = 1
-        while i!=-1:
-            armlj[i]['rotangle'] = armjnts[i]
-            i = armlj[i]['child']
+
+        counter = 0
+        for i in self.__targetjoints:
+            armlj[i]['rotangle'] = armjnts[1][counter]
+            counter += 1
 
         self.movewaist(rotangle=armjnts[0])
 
-    def movejnts15(self, nxjnts):
+    # def movejnts15(self, nxjnts):
+    #     """
+    #     move all joints of the nextage robo
+    #
+    #     :param nxjnts: the definition as self.initjntss
+    #     :return: null
+    #
+    #     author: weiwei
+    #     date: 20161108
+    #     """
+    #
+    #     narmjoints = len(self.__targetjoints)
+    #     # right arm
+    #     i = 1
+    #     while i != -1:
+    #         self.rgtarm[i]['rotangle'] = nxjnts[i+2]
+    #         i = self.rgtarm[i]['child']
+    #     # left arm
+    #     i = 1
+    #     while i != -1:
+    #         self.lftarm[i]['rotangle'] = nxjnts[i+2+narmjoints]
+    #         i = self.lftarm[i]['child']
+    #
+    #     self.movewaist(nxjnts[0])
+
+    def movealljnts(self, nxjnts):
         """
         move all joints of the nextage robo
 
@@ -146,6 +204,7 @@ class NxtRobot():
         date: 20161108
         """
 
+        narmjoints = len(self.__targetjoints)
         # right arm
         i = 1
         while i != -1:
@@ -154,7 +213,7 @@ class NxtRobot():
         # left arm
         i = 1
         while i != -1:
-            self.lftarm[i]['rotangle'] = nxjnts[i+8]
+            self.lftarm[i]['rotangle'] = nxjnts[i+2+narmjoints]
             i = self.lftarm[i]['child']
 
         self.movewaist(nxjnts[0])
@@ -169,11 +228,35 @@ class NxtRobot():
         date: 20161108
         """
 
-        self.movejnts15(self.initjnts)
+        self.movealljnts(self.initjnts)
 
-    def getarmjnts6(self, armid="rgt"):
+    # def getarmjnts6(self, armid="rgt"):
+    #     """
+    #     get the 6 joints of the specified armid
+    #
+    #     :param armid:
+    #     :return: armjnts: a 1-by-6 numpy ndarray
+    #
+    #     author: weiwei
+    #     date: 20161111, tsukuba
+    #     """
+    #
+    #     if armid!="rgt" and armid!="lft":
+    #         raise ep.ValueError
+    #
+    #     armlj = self.rgtarm
+    #     if armid == "lft":
+    #         armlj = self.lftarm
+    #
+    #     armjnts = np.zeros(6)
+    #     for i in range(6):
+    #         armjnts[i] = armlj[i+1]['rotangle']
+    #
+    #     return armjnts
+
+    def getarmjnts(self, armid="rgt"):
         """
-        get the 6 joints of the specified armid
+        get the target joints of the specified armid
 
         :param armid:
         :return: armjnts: a 1-by-6 numpy ndarray
@@ -189,9 +272,11 @@ class NxtRobot():
         if armid == "lft":
             armlj = self.lftarm
 
-        armjnts = np.zeros(6)
-        for i in range(6):
-            armjnts[i] = armlj[i+1]['rotangle']
+        armjnts = np.zeros(len(self.__targetjoints))
+        counter = 0
+        for i in self.__targetjoints:
+            armjnts[counter] = armlj[i]['rotangle']
+            counter += 1
 
         return armjnts
 
@@ -207,7 +292,7 @@ class NxtRobot():
 
         return self.base['rotangle']
 
-    def chkrng6(self, armjnts, armid="rgt"):
+    def chkrng(self, armjnts, armid="rgt"):
         """
         check if the given armjnts is inside the oeprating range of the speificed armid
         this function doesn't check the waist
@@ -227,12 +312,14 @@ class NxtRobot():
         if armid == "lft":
             armlj = self.lftarm
 
-        for i in range(6):
-            if armjnts[i] < armlj[i+1]["rngmin"] or armjnts[i]>armlj[i+1]["rngmax"]:
+        counter = 0
+        for i in self.__targetjoints:
+            if armjnts[counter] < armlj[i]["rngmin"] or armjnts[counter]>armlj[i]["rngmax"]:
                 # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
                 # print "Angle is " + str(armjnts[i])
                 # print "Range is (" + str(armlj[i+1]["rngmin"]) + ", " + str(armlj[i+1]["rngmax"]) + ")"
                 return False
+            counter += 1
 
         return True
 
@@ -511,6 +598,8 @@ if __name__=="__main__":
     import pandaplotutils.pandactrl as pandactrl
     from direct.filter.CommonFilters import CommonFilters
 
+    from manipulation.grip.robotiq85 import rtq85nm
+
     base = pandactrl.World()
 
     nxtrobot = NxtRobot()
@@ -522,7 +611,8 @@ if __name__=="__main__":
     objrot = np.array([[0,1,0],[1,0,0],[0,0,-1]])
 
     import nxtplot
-    nxtmnp = nxtplot.genNxtmnp(nxtrobot)
+    hangpkg = rtq85nm
+    nxtmnp = nxtplot.genmnp(nxtrobot, hangpkg)
     nxtmnp.reparentTo(base.render)
 
     nxtplot.plotstick(base.render, nxtrobot)
@@ -548,9 +638,10 @@ if __name__=="__main__":
     armid= "rgt"
     objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
     armjntsgoal6 =  nxtrobot.numik(objpos, objrot, armid)
+    print armjntsgoal6
     if armjntsgoal6 is not None:
-        nxtrobot.movearmfk6(armjntsgoal6, armid)
-        nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,1,.51])
+        nxtrobot.movearmfk(armjntsgoal6, armid)
+        nxtmnp = nxtplot.genmnp_nm(nxtrobot, plotcolor=[1,0,1,.51])
         nxtmnp.reparentTo(base.render)
 
     base.run()

@@ -200,11 +200,11 @@ class Hrp5Three():
             subfgrtippccleft0.reparentTo(fgrtippccleft)
             subfgrtippccleft1.reparentTo(fgrtippccleft)
             lrot = fgrtippccleft.getMat()
-            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*70)
+            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*172.7)
             fgrtippccright = NodePath("hrp5threelrfgrtippcc")
             rfgrtippcc.instanceTo(fgrtippccright)
             rrot = fgrtippccright.getMat()
-            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*70)
+            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*172.7)
 
         hrp5threebase.reparentTo(self.__hrp5threenp)
         fgrtippccleft.reparentTo(self.__hrp5threefgrtippccnp)
@@ -276,8 +276,8 @@ class Hrp5Three():
             fgrtippccright = self.__hrp5threefgrtippccnp.find("**/hrp5threerrfgrtippcc")
             ltiprot = fgrtippccleft.getMat()
             rtiprot = fgrtippccright.getMat()
-            fgrtippccleft.setPos(-ltiprot.getRow3(0)*70+ltiprot.getRow3(1)*(jawwidth)/2)
-            fgrtippccright.setPos(-rtiprot.getRow3(0)*70-rtiprot.getRow3(1)*(jawwidth)/2)
+            fgrtippccleft.setPos(-ltiprot.getRow3(0)*172.7+ltiprot.getRow3(1)*(jawwidth)/2)
+            fgrtippccright.setPos(-rtiprot.getRow3(0)*172.7-rtiprot.getRow3(1)*(jawwidth)/2)
         if self.hndid == "lft":
             hrp5threerfgr0 = self.__hrp5threenp.find("**/hrp5threerfgr0")
             rotmat4 = Mat4.rotateMat(fgrangle, Vec3(1,0,0))
@@ -295,8 +295,8 @@ class Hrp5Three():
             fgrtippccright = self.__hrp5threefgrtippccnp.find("**/hrp5threelrfgrtippcc")
             ltiprot = fgrtippccleft.getMat()
             rtiprot = fgrtippccright.getMat()
-            fgrtippccleft.setPos(-ltiprot.getRow3(0)*70+ltiprot.getRow3(1)*(jawwidth)/2.0)
-            fgrtippccright.setPos(-rtiprot.getRow3(0)*70-rtiprot.getRow3(1)*(jawwidth)/2.0)
+            fgrtippccleft.setPos(-ltiprot.getRow3(0)*172.7+ltiprot.getRow3(1)*(jawwidth)/2.0)
+            fgrtippccright.setPos(-rtiprot.getRow3(0)*172.7-rtiprot.getRow3(1)*(jawwidth)/2.0)
 
     def setPose(self, pandanpvec3):
         """
@@ -444,7 +444,7 @@ class Hrp5Three():
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threenp.setMat(rotmat4)
         rotmat4 = Mat4(self.__hrp5threefgrtippccnp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*62.7
+        handtipvec3 = rotmat4.getRow3(0)*172.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threefgrtippccnp.setMat(rotmat4)
 
@@ -479,34 +479,35 @@ if __name__=='__main__':
     hrp5three.gripAt(100,0,0,0,0,1,35,jawwidth = 30)
     hrp5three.reparentTo(base.render)
     hrp5three.handpccnp.reparentTo(base.render)
-    handbullnp = cd.genCollisionMeshNp(hrp5three.handnp)
+    handbullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
     # second hand
-    hrp5three1 = newHand(hndid='rgt')
+    # hrp5three1 = newHand(hndid='rgt')
     # hrp5three1.reparentTo(base.render)
     # hrp5three1.fgrtippccleft.reparentTo(base.render)
     # hrp5three1.fgrtippccright.reparentTo(base.render)
-    hand1bullnp = cd.genCollisionMeshNp(hrp5three.handnp)
+    # hand1bullnp = cd.genCollisionMeshNp(hrp5three.handnp)
 
     pg.plotAxisSelf(base.render, Vec3(0,0,0))
 
     bullcldrnp = base.render.attachNewNode("bulletcollider")
-    # base.world = BulletWorld()
+    base.world = BulletWorld()
 
-    # base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
+    base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
+    base.world.attachRigidBody(handbullnp)
     # result = base.world.contactTestPair(handbullnp, hand1bullnp)
     # for contact in result.getContacts():
     #     cp = contact.getManifoldPoint()
     #     print cp.getLocalPointA()
     #     pg.plotSphere(base.render, pos=cp.getLocalPointA(), radius=1, rgba=Vec4(1,0,0,1))
     #
-    # debugNode = BulletDebugNode('Debug')
-    # debugNode.showWireframe(True)
-    # debugNode.showConstraints(True)
-    # debugNode.showBoundingBoxes(False)
-    # debugNode.showNormals(False)
-    # debugNP = bullcldrnp.attachNewNode(debugNode)
-    # debugNP.show()
-    #
-    # base.world.setDebugNode(debugNP.node())
+    debugNode = BulletDebugNode('Debug')
+    debugNode.showWireframe(True)
+    debugNode.showConstraints(True)
+    debugNode.showBoundingBoxes(False)
+    debugNode.showNormals(False)
+    debugNP = bullcldrnp.attachNewNode(debugNode)
+    debugNP.show()
+
+    base.world.setDebugNode(debugNP.node())
 
     base.run()

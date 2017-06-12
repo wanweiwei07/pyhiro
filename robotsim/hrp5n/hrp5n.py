@@ -89,7 +89,7 @@ class Hrp5NRobot():
         """
         move the joints of armlj specified by targetjoints using forward kinematics, waist is not included
 
-        :param armjnts: a 1-by-6 ndarray where each element indicates the angle of a joint (in degree)
+        :param armjnts: a 1-by-n ndarray where each element indicates the angle of a joint (in degree)
         :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
         :return: null
 
@@ -147,6 +147,7 @@ class Hrp5NRobot():
         date: 20161202
         """
 
+        narmjoints = len(self.__targetjoints)
         # right arm
         i = 1
         while i != -1:
@@ -155,11 +156,12 @@ class Hrp5NRobot():
         # left arm
         i = 1
         while i != -1:
-            self.lftarm[i]['rotangle'] = robotjnts[i+11]
+            self.lftarm[i]['rotangle'] = robotjnts[i+2+narmjoints]
             i = self.lftarm[i]['child']
 
-        self.__updatefk(self.rgtarm)
-        self.__updatefk(self.lftarm)
+        # self.__updatefk(self.rgtarm)
+        # self.__updatefk(self.lftarm)
+        self.movewaist(robotjnts[0])
 
     def goinitpose(self):
         """
@@ -650,7 +652,7 @@ if __name__=="__main__":
 
     from manipulation.grip.hrp5three import hrp5threenm
     handpkg = hrp5threenm
-    hrp5nmnp = hrp5nplot.genHrp5Nmnp(hrp5nrobot, handpkg)
+    hrp5nmnp = hrp5nplot.genmnp_nm(hrp5nrobot, handpkg)
     # hrp5nmnp.reparentTo(base.render)
 
     objpos = np.array([400,0,105])
@@ -679,7 +681,7 @@ if __name__=="__main__":
     if armjntsgoal is not None:
         hrp5nrobot.movearmfkr(armjntsgoal, armid)
         hrp5nplot.plotstick(base.render, hrp5nrobot)
-        hrp5nmnp_nm = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
+        hrp5nmnp_nm = hrp5nplot.genmnp_nm(hrp5nrobot, handpkg)
         hrp5nmnp_nm.reparentTo(base.render)
 
     startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,305.252044678,-400.073120117,-55.0000038147,1.0)

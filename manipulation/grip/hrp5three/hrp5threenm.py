@@ -135,7 +135,7 @@ class Hrp5ThreeNM():
             fgrtippccleft = NodePath("hrp5threerlfgrtippcc")
             lfgrtippcc.instanceTo(fgrtippccleft)
             lrot = fgrtippccleft.getMat()
-            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*70)
+            fgrtippccleft.setPos(lrot.getRow3(3)-lrot.getRow3(0)*172.7)
             # move rightfgr to +-27 along z axis
             fgrtippccright = NodePath("hrp5threerrfgrtippcc")
             subfgrtippccright0 = NodePath("hrp5threerrfgrtip0pcc")
@@ -147,7 +147,7 @@ class Hrp5ThreeNM():
             subfgrtippccright0.reparentTo(fgrtippccright)
             subfgrtippccright1.reparentTo(fgrtippccright)
             rrot = fgrtippccright.getMat()
-            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*70)
+            fgrtippccright.setPos(rrot.getRow3(3)-rrot.getRow3(0)*172.7)
 
         if hndid == 'lft':
             # rfgr
@@ -212,7 +212,7 @@ class Hrp5ThreeNM():
         self.__hrp5threenp.setTransparency(TransparencyAttrib.MAlpha)
         fgrtippccleft.reparentTo(self.__hrp5threefgrtippccnp)
         fgrtippccright.reparentTo(self.__hrp5threefgrtippccnp)
-        self.__hrp5threefgrtippccnp.setColor(.2,.2,.2,.2)
+        self.__hrp5threefgrtippccnp.setColor(.5,.2,.2,.2)
         self.__hrp5threefgrtippccnp.setTransparency(TransparencyAttrib.MAlpha)
 
         self.__jawwidthopen = 82.0
@@ -280,8 +280,8 @@ class Hrp5ThreeNM():
             fgrtippccright = self.__hrp5threefgrtippccnp.find("**/hrp5threerrfgrtippcc")
             ltiprot = fgrtippccleft.getMat()
             rtiprot = fgrtippccright.getMat()
-            fgrtippccleft.setPos(-ltiprot.getRow3(0)*70+ltiprot.getRow3(1)*(jawwidth)/2)
-            fgrtippccright.setPos(-rtiprot.getRow3(0)*70-rtiprot.getRow3(1)*(jawwidth)/2)
+            fgrtippccleft.setPos(-ltiprot.getRow3(0)*172.7+ltiprot.getRow3(1)*(jawwidth)/2)
+            fgrtippccright.setPos(-rtiprot.getRow3(0)*172.7-rtiprot.getRow3(1)*(jawwidth)/2)
         if self.hndid == "lft":
             hrp5threerfgr0 = self.__hrp5threenp.find("**/hrp5threerfgr0")
             rotmat4 = Mat4.rotateMat(fgrangle, Vec3(1,0,0))
@@ -299,8 +299,8 @@ class Hrp5ThreeNM():
             fgrtippccright = self.__hrp5threefgrtippccnp.find("**/hrp5threelrfgrtippcc")
             ltiprot = fgrtippccleft.getMat()
             rtiprot = fgrtippccright.getMat()
-            fgrtippccleft.setPos(-ltiprot.getRow3(0)*70+ltiprot.getRow3(1)*(jawwidth)/2.0)
-            fgrtippccright.setPos(-rtiprot.getRow3(0)*70-rtiprot.getRow3(1)*(jawwidth)/2.0)
+            fgrtippccleft.setPos(-ltiprot.getRow3(0)*172.7+ltiprot.getRow3(1)*(jawwidth)/2.0)
+            fgrtippccright.setPos(-rtiprot.getRow3(0)*172.7-rtiprot.getRow3(1)*(jawwidth)/2.0)
 
     def setPose(self, pandanpvec3):
         """
@@ -448,7 +448,7 @@ class Hrp5ThreeNM():
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threenp.setMat(rotmat4)
         rotmat4 = Mat4(self.__hrp5threefgrtippccnp.getMat())
-        handtipvec3 = rotmat4.getRow3(0)*62.7
+        handtipvec3 = rotmat4.getRow3(0)*172.7
         rotmat4.setRow(3, Vec3(fcx, fcy, fcz)+handtipvec3)
         self.__hrp5threefgrtippccnp.setMat(rotmat4)
 
@@ -494,10 +494,10 @@ if __name__=='__main__':
     base = pandactrl.World()
     # first hand
     hrp5three = newHandNM(hndcolor=[.5, .5,.5,.7])
-    hrp5three.gripAt(0,0,0,0,0,1,35,jawwidth = 35)
+    hrp5three.gripAt(100,0,0,0,0,1,35,jawwidth = 30)
     hrp5three.reparentTo(base.render)
     hrp5three.handpccnp.reparentTo(base.render)
-    # handbullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
+    handbullnp = cd.genCollisionMeshMultiNp(hrp5three.handnp)
     # # second hand
     # hrp5three1 = newHandNM()
     # # hrp5three1.reparentTo(base.render)
@@ -505,25 +505,25 @@ if __name__=='__main__':
     #
     pg.plotAxisSelf(base.render, Vec3(0,0,0))
     #
-    # bullcldrnp = base.render.attachNewNode("bulletcollider")
-    # base.world = BulletWorld()
+    bullcldrnp = base.render.attachNewNode("bulletcollider")
+    base.world = BulletWorld()
     #
-    # base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
+    base.taskMgr.add(updateworld, "updateworld", extraArgs=[base.world], appendTask=True)
     # result = base.world.contactTest(hand1bullnp)
-    # base.world.attachRigidBody(handbullnp)
+    base.world.attachRigidBody(handbullnp)
     # for contact in result.getContacts():
     #     cp = contact.getManifoldPoint()
     #     print cp.getLocalPointA()
     #     pg.plotSphere(base.render, pos=cp.getLocalPointA(), radius=1, rgba=Vec4(1,0,0,1))
     #
-    # debugNode = BulletDebugNode('Debug')
-    # debugNode.showWireframe(True)
-    # debugNode.showConstraints(True)
-    # debugNode.showBoundingBoxes(False)
-    # debugNode.showNormals(False)
-    # debugNP = bullcldrnp.attachNewNode(debugNode)
-    # # debugNP.show()
+    debugNode = BulletDebugNode('Debug')
+    debugNode.showWireframe(True)
+    debugNode.showConstraints(True)
+    debugNode.showBoundingBoxes(False)
+    debugNode.showNormals(False)
+    debugNP = bullcldrnp.attachNewNode(debugNode)
+    debugNP.show()
 
-    # base.world.setDebugNode(debugNP.node())
+    base.world.setDebugNode(debugNP.node())
 
     base.run()

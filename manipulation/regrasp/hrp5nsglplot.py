@@ -1,6 +1,6 @@
 # plot the shortest path using hrp5robot
 
-from robotsim.nextage import nextage
+from robotsim.nextage import nxt
 from robotsim.nextage import nxtplot
 from robotsim.hrp5n import hrp5n
 from robotsim.hrp5n import hrp5nplot
@@ -357,17 +357,17 @@ if __name__=='__main__':
     regrip = regriptpp.RegripTpp(objpath, hrp5nrobot, handpkg, gdb)
 
     # ttube
-    startrotmat4 = Mat4(-4.06358332355e-17,-0.183007523417,0.98311150074,0.0,
-                        -1.0,2.22044604925e-16,0.0,0.0,
-                        -2.18294604779e-16,-0.98311150074,-0.183007523417,0.0,
-                        399.926879883,-196.8688812256,19.7615509033,1.0)
-    # startrotmat4 = Mat4(0.129405856133,0.129405856133,0.98311150074,0.0,
-    #                     0.707106769085,-0.707106769085,0.0,0.0,
-    #                     0.69516479969,0.69516479969,-0.183007523417,0.0,
-    #                     227.126998901,-272.976409912,19.7615509033,1.0)
-    goalrotmat4 = Mat4(-0.707106769085,-0.707106769085,0.0,0.0,0.707106769085,-0.707106769085,0.0,0.0,0.0,0.0,1.0,0.0,406.33795166,-103.76546859741,-55.0000038147,1.0)
+    # startrotmat4 = Mat4(-4.06358332355e-17,-0.183007523417,0.98311150074,0.0,
+    #                     -1.0,2.22044604925e-16,0.0,0.0,
+    #                     -2.18294604779e-16,-0.98311150074,-0.183007523417,0.0,
+    #                     399.926879883,-196.8688812256,19.7615509033,1.0)
+    startrotmat4 = Mat4(0.129405856133,0.129405856133,0.98311150074,0.0,
+                        0.707106769085,-0.707106769085,0.0,0.0,
+                        0.69516479969,0.69516479969,-0.183007523417,0.0,
+                        227.126998901,-272.976409912,19.7615509033,1.0)
+    # goalrotmat4 = Mat4(-0.707106769085,-0.707106769085,0.0,0.0,0.707106769085,-0.707106769085,0.0,0.0,0.0,0.0,1.0,0.0,406.33795166,-103.76546859741,-55.0000038147,1.0)
     # goalrotmat4 = Mat4(-1.0,1.22464685259e-16,0.0,0.0,-1.22464685259e-16,-1.0,0.0,0.0,0.0,0.0,1.0,0.0,294.747955322,-200.073135376,-55.0000038147,1.0)
-    # goalrotmat4 = Mat4(-0.707106769085,0.707106769085,0.0,0.0,-0.707106769085,-0.707106769085,0.0,0.0,0.0,0.0,1.0,0.0,396.234527588,-396.33795166,-55.0000038147,1.0)
+    goalrotmat4 = Mat4(-0.707106769085,0.707106769085,0.0,0.0,-0.707106769085,-0.707106769085,0.0,0.0,0.0,0.0,1.0,0.0,396.234527588,-396.33795166,-55.0000038147,1.0)
     objstart = pg.genObjmnp(objpath, color=Vec4(.3, .0, .0, .1))
     objstart.setMat(startrotmat4)
     objend = pg.genObjmnp(objpath, color=Vec4(.0, .3, .0, .1))
@@ -422,7 +422,7 @@ if __name__=='__main__':
                 print counter[0]
                 print numikrms[counter[0]]
                 hrp5nrobot.movearmfkr(numikrms[counter[0]])
-                hrp5nmnp[0] = hrp5nplot.genHrp5Nmnp(hrp5nrobot, handpkg, jawwidthrgt=jawwidth[counter[0]])
+                hrp5nmnp[0] = hrp5nplot.genmnp(hrp5nrobot, handpkg, jawwidthrgt=jawwidth[counter[0]])
                 hrp5nrobot.goinitpose()
                 hrp5nmnp[0].reparentTo(base.render)
                 objmnp[0] = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))

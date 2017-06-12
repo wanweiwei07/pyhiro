@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib import collections as mc
 from mpl_toolkits.mplot3d import art3d as mc3d
 from operator import add
-from robotsim.nextage import nextage
+from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
 from database import dbaccess as db
 

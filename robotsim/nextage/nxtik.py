@@ -138,7 +138,7 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
 
     # stablizer
     steplength = 30
-    armjntssave = nxtrobot.getarmjnts6(armid)
+    armjntssave = nxtrobot.getarmjnts(armid)
     armjntsiter = armjntssave.copy()
     for i in range(500):
         armjac = jacobian(nxtrobot, armid)
@@ -150,14 +150,14 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
             nxtrobot.movearmfk6(armjntssave, armid)
             return None
         if np.linalg.norm(err)<1e-4:
-            armjntsreturn = nxtrobot.getarmjnts6(armid)
-            nxtrobot.movearmfk6(armjntssave, armid)
+            armjntsreturn = nxtrobot.getarmjnts(armid)
+            nxtrobot.movearmfk(armjntssave, armid)
             return armjntsreturn
         else:
             armjntsiter += dq
             armjntsiter = rm.cvtRngPM180(armjntsiter)
-            if nxtrobot.chkrng6(armjntsiter) or i < 10:
-                nxtrobot.movearmfk6(armjntsiter, armid)
+            if nxtrobot.chkrng(armjntsiter) or i < 10:
+                nxtrobot.movearmfk(armjntsiter, armid)
                 import nxtplot
                 # nxtplot.plotstick(base.render, nxtrobot)
                 # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot,plotcolor=[.5,.5,0.1,.2])
@@ -165,10 +165,10 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
                 # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
                 # nxtmnp.reparentTo(base.render)
             else:
-                nxtrobot.movearmfk6(armjntssave, armid)
+                nxtrobot.movearmfk(armjntssave, armid)
                 # print "No feasible IK"
                 return None
-    nxtrobot.movearmfk6(armjntssave, armid)
+    nxtrobot.movearmfk(armjntssave, armid)
 
 def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     """
@@ -194,14 +194,12 @@ def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
         return None
     else:
         nxtrobot.movewaist(anglewi)
-        armjnts7 = [armjntb]
-        armjnts7.extend(armjnts6)
-
+        armjnts7 = [armjntb, armjnts6]
         return armjnts7
 
 if __name__=="__main__":
     pos = [300,300,0]
-    print eurgtbik(pos)
+    print eubik(pos)
 
     try:
         print math.asin(145/np.linalg.norm(pos[0:1]))

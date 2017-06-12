@@ -5,7 +5,7 @@ import pandaplotutils.pandactrl as pandactrl
 import pandaplotutils.pandageom as pg
 import ur5dualik
 
-class Ur5Dual():
+class Ur5DualRobot():
     def __init__(self):
         # initialize the UR5 dual-arm robot
         self.__name = 'ur5dual'
@@ -616,7 +616,7 @@ if __name__=="__main__":
     ur5dualmnp.reparentTo(base.render)
     pg.plotAxisSelf(base.render, Vec3(0,0,0))
     #
-    objpos = np.array([500,-300,600])
+    objpos = np.array([500,300,600])
     objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
     # objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
     # objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
@@ -631,6 +631,7 @@ if __name__=="__main__":
     # objpos = np.array([180,130,100])
     # objrot = np.array([[0,0,-1],[1,0,0],[0,-1,0]])
     armid="rgt"
+    armid="lft"
     # armjntsgoal = hrp5robot.numikr(objpos, objrot, armid)
     # if armjntsgoal is not None:
     #     hrp5robot.movearmfkr(armjntsgoal, armid)

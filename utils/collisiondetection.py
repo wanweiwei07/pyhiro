@@ -68,6 +68,8 @@ def genCollisionMeshMultiNp(nodepath, basenodepath=None, name='autogen'):
     generate the collision mesh of a nodepath using nodepath
     this function suppose the nodepath has multiple models with many geomnodes
 
+    use genCollisionMeshMultiNp instead of genCollisionMeshNp for generality
+
     :param nodepath: the panda3d nodepath of the object
     :param basenodepath: the nodepath to compute relative transform, identity if none
     :param name: the name of the rigidbody

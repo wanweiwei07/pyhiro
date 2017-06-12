@@ -1,0 +1,2 @@
+one arm of a robot is defined by robot.targetjoints
+one redundant arm of a robot is defined by wasit + robot.targetjoints
