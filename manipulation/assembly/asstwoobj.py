@@ -14,7 +14,7 @@ import pandaplotutils.pandactrl as pandactrl
 from manipulation.grip.robotiq85 import rtq85nm
 from panda3d.bullet import BulletWorld
 import time
-from robotsim.nextage import nextage
+from robotsim.nextage import nxt
 
 class TwoObjAss(object):
     """
@@ -678,10 +678,10 @@ def genAvailableFAGsSgl(base, basepath, baseMat4, objpath, objMat4, gdb, handpkg
         robothand.setMat(assgrotmat)
         # detect the collisions when hand is open!
         robothand.setJawwidth(robothand.jawwidthopen)
-        hndbullnode = cd.genCollisionMeshMultiNp(robothand.hndnp)
+        hndbullnode = cd.genCollisionMeshMultiNp(robothand.handnp)
         result0 = bulletworld.contactTest(hndbullnode)
         robothand.setJawwidth(objfag.freegripjawwidth[i])
-        hndbullnode = cd.genCollisionMeshMultiNp(robothand.hndnp)
+        hndbullnode = cd.genCollisionMeshMultiNp(robothand.handnp)
         result1 = bulletworld.contactTest(hndbullnode)
         if (not result0.getNumContacts()) and (not result1.getNumContacts()):
             cct0 = objMat4.xformPoint(objfag.freegripcontacts[i][0])
@@ -724,7 +724,7 @@ if __name__ == '__main__':
 
     base = pandactrl.World(lookatp=[0,0,0])
 
-    nxtrobot = nextage.NxtRobot()
+    nxtrobot = nxt.NxtRobot()
 
     handpkg = rtq85nm
     gdb = db.GraspDB()
@@ -763,16 +763,16 @@ if __name__ == '__main__':
 
     assdirect1to0 = Vec3(0,-70,0)
     toass = TwoObjAss(base, obj0path, obj0Mat4, obj1path, obj1Mat4, assdirect1to0, gdb, handpkg)
-    # grids = []
-    # for x in range(400,401,100):
-    #     for y in [0]:
-    #         for z in range(400,401,100):
-    #             grids.append([x,y,z])
-    # toass.genXAssPandGs(grids)
-    # toass.saveToDB()
-    # toass.loadFromDB()
-    # toass.updateDBwithHandPairs()
-    # toass.updateDBwithIK(nxtrobot)
+    grids = []
+    for x in range(400,401,100):
+        for y in [0]:
+            for z in range(400,401,100):
+                grids.append([x,y,z])
+    toass.genXAssPandGs(grids)
+    toass.saveToDB()
+    toass.loadFromDB()
+    toass.updateDBwithHandPairs()
+    toass.updateDBwithIK(nxtrobot)
     toass.loadIKFeasibleAGPairsFromDB(nxtrobot)
     print len(toass.icoass0gripcontacts)
     print len(toass.icoass1gripcontacts)
@@ -901,7 +901,7 @@ if __name__ == '__main__':
             hnd[0] = hndnode
             obj[0].reparentTo(base.render)
             hnd[0].reparentTo(base.render)
-            base.win.saveScreenshot(Filename(str(asspindl[0])+'.jpg'))
+            # base.win.saveScreenshot(Filename(str(asspindl[0])+'.jpg'))
             asspindl[0] += 1
         else:
             asspindl[0] = 0

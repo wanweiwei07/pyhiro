@@ -5,6 +5,7 @@ import os
 import MySQLdb as mdb
 import numpy as np
 from manipulation.grip.robotiq85 import rtq85nm
+from manipulation.grip.hrp5three import hrp5threenm
 from panda3d.bullet import BulletWorld
 from panda3d.core import *
 
@@ -19,7 +20,7 @@ from panda3d.bullet import BulletDebugNode
 
 class Freegrip(fgcp.FreegripContactpairs):
 
-    def __init__(self, objpath, handpkg, ser=False, torqueresist = 50):
+    def __init__(self, objpath, handpkg, readser=False, torqueresist = 50):
         """
         initialization
 
@@ -31,8 +32,8 @@ class Freegrip(fgcp.FreegripContactpairs):
         date: 20161201, osaka
         """
 
-        super(self.__class__, self).__init__(objpath, ser)
-        if ser is False:
+        super(self.__class__, self).__init__(objpath, readser)
+        if readser is False:
             self.removeBadSamples()
             self.clusterFacetSamplesRNN(reduceRadius=10)
             self.planContactpairs(torqueresist)
@@ -234,7 +235,7 @@ class Freegrip(fgcp.FreegripContactpairs):
         idhand = gdb.loadIdHand(self.handname)
 
         sql = "SELECT * FROM freeairgrip, object WHERE freeairgrip.idobject = object.idobject AND \
-                object.name LIKE '%s'" % self.dbobjname
+                object.name LIKE '%s' AND freeairgrip.idhand LIKE '%s'" % (self.dbobjname, idhand)
         result = gdb.execute(sql)
         if not result:
             sql = "SELECT idobject FROM object WHERE name LIKE '%s'" % self.dbobjname
@@ -242,7 +243,7 @@ class Freegrip(fgcp.FreegripContactpairs):
             if len(returnlist) != 0:
                 idobject = returnlist[0][0]
             else:
-                sql = "INSERT INTO object(objname) VALUES('%s')" % self.dbobjname
+                sql = "INSERT INTO object(name) VALUES('%s')" % self.dbobjname
                 idobject = gdb.execute(sql)
             print self.gripcontacts
             for i in range(len(self.gripcontacts)):
@@ -584,15 +585,17 @@ if __name__=='__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,100])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
+    objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
 
     handpkg = rtq85nm
-    freegriptst = Freegrip(objpath, handpkg, ser=False, torqueresist = 50)
+    handpkg = hrp5threenm
+    freegriptst = Freegrip(objpath, handpkg, readser=False, torqueresist = 50)
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,

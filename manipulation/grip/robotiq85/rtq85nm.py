@@ -77,7 +77,8 @@ class Rtq85NM():
         rtq85_basel.instanceTo(rtq85base)
         rtq85base.setPos(0,0,0)
         if hndcolor is None:
-            rtq85base.setColor(.2,.2,.2,1)
+            # rtq85base.setColor(.2,.2,.2,1)
+            pass
         else:
             rtq85base.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85base.setTransparency(TransparencyAttrib.MAlpha)
@@ -87,7 +88,8 @@ class Rtq85NM():
         rtq85lknuckle.setPos(-30.60114443, 54.90451627, 0)
         rtq85lknuckle.setHpr(0, 0, 180)
         if hndcolor is None:
-            rtq85lknuckle.setColor(.5,.5,.5,1)
+            # rtq85lknuckle.setColor(.5,.5,.5,1)
+            pass
         else:
             rtq85lknuckle.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85lknuckle.setTransparency(TransparencyAttrib.MAlpha)
@@ -96,7 +98,8 @@ class Rtq85NM():
         rtq85rknuckle.setPos(30.60114443, 54.90451627, 0)
         rtq85rknuckle.setHpr(0, 0, 0)
         if hndcolor is None:
-            rtq85rknuckle.setColor(.5,.5,.5,1)
+            # rtq85rknuckle.setColor(.5,.5,.5,1)
+            pass
         else:
             rtq85rknuckle.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85rknuckle.setTransparency(TransparencyAttrib.MAlpha)
@@ -106,7 +109,8 @@ class Rtq85NM():
         rtq85_fingerl.instanceTo(rtq85lfgr)
         rtq85lfgr.setPos(31.48504435, -4.08552455, 0)
         if hndcolor is None:
-            rtq85lfgr.setColor(0.2,0.2,0.2,1)
+            # rtq85lfgr.setColor(0.2,0.2,0.2,1)
+            pass
         else:
             rtq85lfgr.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85lfgr.setTransparency(TransparencyAttrib.MAlpha)
@@ -114,7 +118,9 @@ class Rtq85NM():
         rtq85_fingerl.instanceTo(rtq85rfgr)
         rtq85rfgr.setPos(31.48504435, -4.08552455, 0)
         if hndcolor is None:
-            rtq85rfgr.setColor(0.2,0.2,0.2,1)
+            # rtq85rfgr.setColor(0.2,0.2,0.2,1)
+            pass
+
         else:
             rtq85rfgr.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85rfgr.setTransparency(TransparencyAttrib.MAlpha)
@@ -125,7 +131,8 @@ class Rtq85NM():
         rtq85ilknuckle.setPos(-12.7, 61.42, 0)
         rtq85ilknuckle.setHpr(0, 0, 180)
         if hndcolor is None:
-            rtq85ilknuckle.setColor(.5,.5,.5,1)
+            # rtq85ilknuckle.setColor(.5,.5,.5,1)
+            pass
         else:
             rtq85ilknuckle.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85ilknuckle.setTransparency(TransparencyAttrib.MAlpha)
@@ -134,7 +141,8 @@ class Rtq85NM():
         rtq85irknuckle.setPos(12.7, 61.42, 0)
         rtq85irknuckle.setHpr(0, 0, 0)
         if hndcolor is None:
-            rtq85irknuckle.setColor(.5,.5,.5,1)
+            # rtq85irknuckle.setColor(.5,.5,.5,1)
+            pass
         else:
             rtq85irknuckle.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85irknuckle.setTransparency(TransparencyAttrib.MAlpha)
@@ -144,7 +152,8 @@ class Rtq85NM():
         rtq85_fingertipl.instanceTo(rtq85lfgrtip)
         rtq85lfgrtip.setPos(37.59940821, 43.03959807, 0)
         if hndcolor is None:
-            rtq85lfgrtip.setColor(.5,.5,.5,1)
+            # rtq85lfgrtip.setColor(.5,.5,.5,1)
+            pass
         else:
             rtq85lfgrtip.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85lfgrtip.setTransparency(TransparencyAttrib.MAlpha)
@@ -153,7 +162,8 @@ class Rtq85NM():
         rtq85rfgrtip.setPos(37.59940821, 43.03959807, 0)
         rtq85rfgrtip.setHpr(0, 0, 0)
         if hndcolor is None:
-            rtq85rfgrtip.setColor(.5,.5,.5,1)
+            # rtq85rfgrtip.setColor(.5,.5,.5,1)
+            pass
         else:
             rtq85rfgrtip.setColor(hndcolor[0],hndcolor[1],hndcolor[2],hndcolor[3])
         rtq85rfgrtip.setTransparency(TransparencyAttrib.MAlpha)
@@ -278,6 +288,16 @@ class Rtq85NM():
 
         self.rtq85np.setPos(npvec3)
 
+    def getPos(self):
+        """
+        set the pose of the hand
+        changes self.rtq85np
+
+        :return:npvec3
+        """
+
+        return self.rtq85np.getPos()
+
     def setMat(self, npmat4):
         """
         set the translation and rotation of a robotiq hand
@@ -391,7 +411,7 @@ class Rtq85NM():
         self.rtq85np.setMat(transmat4)
         placeholder.setColor(rgba)
 
-def newHandNM(hndid = 'rgt', jawwidth = 85, hndcolor = [1,0,0,.1]):
+def newHandNM(hndid = 'rgt', jawwidth = 85, hndcolor = None):
     return Rtq85NM(jawwidth, hndcolor)
 
 def newHand(hndid = 'rgt', jawwidth = 85):

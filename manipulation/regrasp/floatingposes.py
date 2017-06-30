@@ -15,7 +15,7 @@ from manipulation.grip import freetabletopplacement as tp
 from utils import collisiondetection as cd
 from utils import dbcvt as dc
 from utils import robotmath as rm
-from robotsim.nextage import nextage
+from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
 from database import dbaccess as db
 import trimesh

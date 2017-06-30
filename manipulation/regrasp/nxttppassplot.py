@@ -1,6 +1,6 @@
 # plot the shortest path using hrp5robot
 
-from robotsim.nextage import nextage
+from robotsim.nextage import nxt
 from robotsim.nextage import nxtplot
 
 from manipulation.grip.robotiq85 import rtq85nm
@@ -50,16 +50,19 @@ def genMotionSequence(regrip, id):
     numikrlist0, objmat4list0, jawwidthlist0 = genMotionSequenceSgl(pathnidlist0, 'rgt')
     # lfthnd
     numikrlist1, objmat4list1, jawwidthlist1 = genMotionSequenceSgl(pathnidlist1, 'lft')
+
+    print numikrlist0
+    print numikrlist1
     # rgt first lft second, update lft with rgt
     numikr0last = numikrlist0[-1]
     jawwidth0last = jawwidthlist0[-1]
     for i in range(len(numikrlist1)):
-        numikrlist1[i][1] = numikr0last[1]
-        numikrlist1[i][2] = numikr0last[2]
-        numikrlist1[i][3] = numikr0last[3]
-        numikrlist1[i][4] = numikr0last[4]
-        numikrlist1[i][5] = numikr0last[5]
-        numikrlist1[i][6] = numikr0last[6]
+        numikrlist1[i][1][0] = numikr0last[1][0]
+        numikrlist1[i][1][1] = numikr0last[1][1]
+        numikrlist1[i][1][2] = numikr0last[1][2]
+        numikrlist1[i][1][3] = numikr0last[1][3]
+        numikrlist1[i][1][4] = numikr0last[1][4]
+        numikrlist1[i][1][5] = numikr0last[1][5]
         jawwidthlist1[i][0] = jawwidth0last[0]
     for i in range(len(numikrlist1)):
         objmat4list0.append(objmat4list0[-1])
@@ -89,7 +92,7 @@ def genMotionSequence(regrip, id):
     jawwidth1 = regrip.regg.node[nid1]['jawwidth']
     armjntsgrp1 = regrip.robot.numik(grppos, grprot, armid = 'lft')
     objmat41 = regrip.regg.node[nid1]['assposerotmat4']
-    numikrlist.append(np.append(0, np.append(armjntsgrp0, armjntsgrp1)))
+    numikrlist.append([0, armjntsgrp0, armjntsgrp1])
     objmat4list0.append(objmat40)
     objmat4list1.append(objmat41)
     jawwidthlist.append([jawwidth0, jawwidth1])
@@ -103,7 +106,8 @@ def genMotionSequenceSgl(pathnidlist, armname):
 
     :param pathnidlist: half of the path list starting with "endxxx" and end with "assxxx"
     :param armname:
-    :return: [[waist, lftbody, rgtbody],...]
+    :return: [numikrlist, objmat4list, jawwidthlist]
+            where numikrlist = [waist, rgtarm, lftarm]
     """
 
     numikrlist = []
@@ -127,22 +131,22 @@ def genMotionSequenceSgl(pathnidlist, armname):
             armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid = armname)
             armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid = armname)
             if armname == 'rgt':
-                numikrlist.append(np.concatenate([armjntsgrphandx, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrp, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrp, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrpworlda, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrpworldaworldz, regrip.robot.initlftjnts]))
+                numikrlist.append([armjntsgrphandx[0], armjntsgrphandx[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrp[0], armjntsgrp[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrp[0], armjntsgrp[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrpworlda[0], armjntsgrpworlda[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrpworldaworldz[0], armjntsgrpworldaworldz[1], regrip.robot.initlftjnts])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
             else:
-                numikrlist.append(np.concatenate([np.append(armjntsgrphandx[0], regrip.robot.initrgtjnts), armjntsgrphandx[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrpworlda[0], regrip.robot.initrgtjnts), armjntsgrpworlda[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrpworldaworldz[0], regrip.robot.initrgtjnts), armjntsgrpworldaworldz[1:]]))
+                numikrlist.append([armjntsgrphandx[0], regrip.robot.initrgtjnts, armjntsgrphandx[1]])
+                numikrlist.append([armjntsgrp[0], regrip.robot.initrgtjnts, armjntsgrp[1]])
+                numikrlist.append([armjntsgrp[0], regrip.robot.initrgtjnts, armjntsgrp[1]])
+                numikrlist.append([armjntsgrpworlda[0], regrip.robot.initrgtjnts, armjntsgrpworlda[1]])
+                numikrlist.append([armjntsgrpworldaworldz[0], regrip.robot.initrgtjnts, armjntsgrpworldaworldz[1]])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -166,12 +170,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
             armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = armname)
             # armjntsgrp = regrip.robot.numik(grppos, grprot, armid = armname)
             if armname == 'rgt':
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrpworlda), regrip.robot.initlftjnts]))
+                numikrlist.append([0, armjntsgrpworlda, regrip.robot.initlftjnts])
                 # numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 # jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
             else:
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda]))
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
                 # numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
                 # jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -192,22 +196,22 @@ def genMotionSequenceSgl(pathnidlist, armname):
             armjntsgrpworlda = regrip.robot.numikr(grpposworlda, grprot, armid=armname)
             armjntsgrpworldaworldz = regrip.robot.numikr(grpposworldaworldz, grprot, armid=armname)
             if armname == 'rgt':
-                numikrlist.append(np.concatenate([armjntsgrphandx, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrp, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrp, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrpworlda, regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([armjntsgrpworldaworldz, regrip.robot.initlftjnts]))
+                numikrlist.append([armjntsgrphandx[0], armjntsgrphandx[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrp[0], armjntsgrp[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrp[0], armjntsgrp[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrpworlda[0], armjntsgrpworlda[1], regrip.robot.initlftjnts])
+                numikrlist.append([armjntsgrpworldaworldz[0], armjntsgrpworldaworldz[1], regrip.robot.initlftjnts])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
             else:
-                numikrlist.append(np.concatenate([np.append(armjntsgrphandx[0], regrip.robot.initrgtjnts), armjntsgrphandx[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrp[0], regrip.robot.initrgtjnts), armjntsgrp[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrpworlda[0], regrip.robot.initrgtjnts), armjntsgrpworlda[1:]]))
-                numikrlist.append(np.concatenate([np.append(armjntsgrpworldaworldz[0], regrip.robot.initrgtjnts), armjntsgrpworldaworldz[1:]]))
+                numikrlist.append([armjntsgrphandx[0], regrip.robot.initrgtjnts, armjntsgrphandx[1]])
+                numikrlist.append([armjntsgrp[0], regrip.robot.initrgtjnts, armjntsgrp[1]])
+                numikrlist.append([armjntsgrp[0], regrip.robot.initrgtjnts, armjntsgrp[1]])
+                numikrlist.append([armjntsgrpworlda[0], regrip.robot.initrgtjnts, armjntsgrpworlda[1]])
+                numikrlist.append([armjntsgrpworldaworldz[0], regrip.robot.initrgtjnts, armjntsgrpworldaworldz[1]])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -237,12 +241,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
             armjntsgrphandx = regrip.robot.numik(grpposhandx, grprot, armid = armname)
             armjntsgrphandxworldz = regrip.robot.numik(grpposhandxworldz, grprot, armid = armname)
             if armname == 'rgt':
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrpworldaworldz), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrpworlda), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrphandx), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrphandxworldz), regrip.robot.initlftjnts]))
+                numikrlist.append([0, armjntsgrpworldaworldz, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrpworlda, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrphandx, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrphandxworldz, regrip.robot.initlftjnts])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
@@ -250,12 +254,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
             else:
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworldaworldz]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandx]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandxworldz]))
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworldaworldz])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandx])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandxworldz])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -293,12 +297,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
                 armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = armname)
                 armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot, armid = armname)
                 if armname == 'rgt':
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrphandxworldz), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrphandx), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrpworlda), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrpworldaworldz), regrip.robot.initlftjnts]))
+                    numikrlist.append([0, armjntsgrphandxworldz, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrphandx, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrpworlda, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrpworldaworldz, regrip.robot.initlftjnts])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
@@ -306,12 +310,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
                     jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                     jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 else:
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandxworldz]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandx]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworldaworldz]))
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandxworldz])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandx])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworldaworldz])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
@@ -344,12 +348,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
                 armjntsgrphandx = regrip.robot.numik(grpposhandx, grprot, armid = armname)
                 armjntsgrphandxworldz = regrip.robot.numik(grpposhandxworldz, grprot, armid = armname)
                 if armname == 'rgt':
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrpworldaworldz), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrpworlda), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrphandx), regrip.robot.initlftjnts]))
-                    numikrlist.append(np.concatenate([np.append(0, armjntsgrphandxworldz), regrip.robot.initlftjnts]))
+                    numikrlist.append([0, armjntsgrpworldaworldz, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrpworlda, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrphandx, regrip.robot.initlftjnts])
+                    numikrlist.append([0, armjntsgrphandxworldz, regrip.robot.initlftjnts])
                     jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                     jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                     jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
@@ -357,12 +361,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                     jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 else:
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworldaworldz]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandx]))
-                    numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandxworldz]))
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworldaworldz])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandx])
+                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandxworldz])
                     jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
                     jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
                     jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -397,12 +401,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
             armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = armname)
             armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot, armid = armname)
             if armname == 'rgt':
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrphandxworldz), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrphandx), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrpworlda), regrip.robot.initlftjnts]))
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrpworldaworldz), regrip.robot.initlftjnts]))
+                numikrlist.append([0, armjntsgrphandxworldz, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrphandx, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrp, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrpworlda, regrip.robot.initlftjnts])
+                numikrlist.append([0, armjntsgrpworldaworldz, regrip.robot.initlftjnts])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
@@ -410,12 +414,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
             else:
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandxworldz]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrphandx]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda]))
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworldaworldz]))
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandxworldz])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandx])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworldaworldz])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
                 jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
@@ -442,12 +446,12 @@ def genMotionSequenceSgl(pathnidlist, armname):
             armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = armname)
             # armjntsgrp = regrip.robot.numikr(grppos, grprot, armid = armname)
             if armname == 'rgt':
-                numikrlist.append(np.concatenate([np.append(0, armjntsgrpworlda), regrip.robot.initlftjnts]))
+                numikrlist.append([0, armjntsgrpworlda, regrip.robot.initlftjnts])
                 # numikrlist.append(np.concatenate([np.append(0, armjntsgrp), regrip.robot.initlftjnts]))
                 jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
                 # jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
             else:
-                numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrpworlda]))
+                numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
                 # numikrlist.append(np.concatenate([regrip.robot.initrgtjntsr, armjntsgrp]))
                 jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
                 # jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
@@ -458,7 +462,7 @@ def genMotionSequenceSgl(pathnidlist, armname):
 if __name__=='__main__':
     gdb = db.GraspDB()
     handpkg = rtq85nm
-    nxtrobot = nextage.NxtRobot()
+    nxtrobot = nxt.NxtRobot()
 
     # base = pandactrl.World(camp=[0,0,5000], lookatp=[0,0,0])
     base = pandactrl.World(camp=[3000,0,1000], lookatp=[0,0,400])
@@ -518,7 +522,7 @@ if __name__=='__main__':
     pltfig = plt.figure()
     ax = pltfig.add_subplot(111)
     regrip.plotGraph(ax)
-    id = 0
+    id = 15
     regrip.plotshortestpath(ax, id = id)
     plt.axis("equal")
     plt.show()
@@ -539,8 +543,11 @@ if __name__=='__main__':
                 obj1mnp[0].detachNode()
             print counter[0]
             print numikrms[counter[0]]
-            nxtrobot.movejnts15(np.append(np.array([numikrms[counter[0]][0], 0, 0]), numikrms[counter[0]][1:]))
-            nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot, jawwidthrgt=jawwidth[counter[0]][0], jawwidthlft=jawwidth[counter[0]][1])
+            alljnts = [numikrms[counter[0]][0], 0, 0]
+            alljnts.extend([i for i in numikrms[counter[0]][1]])
+            alljnts.extend([i for i in numikrms[counter[0]][2]])
+            nxtrobot.movealljnts(alljnts)
+            nxtmnp[0] = nxtplot.genmnp(nxtrobot, handpkg, jawwidthrgt=jawwidth[counter[0]][0], jawwidthlft=jawwidth[counter[0]][1])
             nxtrobot.goinitpose()
             nxtmnp[0].reparentTo(base.render)
             obj0mnp[0] = pg.genObjmnp(obj0path, color = Vec4(.7,.3,0,1))
@@ -556,7 +563,7 @@ if __name__=='__main__':
             if nxtmnp[0] is not None:
                 nxtmnp[0].detachNode()
             nxtrobot.goinitpose()
-            nxtmnp[0] = nxtplot.genNxtmnp(nxtrobot)
+            nxtmnp[0] = nxtplot.genmnp(nxtrobot, handpkg)
             nxtmnp[0].reparentTo(base.render)
             # counter[0] = 0
             return task.done

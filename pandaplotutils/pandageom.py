@@ -7,6 +7,136 @@ from trimesh import geometry as trigeom
 import math
 import trimesh
 
+class PandaGeomGen(object):
+    """
+    use class to preload files
+    and generate various models
+    """
+
+    def __init__(self):
+        """
+        prepload the files
+        the models will be instanceTo nodepaths to avoid frequent disk access
+        """
+
+        this_dir, this_filename = os.path.split(__file__)
+        cylinderpath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "cylinder.egg"))
+        conepath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "sphere.egg"))
+        boxpath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "box.egg"))
+        self.dumbbellbody = loader.loadModel(cylinderpath)
+        self.dumbbellhead = loader.loadModel(conepath)
+        self.box  = loader.loadModel(boxpath)
+
+    def gendumbbell(self, spos = None, epos = None, length = None, thickness = 1.5,
+                    rgba = None, plotname = "dumbbell", headscale = 2):
+        """
+        generate a dumbbell to plot the stick model of a robot
+        the function is essentially a copy of pandaplotutils/pandageom.plotDumbbell
+        it uses preloaded models to avoid repeated disk access
+
+        :param spos: 1-by-3 nparray or list, starting position of the arrow
+        :param epos: 1-by-3 nparray or list, goal position of the arrow
+        :param length: if length is None, its value will be computed using np.linalg.norm(epos-spos)
+        :param thickness:
+        :param rgba: 1-by-4 nparray or list
+        :param plotname:
+        :param headscale: a ratio between headbell and stick
+        :return: a dumbbell nodepath
+
+        author: weiwei
+        date: 20170613
+        """
+
+        if spos is None:
+            spos = np.array([0,0,0])
+        if epos is None:
+            epos = np.array([0,0,1])
+        if length is None:
+            length = np.linalg.norm(epos-spos)
+        if rgba is None:
+            rgba = np.array([1,1,1,1])
+
+        dumbbell = NodePath(plotname)
+        dumbbellbody_nodepath = NodePath("dumbbellbody")
+        dumbbellhead0_nodepath = NodePath("dumbbellhead0")
+        dumbbellhead1_nodepath = NodePath("dumbbellhead1")
+        self.dumbbellbody.instanceTo(dumbbellbody_nodepath)
+        self.dumbbellhead.instanceTo(dumbbellhead0_nodepath)
+        self.dumbbellhead.instanceTo(dumbbellhead1_nodepath)
+        dumbbellbody_nodepath.setPos(0,0,0)
+        dumbbellbody_nodepath.setScale(thickness, length, thickness)
+        dumbbellhead0_nodepath.setPos(dumbbellbody_nodepath.getX(),
+                                      length, dumbbellbody_nodepath.getZ())
+        dumbbellhead0_nodepath.setScale(thickness*headscale, thickness*headscale, thickness*headscale)
+        dumbbellhead1_nodepath.setPos(dumbbellbody_nodepath.getX(),
+                                      dumbbellbody_nodepath.getY(),
+                                      dumbbellbody_nodepath.getZ())
+        dumbbellhead1_nodepath.setScale(thickness*headscale, thickness*headscale, thickness*headscale)
+        dumbbellbody_nodepath.reparentTo(dumbbell)
+        dumbbellhead0_nodepath.reparentTo(dumbbell)
+        dumbbellhead1_nodepath.reparentTo(dumbbell)
+
+        dumbbell.setPos(spos[0], spos[1], spos[2])
+        dumbbell.lookAt(epos[0], epos[1], epos[2])
+        dumbbell.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+
+        return dumbbell
+
+    def genBox(self, x = 1.0, y = 1.0, z = 1.0, name = "box"):
+        """
+        Generate a box for plot
+        This function should not be called explicitly
+
+        ## input
+        x,y,z:
+            the thickness of the box along x, y, and z axis
+
+        ## output
+        box: pathnode
+
+        author: weiwei
+        date: 20160620 ann arbor
+        """
+
+        x = x/2.0
+        y = y/2.0
+        z = z/2.0
+
+        verts = [np.array([-x,-y,-z]),
+                 np.array([+x,-y,-z]),
+                 np.array([-x,+y,-z]),
+                 np.array([+x,+y,-z]),
+                 np.array([-x,-y,+z]),
+                 np.array([+x,-y,+z]),
+                 np.array([-x,+y,+z]),
+                 np.array([+x,+y,+z])]
+
+        faces = [np.array([0,4,2]),
+                 np.array([6,2,4]),
+                 np.array([2,3,0]),
+                 np.array([1,0,3]),
+                 np.array([2,6,3]),
+                 np.array([7,3,6]),
+                 np.array([7,5,3]),
+                 np.array([1,3,5]),
+                 np.array([0,1,4]),
+                 np.array([5,4,1]),
+                 np.array([6,4,7]),
+                 np.array([5,7,4])]
+
+        normals = []
+        for face in faces:
+            vert0 = verts[face[0]]
+            vert1 = verts[face[1]]
+            vert2 = verts[face[2]]
+            vec10 = vert1-vert0
+            vec20 = vert2-vert0
+            rawnormal = np.cross(vec10, vec20)
+            normals.append(rawnormal/np.linalg.norm(rawnormal))
+
+        cobnp = packpandanp(np.asarray(verts), np.asarray(normals), np.asarray(faces))
+        return cobnp
+
 def packpandageom(vertices, facenormals, triangles, name=''):
     """
     package the vertices and triangles into a panda3d geom
@@ -342,6 +472,62 @@ def plotDumbbell(nodepath, spos = None, epos = None, length = None, thickness = 
     dumbbell.reparentTo(nodepath)
     return dumbbell
 
+def _genBox(x=1.0, y=1.0, z=1.0, plotname="box"):
+    """
+    Generate a box for plot
+    This function should not be called explicitly
+
+    ## input
+    x,y,z:
+        the thickness of the box along x, y, and z axis
+
+    ## output
+    box: pathnode
+
+    author: weiwei
+    date: 20160620 ann arbor
+    """
+
+    this_dir, this_filename = os.path.split(__file__)
+    boxpath = Filename.fromOsSpecific(os.path.join(this_dir, "geomprim", "box.egg"))
+    box = loader.loadModel(boxpath)
+
+    boxnp = NodePath(plotname)
+    box.reparentTo(boxnp)
+    box.setPos(0, 0, 0)
+    box.setScale(x, y, z)
+
+    return boxnp
+
+def plotBox(nodepath, pos = None, x = 1.0, y = 1.0, z = 1.0, rgba=None):
+    """
+    plot a box to nodepath
+
+    ## input:
+    nodepath:
+        defines which parent should the arrow be attached to
+    pos:
+        1-by-3 nparray or list, position of the sphere
+    x,y,z:
+        will be sent to _genBox
+    rgba:
+        1-by-3 nparray or list
+
+    author: weiwei
+    date: 20160620 ann arbor
+    """
+
+    if pos is None:
+        pos = np.array([0,0,0])
+    if rgba is None:
+        rgba = np.array([1,1,1,1])
+
+    boxnp = _genBox(x, y, z)
+    boxnp.setPos(pos[0], pos[1], pos[2])
+    boxnp.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+    boxnp.setTransparency(TransparencyAttrib.MAlpha)
+
+    boxnp.reparentTo(nodepath)
 
 def plotLinesegs(nodepath, verts, thickness = 1.5, rgba=None, plotname="linesegs", headscale = 1):
     """
@@ -384,46 +570,7 @@ def plotLinesegs(nodepath, verts, thickness = 1.5, rgba=None, plotname="linesegs
     linesegs.reparentTo(nodepath)
     return linesegs
 
-# def plotFrame(nodepath, spos = None, epos = None, length = None, thickness = 10, rgba=None):
-#     """
-#     plot an arrow to nodepath
-# 
-#     ## input:
-#     nodepath:
-#         defines which parent should the arrow be attached to
-#     spos:
-#         1-by-3 nparray or list, starting position of the arrow
-#     epos:
-#         1-by-3 nparray or list, goal position of the arrow
-#     length:
-#         will be sent to _genArrow, if length is None, its value will be computed using np.linalg.norm(epos-spos)
-#     thickness:
-#         will be sent to _genArrow
-#     rgba:
-#         1-by-3 nparray or list
-# 
-#     author: weiwei
-#     date: 20160616
-#     """
-# 
-#     if spos is None:
-#         spos = np.array([0,0,0])
-#     if epos is None:
-#         epos = np.array([0,0,1])
-#     if length is None:
-#         length = np.linalg.norm(epos-spos)
-#     if rgba is None:
-#         rgba = np.array([1,1,1,1])
-# 
-#     arrow = _genArrow(length, thickness)
-#     arrow.setPos(spos[0], spos[1], spos[2])
-#     arrow.lookAt(epos[0], epos[1], epos[2])
-#     # lookAt points y+ to epos, use the following command to point x+ to epos
-#     # http://stackoverflow.com/questions/15126492/panda3d-how-to-rotate-object-so-that-its-x-axis-points-to-a-location-in-space
-#     # arrow.setHpr(arrow, Vec3(0,0,90))
-#     arrow.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
-# 
-#     arrow.reparentTo(nodepath)
+    boxnd.reparentTo(nodepath)
 
 def _genSphere(radius = None):
     """

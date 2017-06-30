@@ -25,3 +25,35 @@ Executing the program for HRP5P
 3. Compute the stable placements and ik-feasible grasps all over a table surface using tableplacements.py (under manipulation/regrasp)
 4. Build the regrasp graph using regriptpp.py (under manipulation/regrasp)
 Step 4 is integrated in regrasp/hrp5plot.py, see the final results by executing this file.
+
+Executing the program for Dual-arm assembly
+
+1. Compute the grasps using freegrip.py (under manipulation/grip)
+2. Compute the stable placements using freetabletopplacement.py (under manipulation/grip)
+3. Compute the stable placements and ik-feasible grasps all over a table surface using tableplacements.py (under manipulation/regrasp)
+4. Execute manipulation/assembly/asstwoobj.py. The script saves/loads assembly, generates assemblyx,
+assemblyxgrippairs, assemblyxgripsp0, and assemblyxgrips1. It also updates the ikassemblygrips0 and
+ikassemblygrips1. Assembly (relative poses of two objects), Assemblyx: Assembly with rotation.
+5. Execute nxttppassplot.py to find one plan
+
+Delete the tabletop regrasp data (in MySQL workbench):
+```sql
+SET FOREIGN_KEY_CHECKS=0;
+truncate table tabletopplacements;
+truncate table tabletopgrips;
+truncate table ik;
+SET FOREIGN_KEY_CHECKS=1;
+```
+
+Delete the dual-arm assembly data (in MySQL workbench):
+```sql
+SET FOREIGN_KEY_CHECKS=0;
+truncate table assemblyx;
+truncate table assemblyxgrippairs;
+truncate table assemblyxgrips0;
+truncate table assemblyxgrips1;
+truncate table ikassemblyxgrips0;
+truncate table ikassemblyxgrips1;
+SET FOREIGN_KEY_CHECKS=1;
+```
+

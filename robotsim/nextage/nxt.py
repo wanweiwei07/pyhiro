@@ -146,7 +146,7 @@ class NxtRobot():
         """
         move the 7 joints of armlj using forward kinematics
 
-        :param armjnts: a 1-by-2 ndarray where the 1t ele is waist, the second is the targetjoints list
+        :param armjnts: a 1-by-7 ndarray where the 1t ele is waist, the second is the targetjoints list
         :param armid: a string indicating the rgtlj or lftlj robot structure, could "lft" or "rgt"
         :return: null
 
@@ -611,37 +611,42 @@ if __name__=="__main__":
     objrot = np.array([[0,1,0],[1,0,0],[0,0,-1]])
 
     import nxtplot
-    hangpkg = rtq85nm
-    nxtmnp = nxtplot.genmnp(nxtrobot, hangpkg)
+    handpkg = rtq85nm
+    nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
     nxtmnp.reparentTo(base.render)
 
-    nxtplot.plotstick(base.render, nxtrobot)
+    # nxtplot.plotstick(base.render, nxtrobot)
+    #
+    # # angle = nxtik.eurgtbik(objpos)
+    # # nxtrobot.movewaist(angle)
+    # # armjntsgoal=nxtik.numik(nxtrobot, objpos, objrot)
+    # # print armjntsgoal
+    #
+    # pandamat4=Mat4()
+    # pandamat4.setRow(3,Vec3(0,0,250))
+    # # pg.plotAxis(base.render, pandamat4)
+    # # nxtplot.plotmesh(base, nxtrobot)
+    # # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
+    # pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,1,.51])
+    #
+    # armid = "lft"
+    # armjntsgoal7 = nxtrobot.numikr(objpos, objrot, armid)
+    # print armjntsgoal7
+    # if armjntsgoal7 is not None:
+    #     nxtrobot.movearmfkr(armjntsgoal7, armid)
+    #
+    # armid= "rgt"
+    # objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
+    # armjntsgoal6 =  nxtrobot.numik(objpos, objrot, armid)
+    # print armjntsgoal6
+    # if armjntsgoal6 is not None:
+    #     nxtrobot.movearmfk(armjntsgoal6, armid)
+    #     nxtmnp = nxtplot.genmnp_nm(nxtrobot, handpkg, plotcolor=[1,0,1,.51])
+    #     nxtmnp.reparentTo(base.render)
 
-    # angle = nxtik.eurgtbik(objpos)
-    # nxtrobot.movewaist(angle)
-    # armjntsgoal=nxtik.numik(nxtrobot, objpos, objrot)
-    # print armjntsgoal
-
-    pandamat4=Mat4()
-    pandamat4.setRow(3,Vec3(0,0,250))
-    # pg.plotAxis(base.render, pandamat4)
-    # nxtplot.plotmesh(base, nxtrobot)
-    # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
-    pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,1,.51])
-
-    armid = "lft"
-    armjntsgoal7 = nxtrobot.numikr(objpos, objrot, armid)
-    print armjntsgoal7
-    if armjntsgoal7 is not None:
-        nxtrobot.movearmfkr(armjntsgoal7, armid)
-
-    armid= "rgt"
-    objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
-    armjntsgoal6 =  nxtrobot.numik(objpos, objrot, armid)
-    print armjntsgoal6
-    if armjntsgoal6 is not None:
-        nxtrobot.movearmfk(armjntsgoal6, armid)
-        nxtmnp = nxtplot.genmnp_nm(nxtrobot, plotcolor=[1,0,1,.51])
-        nxtmnp.reparentTo(base.render)
+    dcam = loader.loadShader('dcam.sha')
+    # render everything through this camera and shader
+    base.render.setShader(dcam)
+    # loadPrcFileData('', 'show-buffers 1')
 
     base.run()

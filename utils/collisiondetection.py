@@ -54,7 +54,7 @@ def genCollisionMeshNp(nodepath, basenodepath=None, name='autogen'):
     geombullnode = BulletRigidBodyNode(name)
     geom = geomnodepath.node().getGeom(0)
     geomtf = nodepath.getTransform(base.render)
-    if basenodepath:
+    if basenodepath is not None:
         geomtf = nodepath.getTransform(basenodepath)
     geombullmesh = BulletTriangleMesh()
     geombullmesh.addGeom(geom)
@@ -84,7 +84,7 @@ def genCollisionMeshMultiNp(nodepath, basenodepath=None, name='autogen'):
     for gnd in gndcollection:
         geom = gnd.node().getGeom(0)
         geomtf = gnd.getTransform(base.render)
-        if basenodepath:
+        if basenodepath is not None:
             geomtf = gnd.getTransform(basenodepath)
         geombullmesh = BulletTriangleMesh()
         geombullmesh.addGeom(geom)

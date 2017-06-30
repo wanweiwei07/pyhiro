@@ -298,7 +298,7 @@ class Hrp5Three():
             fgrtippccleft.setPos(-ltiprot.getRow3(0)*172.7+ltiprot.getRow3(1)*(jawwidth)/2.0)
             fgrtippccright.setPos(-rtiprot.getRow3(0)*172.7-rtiprot.getRow3(1)*(jawwidth)/2.0)
 
-    def setPose(self, pandanpvec3):
+    def setPos(self, pandanpvec3):
         """
         set the pose of the hand
         changes self.__hrp5threenp
@@ -309,19 +309,33 @@ class Hrp5Three():
 
         self.__hrp5threenp.setPos(pandanpvec3)
 
-    def setMat(self, pandanpmat4):
+    def getPos(self):
         """
-        set the translation and rotation of a robotiq hand
+        get the pose of the hand
+
+        :return:npvec3
+        """
+
+        return self.__hrp5threenp.getPos()
+
+    def setMat(self, pandanpmat4 = Mat4.identMat(), nodepath = None):
+        """
+        set the absoluted translation and rotation of a robotiq hand
+        with respect to nodepath
         changes self.rtq85np
 
+        :param nodepath, the relative nodepath
         :param pandanpmat4: follows panda3d, a LMatrix4f matrix
         :return: null
 
-        date: 20161109
+        date: 20170612
         author: weiwei
         """
 
-        self.__hrp5threenp.setMat(pandanpmat4)
+        if nodepath is not None:
+            self.__hrp5threenp.setMat(nodepath, pandanpmat4)
+        else:
+            self.__hrp5threenp.setMat(pandanpmat4)
 
     def getMat(self):
         """

@@ -25,7 +25,7 @@ import pickle
 
 class FreegripContactpairs(object):
 
-    def __init__(self, ompath, ser=False):
+    def __init__(self, ompath, readser=False):
         self.objtrimesh = None
         # the sampled points and their normals
         self.objsamplepnts = None
@@ -51,7 +51,7 @@ class FreegripContactpairs(object):
         # for plot
         self.facetcolorarray = None
         self.counter = 0
-        if ser is False:
+        if readser is False:
             self.loadObjModel(ompath)
             self.saveSerialized("tmpnocp.pickle")
         else:

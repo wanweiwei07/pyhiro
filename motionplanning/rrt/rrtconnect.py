@@ -16,18 +16,18 @@ import numpy as np
 
 class RRTConnect(object):
 
-    def __init__(self, start, goal, iscollidedfunc, jointlimits, expanddis=.3,
+    def __init__(self, start, goal, iscollidedfunc, jointlimits, expanddis=.5,
                  starttreesamplerate=10, endtreesamplerate=100, maxiter=5000,
-                 robot = None, robotplot = None, handpkg = None):
+                 robot = None, cdchecker = None):
         """
 
         :param start: nd point, list
         :param goal: nd point, list
         :param iscollidedfunc: a function returns whether collided or not
         :param jointlimits: [[join0low, joint0high], [joint1low, joint1high], ...]
-        :param expandDis: how much to expand along the vector randnode - nearestnode
-        :param starttreesamplerate: bias to set randnode to be goal
-        :param endtreesamplerate: bias to set randnode to be start
+        :param expandDis: how much to expand along the vector randpoint - nearestnode
+        :param starttreesamplerate: bias to set randpoint to be goal
+        :param endtreesamplerate: bias to set randpoint to be start
         :param maxIter:
 
         :param the last three parameters are for robotsim robots
@@ -47,8 +47,7 @@ class RRTConnect(object):
         self.__maxiter = maxiter
 
         self.__robot = robot
-        self.__robotplot = robotplot
-        self.__handpkg = handpkg
+        self.__cdchecker = cdchecker
 
         self.__nodeliststart = []
         self.__nodelistend = []
@@ -105,17 +104,17 @@ class RRTConnect(object):
             # print self.__starttreesamplerate
 
             # Random Sampling
-            randnode = []
+            randpoint = []
             if random.randint(0, 100) > self.__starttreesamplerate:
                 for i,jntrng in enumerate(self.__jointlimits):
-                    randnode.append(random.uniform(jntrng[0], jntrng[1]))
-                randnode = np.asarray(randnode)
+                    randpoint.append(random.uniform(jntrng[0], jntrng[1]))
+                randpoint = np.asarray(randpoint)
             else:
-                randnode = copy.deepcopy(starttreegoal)
+                randpoint = copy.deepcopy(starttreegoal)
 
             # Find nearest node
-            nind = self.getNearestListIndex(self.__nodeliststart, randnode)
-            vec = randnode-self.__nodeliststart[nind].point
+            nind = self.getNearestListIndex(self.__nodeliststart, randpoint)
+            vec = randpoint-self.__nodeliststart[nind].point
             vec = vec/np.linalg.norm(vec)
 
             # expand tree
@@ -124,23 +123,26 @@ class RRTConnect(object):
             newnode.point += self.__expanddis * vec
             newnode.parent = nind
 
+            if animation:
+                drawwspace(self, obstaclelist, randpoint, newnode.point, '^r')
+
             if self.__iscollidedcallback(newnode.point, obstaclelist,
-                                         self.__robot, self.__robotplot, self.__handpkg):
+                                         self.__robot, self.__cdchecker):
                 sampledpoints.append([newnode.point, True])
                 bswap = False
                 # if collided, try the other tree
                 while True:
-                    randnode = []
+                    randpoint = []
                     if random.randint(0, 100) > self.__endtreesamplerate:
                         for i,jntrng in enumerate(self.__jointlimits):
-                            randnode.append(random.uniform(jntrng[0], jntrng[1]))
-                        randnode = np.asarray(randnode)
+                            randpoint.append(random.uniform(jntrng[0], jntrng[1]))
+                        randpoint = np.asarray(randpoint)
                     else:
-                        randnode = copy.deepcopy(endtreegoal)
+                        randpoint = copy.deepcopy(endtreegoal)
 
                     # Find nearest node
-                    nind = self.getNearestListIndex(self.__nodelistend, randnode)
-                    vec = randnode-self.__nodelistend[nind].point
+                    nind = self.getNearestListIndex(self.__nodelistend, randpoint)
+                    vec = randpoint-self.__nodelistend[nind].point
                     vec = vec/np.linalg.norm(vec)
 
                     # expand tree
@@ -149,8 +151,11 @@ class RRTConnect(object):
                     newnode.point += self.__expanddis * vec
                     newnode.parent = nind
 
+                    if animation:
+                        drawwspace(self, obstaclelist, randpoint, newnode.point, '^r')
+
                     if self.__iscollidedcallback(newnode.point, obstaclelist,
-                                                 self.__robot, self.__robotplot, self.__handpkg):
+                                                 self.__robot, self.__cdchecker):
                         sampledpoints.append([newnode.point, True])
                         bswap = True
                         break
@@ -166,7 +171,7 @@ class RRTConnect(object):
                         break
 
                     if animation:
-                        drawwspace(self, obstaclelist, randnode)
+                        drawwspace(self, obstaclelist, randpoint, newnode.point, '^g')
 
                 if bswap:
                     continue
@@ -184,7 +189,7 @@ class RRTConnect(object):
                 break
 
             if animation:
-                drawwspace(self, obstaclelist, randnode)
+                drawwspace(self, obstaclelist, randpoint, newnode.point, '^g')
 
             itercount += 1
 
@@ -207,8 +212,8 @@ class RRTConnect(object):
 
         return [path, sampledpoints]
 
-    def getNearestListIndex(self, nodelist, randnode):
-        dlist = [np.linalg.norm(randnode-node.point) for node in nodelist]
+    def getNearestListIndex(self, nodelist, randpoint):
+        dlist = [np.linalg.norm(randpoint-node.point) for node in nodelist]
         minind = dlist.index(min(dlist))
         return minind
 
@@ -230,15 +235,15 @@ class Node():
         self.parent = None
 
 
-def iscollidedfunc(point, obstacleList, robot = None, robotplot = None, handpkg = None):
-    for (obpos, size) in obstacleList:
+def iscollidedfunc(point, obstaclelist, robot = None, cdchecker = None):
+    for (obpos, size) in obstaclelist:
         d = np.linalg.norm(np.asarray(obpos) - point)
-        if d <= size:
+        if d <= size/2.0:
             return True  # collision
 
     return False  # safe
 
-def drawwspace(planner, obstaclelist, randconfiguration=None):
+def drawwspace(planner, obstaclelist, randconfiguration=None, newconfiguration = None, newconfmark = '^r'):
     """
     Draw Graph
     """
@@ -246,6 +251,8 @@ def drawwspace(planner, obstaclelist, randconfiguration=None):
     plt.clf()
     if randconfiguration is not None:
         plt.plot(randconfiguration[0], randconfiguration[1], "^k")
+    if newconfiguration is not None:
+        plt.plot(newconfiguration[0], newconfiguration[1], newconfmark)
     for node in planner.nodeliststart:
         if node.parent is not None:
             plt.plot([node.point[0], planner.nodeliststart[node.parent].point[0]],
@@ -254,7 +261,8 @@ def drawwspace(planner, obstaclelist, randconfiguration=None):
         if node.parent is not None:
             plt.plot([node.point[0], planner.nodelistend[node.parent].point[0]],
                      [node.point[1], planner.nodelistend[node.parent].point[1]], '-b')
-    plt.plot([point[0] for (point, size) in obstaclelist], [point[1] for (point, size) in obstaclelist], "ok", ms=size * 20)
+    for (point, size) in obstaclelist:
+        plt.plot([point[0]], [point[1]], "ok", ms=size*20)
     plt.plot(planner.start[0], planner.start[1], "xr")
     plt.plot(planner.end[0], planner.end[1], "xr")
     plt.axis([-2, 15, -2, 15])
@@ -263,15 +271,16 @@ def drawwspace(planner, obstaclelist, randconfiguration=None):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    plt.pause(5)
 
     # ====Search Path with RRT====
     obstaclelist = [
-        ((5, 5), 1),
-        ((3, 6), 2),
-        ((3, 8), 2),
-        ((3, 10), 2),
-        ((7, 5), 2),
-        ((9, 5), 2)
+        ((5, 5), 3),
+        ((3, 6), 3),
+        ((3, 8), 3),
+        ((3, 10), 3),
+        ((7, 5), 3),
+        ((9, 5), 3)
     ]  # [x,y,size]
     # Set Initial parameters
     rrtc = RRTConnect(start=[0.0, 0.0], goal=[5.0, 10.0], iscollidedfunc = iscollidedfunc,
@@ -285,7 +294,7 @@ if __name__ == '__main__':
 
     # Draw final path
     drawwspace(rrtc, obstaclelist)
-    plt.plot([point[0] for point in path], [point[1] for point in path], '-r')
+    plt.plot([point[0] for point in path[0]], [point[1] for point in path[0]], '-r')
     plt.grid(True)
-    plt.pause(0.001)  # Need for Mac
+    plt.pause(0.01)  # Need for Mac
     plt.show()

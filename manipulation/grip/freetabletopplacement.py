@@ -229,6 +229,8 @@ class FreeTabletopPlacement(object):
                        (dc.mat4ToStr(self.tpsmat4s[i]), self.dbobjname)
             sql = sql[:-2] + ";"
             self.gdb.execute(sql)
+        else:
+            print "Freetabletopplacement already exist!"
 
         # save freetabletopgrip
         idhand = gdb.loadIdHand(self.handname)
@@ -262,6 +264,8 @@ class FreeTabletopPlacement(object):
                                     idfreetabletopplacement, self.tpsgripidfreeair[i][j])
                         sql = sql[:-2] + ";"
                         self.gdb.execute(sql)
+        else:
+            print "Freetabletopgrip already exist!"
 
 
     def removebadfacetsshow(self, base, doverh=.1):
@@ -453,16 +457,16 @@ if __name__ == '__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "ttube.stl")
-    objpath = os.path.join(this_dir, "objects", "tool.stl")
-    # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool.stl")
+    objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
     print objpath
 
     from manipulation.grip.hrp5three import hrp5threenm
-    handpkg = hrp5threenm
-    # handpkg = rtq85nm
+    # handpkg = hrp5threenm
+    handpkg = rtq85nm
     gdb = db.GraspDB()
     tps = FreeTabletopPlacement(objpath, handpkg, gdb)
 

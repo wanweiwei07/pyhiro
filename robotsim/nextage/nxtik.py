@@ -132,9 +132,9 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     if armid!="rgt" and armid!="lft":
         raise ep.ValueError
 
-    armlj = nxtrobot.rgtarm
-    if armid == "lft":
-        armlj = nxtrobot.lftarm
+    # armlj = nxtrobot.rgtarm
+    # if armid == "lft":
+    #     armlj = nxtrobot.lftarm
 
     # stablizer
     steplength = 30
@@ -177,8 +177,8 @@ def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     :param nxtrobot:
     :param tgtpos:
     :param tgtrot:
-    :param armid:  armjnts: a 1-by-7 numpy ndarray where the first element is the waist rot angle
-    :return:
+    :param armid:
+    :return: a 1,1-by-6 numpy ndarray where the first element is the waist rot angle
 
     author: weiwei
     date: 20161216, sapporo

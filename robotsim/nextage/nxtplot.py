@@ -177,7 +177,6 @@ def genmnp(nxtrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
 
     return nxtmnp
 
-
 def genmnplist(nxtrobot, handpkg, jawwidthrgt=None, jawwidthlft=None):
     """
     generate a panda3d nodepath for the nxtrobot
@@ -329,7 +328,7 @@ def genmnplist(nxtrobot, handpkg, jawwidthrgt=None, jawwidthlft=None):
              nxtlftarmlj3_nodepath, nxtlftarmlj4_nodepath, nxtlfthnd.handnp],
             [nxtwaist_nodepath]]
 
-def genmnp_nm(nxtrobot, plotcolor=[.5,.5,.5,.3]):
+def genmnp_nm(nxtrobot, handpkg, plotcolor=[.5,.5,.5,.3], jawwidthrgt = None, jawwidthlft = None):
     """
     generate a panda3d nodepath for the nxtrobot
     mnp indicates this function generates a mesh nodepath
@@ -483,30 +482,21 @@ def genmnp_nm(nxtrobot, plotcolor=[.5,.5,.5,.3]):
     nxtlftarmlj4_nodepath.setTransparency(TransparencyAttrib.MAlpha)
 
     # rgthnd
-    nxtrgthnd = rtq85nm.Rtq85NM(hndcolor=plotcolor)
+    nxtrgthnd = handpkg.newHandNM('rgt', hndcolor=plotcolor)
     nxtlftarmlj5_rotmat = pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos'])
     nxtrgthnd.setMat(nxtlftarmlj5_rotmat)
     nxtrgthnd.reparentTo(nxtmnp)
+    if jawwidthrgt is not None:
+        nxtrgthnd.setJawwidth(jawwidthrgt)
 
     # lfthnd
-    nxtlfthnd = rtq85nm.Rtq85NM(hndcolor=plotcolor)
+    nxtlfthnd = handpkg.newHandNM('lft', hndcolor=plotcolor)
     nxtlftarmlj5_rotmat = pandageom.cvtMat4(nxtrobot.lftarm[6]['rotmat'], nxtrobot.lftarm[6]['linkpos'])
     nxtlfthnd.setMat(nxtlftarmlj5_rotmat)
     nxtlfthnd.reparentTo(nxtmnp)
+    if jawwidthlft is not None:
+        nxtlfthnd.setJawwidth(jawwidthlft)
+
+        nxtmnp.setTransparency(TransparencyAttrib.MAlpha)
 
     return nxtmnp
-
-def plotmesh(pandabase, nxtrobot):
-    """
-    plot the mesh model of the nextage robot in panda3d
-
-    :param pandabase: the panda3d base
-    :param nxtrobot: the NxtRobot object, see nextage.py
-    :return: null
-
-    author: weiwei
-    date: 20161108
-    """
-
-    nxtmnp = genmnp(nxtrobot)
-    nxtmnp.reparentTo(pandabase.render)

@@ -181,7 +181,7 @@ class Rtq85():
         rtq85lfgrtiphpr = rtq85rfgrtip.getHpr()
         rtq85lfgrtip.setHpr(-rotiknuckle, rtq85lfgrtiphpr[1], rtq85lfgrtiphpr[2])
 
-    def setPose(self, npvec3):
+    def setPos(self, npvec3):
         """
         set the pose of the hand
         changes self.rtq85np
@@ -191,6 +191,17 @@ class Rtq85():
         """
 
         self.rtq85np.setPos(npvec3)
+
+    def getPos(self):
+        """
+        set the pose of the hand
+        changes self.rtq85np
+
+        :param npvec3
+        :return:
+        """
+
+        return self.rtq85np.getPos()
 
     def setMat(self, npmat4):
         """

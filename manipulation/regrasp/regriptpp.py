@@ -189,7 +189,7 @@ class RegripTpp():
                     objrotmat4worlda.setRow(3, objrotmat4.getRow3(3)+self.worlda*self.retworlda)
                     objrotmat4worldaworldz = Mat4(objrotmat4worlda)
                     objrotmat4worldaworldz.setRow(3, objrotmat4worlda.getRow3(3)+self.worldz*self.retworldz)
-                    self.regg.add_node(ttgsid, fgrcenter=ttgsfgrcenternp,
+                    self.regg.add_node('mid' + str(ttgsid), fgrcenter=ttgsfgrcenternp,
                                        fgrcenterhandx = ttgsfgrcenternp_handx,
                                        fgrcenterhandxworldz = ttgsfgrcenternp_handxworldz,
                                        fgrcenterworlda = ttgsfgrcenternp_worlda,
@@ -202,8 +202,8 @@ class RegripTpp():
                                        tabletopplacementrotmatworlda = objrotmat4worlda,
                                        tabletopplacementrotmatworldaworldz = objrotmat4worldaworldz,
                                        angle = float(tpsrows[:,1][i]), tabletopposition = dc.strToV3(tpsrows[:,3][i]))
-                    globalidsedges[str(ttgsidfreeair)].append(ttgsid)
-                    localidedges.append(ttgsid)
+                    globalidsedges[str(ttgsidfreeair)].append('mid' + str(ttgsid))
+                    localidedges.append('mid' + str(ttgsid))
                 # print list(itertools.combinations(ttgrows[:,0], 2))
                 for edge in list(itertools.combinations(localidedges, 2)):
                     self.regg.add_edge(*edge, weight=1, edgetype = 'transit')
@@ -313,7 +313,7 @@ class RegripTpp():
             self.regg.add_edge(*edge, weight = 1, edgetype = 'starttransit')
         # add start transfer edge
         for reggnode, reggnodedata in self.regg.nodes(data=True):
-            if isinstance(reggnode, int):
+            if reggnode.startswith('mid'):
                 globalgripid = reggnodedata['globalgripid']
                 if globalgripid in nodeidofglobalidinstart.keys():
                     startnodeid = nodeidofglobalidinstart[globalgripid]
@@ -399,7 +399,7 @@ class RegripTpp():
             self.regg.add_edge(*edge, weight = 1, edgetype = 'goaltransit')
         # add goal transfer edge
         for reggnode, reggnodedata in self.regg.nodes(data=True):
-            if isinstance(reggnode, int):
+            if reggnode.startswith('mid'):
                 globalgripid = reggnodedata['globalgripid']
                 if globalgripid in nodeidofglobalidingoal.keys():
                     goalnodeid = nodeidofglobalidingoal[globalgripid]
@@ -530,7 +530,7 @@ class RegripTpp():
                         goaltransitedges.append([xyzpos0[:2], xyzpos1[:2]])
                 else:
                     # start or goal transfer
-                    if isinstance(nid0, int):
+                    if nid0.startswith('mid'):
                         fttpid0 = self.regg.node[nid0]['freetabletopplacementid']
                         anglevalue0 = self.regg.node[nid0]['angle']
                         gid0 = self.regg.node[nid0]['globalgripid']
@@ -545,7 +545,7 @@ class RegripTpp():
                             goaltransferedges.append([xyzpos0[:2], xyzpos1[:2]])
                         else:
                             starttransferedges.append([xyzpos0[:2], xyzpos1[:2]])
-                    if isinstance(nid1, int):
+                    if nid1.startswith('mid'):
                         gid0 = self.regg.node[nid0]['globalgripid']
                         tabletopposition0 = self.regg.node[nid0]['tabletopposition']
                         fttpid1 = self.regg.node[nid1]['freetabletopplacementid']

@@ -1,19 +1,18 @@
-import numpy as np
-
-from motionplanning import rrt
-from motionplanning import rrtconnect as rrtc
-import collisionchecker as cdck
-from robotsim.hrp5n import hrp5n
-from robotsim.hrp5n import hrp5nplot
-from manipulation.grip.hrp5three import hrp5threenm
+import collisioncheckerball as cdck
 import pandaplotutils.pandactrl as pandactrl
+from manipulation.grip.hrp5three import hrp5threenm
+from motionplanning.rrt import ddrrtconnect as ddrrtc
+from robotsim.hrp5n import hrp5n
+from robotsim.hrp5n import hrp5nball
+from robotsim.hrp5n import hrp5nmesh
 
-def iscollidedfunc(point, obstacleList = [], robot = None, robotplot = None, handpkg = None):
+def iscollidedfunc(point, obstaclelist = [], robot = None, cdchecker = None):
     """
     check if a specific configuration is in collision
 
     :param point:
-    :param obstacleList:
+    :param robot the object defined in robotsim/robot
+    :param obstaclelist: a list of obstacle nodepath
     :return:
 
     author: weiwei
@@ -22,13 +21,10 @@ def iscollidedfunc(point, obstacleList = [], robot = None, robotplot = None, han
 
     robot.movearmfk(point[0:9], armid = 'rgt')
     robot.movearmfk(point[9:18], armid = 'lft')
-    # isselfcollided
-    cdchecker = cdck.CollisionChecker(robotplot)
-    isselfcollided = cdchecker.isCollided(robot, handpkg)
-    # print point
-    # print isselfcollided
+    iscollided = cdchecker.isCollided(robot, obstaclelist)
+    robot.goinitpose()
 
-    if isselfcollided:
+    if iscollided:
         return True
     else:
         return False
@@ -38,7 +34,9 @@ if __name__ == '__main__':
 
     robot = hrp5n.Hrp5NRobot()
     handpkg = hrp5threenm
-    robotplot = hrp5nplot
+    robotmesh = hrp5nmesh.Hrp5NMesh(handpkg)
+    robotball = hrp5nball.Hrp5NBall()
+    cdchecker = cdck.CollisionCheckerBall(robotball)
 
     # start = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
     # goal = [0.0,45.0,-20.0,0.0,-150.0,0.0,0.0,0.0,0.0]
@@ -64,20 +62,33 @@ if __name__ == '__main__':
                    [robot.lftarm[8]['rngmin'], robot.lftarm[8]['rngmax']],
                    [robot.lftarm[9]['rngmin'], robot.lftarm[9]['rngmax']]]
 
-    planner = rrt.RRT(start=start, goal=goal, iscollidedfunc = iscollidedfunc,
-                      jointlimits = jointlimits, expanddis = 10, robot = robot,
-                      robotplot = robotplot, handpkg = handpkg)
+    import os
+    from panda3d.core import *
+    import pandaplotutils.pandageom as pg
+    obsrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,305.252044678,-400.073120117,165.0000038147,1.0)
+    this_dir, this_filename = os.path.split(__file__)
+    objpath = os.path.join(os.path.split(this_dir)[0], "manipulation/grip", "objects", "tool.stl")
+    objmnp = pg.genObjmnp(objpath, color=Vec4(.7, .7, 0, 1))
+    objmnp.setMat(obsrotmat4)
+    objmnp.reparentTo(base.render)
+
+    # planner = rrt.RRT(start=start, goal=goal, iscollidedfunc = iscollidedfunc,
+    #                   jointlimits = jointlimits, expanddis = 10, robot = robot,
+    #                   cdchecker = cdchecker)
+    # planner = ddrrt.DDRRT(start=start, goal=goal, iscollidedfunc = iscollidedfunc,
+    #                   jointlimits = jointlimits, goalsamplerate=30, expanddis = 10, robot = robot,
+    #                   cdchecker = cdchecker)
     #
     # robotonscreen = [None]
-    # def updateshow(planner, robot, robotplot, robotonscreen, task):
+    # def updateshow(planner, robot, robotmesh, robotonscreen, task):
     #     if robotonscreen[0] is not None:
     #         robotonscreen[0].detachNode()
-    #     output = planner.planningcallback()
+    #     output = planner.planningcallback(obstaclelist = [objmnp])
     #     if output == "collided":
     #         # print planner.randnode
-    #         robot.movearmfk(planner.newnode[0:9], armid = 'rgt')
-    #         robot.movearmfk(planner.newnode[9:18], armid = 'lft')
-    #         robotonscreen[0] = robotplot.genmnp(robot, handpkg)
+    #         robot.movearmfk(planner.newpoint[0:9], armid = 'rgt')
+    #         robot.movearmfk(planner.newpoint[9:18], armid = 'lft')
+    #         robotonscreen[0] = robotmesh.genmnp(robot)
     #         robot.goinitpose()
     #         robotonscreen[0].reparentTo(base.render)
     #         return task.again
@@ -86,64 +97,75 @@ if __name__ == '__main__':
     #         for pose in [path[1], path[len(path)-1]]:
     #             robot.movearmfk(pose[0:9], armid = 'rgt')
     #             robot.movearmfk(pose[9:18], armid = 'lft')
-    #             robotmnp_nm = robotplot.genmnp(robot, handpkg)
+    #             robotmnp_nm = robotmesh.genmnp(robot)
     #             robotmnp_nm.reparentTo(base.render)
     #         for pose in path[1:len(path)-1]:
     #             robot.movearmfk(pose[0:9], armid = 'rgt')
     #             robot.movearmfk(pose[9:18], armid = 'lft')
-    #             robotmnp_nm = robotplot.genmnp_nm(robot, handpkg)
+    #             robotmnp_nm = robotmesh.genmnp_nm(robot)
     #             robotmnp_nm.reparentTo(base.render)
     #         return task.done
     #     if output == "continue":
-    #         robot.movearmfk(planner.newnode[0:9], armid = 'rgt')
-    #         robot.movearmfk(planner.newnode[9:18], armid = 'lft')
-    #         robotonscreen[0] = robotplot.genmnp(robot, handpkg)
+    #         robot.movearmfk(planner.newpoint[0:9], armid = 'rgt')
+    #         robot.movearmfk(planner.newpoint[9:18], armid = 'lft')
+    #         robotonscreen[0] = robotmesh.genmnp(robot)
     #         robot.goinitpose()
     #         robotonscreen[0].reparentTo(base.render)
     #         return task.again
     #
     # taskMgr.doMethodLater(.01, updateshow, "updateshow",
-    #                       extraArgs=[planner, robot, robotplot, robotonscreen],
+    #                       extraArgs=[planner, robot, robotmesh, robotonscreen],
     #                       appendTask=True)
 
     # planner = rrtc.RRTConnect(start=start, goal=goal, iscollidedfunc = iscollidedfunc,
-    #                           jointlimits = jointlimits, expanddis = 10, robot = robot,
-    #                           robotplot = robotplot, handpkg = handpkg)
+    #                           jointlimits = jointlimits, starttreesamplerate=30, expanddis = 10, robot = robot,
+    #                           cdchecker = cdchecker)
+
+    planner = ddrrtc.DDRRTConnect(start=start, goal=goal, iscollidedfunc = iscollidedfunc,
+                              jointlimits = jointlimits, starttreesamplerate=30, expanddis = 20, robot = robot,
+                              cdchecker = cdchecker)
 
     import time
     tic = time.clock()
-    [path, sampledpoints] = planner.planning()
+    [path, sampledpoints] = planner.planning(obstaclelist = [objmnp])
     toc = time.clock()
     print toc-tic
 
+    # for pose in path:
+    #     robot.movearmfk(pose[0:9], armid = 'rgt')
+    #     robot.movearmfk(pose[9:18], armid = 'lft')
+    #     robotmnp = robotmesh.genmnp_nm(robot)
+    #     robotmnp.reparentTo(base.render)
+
+    import copy
     sampledpointsindex = [0]
-    pathindex = [0]
     robotonscreen = [None]
-    def updateshow(path, pathindex, sampledpoints, sampledpointsindex,
-                   robot, robotplot, robotonscreen, task):
+    def updateshow(path, sampledpoints, sampledpointsindex,
+                   robot, robotmesh, task):
         if sampledpointsindex[0] <= len(sampledpoints)-1:
             if robotonscreen[0] is not None:
                 robotonscreen[0].detachNode()
-            print sampledpoints
+            # print sampledpoints
+            print sampledpointsindex[0], len(sampledpoints)
             robot.movearmfk(sampledpoints[sampledpointsindex[0]][0][0:9], armid = 'rgt')
             robot.movearmfk(sampledpoints[sampledpointsindex[0]][0][9:18], armid = 'lft')
-            robotonscreen[0] = robotplot.genmnp(robot, handpkg)
-            robot.goinitpose()
+            robotonscreen[0] = robotmesh.genmnp(robot)
             robotonscreen[0].reparentTo(base.render)
+            robot.goinitpose()
             sampledpointsindex[0] += 1
             return task.again
         else:
             for point in path:
                 robot.movearmfk(point[0:9], armid = 'rgt')
                 robot.movearmfk(point[9:18], armid = 'lft')
-                robotmnp = robotplot.genmnp(robot, handpkg)
+                robotmnp = copy.deepcopy(robotmesh.genmnp(robot))
                 robot.goinitpose()
                 robotmnp.reparentTo(base.render)
             return task.done
 
-    taskMgr.doMethodLater(.01, updateshow, "updateshow",
-                          extraArgs=[path, pathindex, sampledpoints, sampledpointsindex,
-                                     robot, robotplot, robotonscreen],
+    taskMgr.add(updateshow, "updateshow",
+                          extraArgs=[path, sampledpoints, sampledpointsindex,
+                                     robot, robotmesh],
                           appendTask=True)
 
     base.run()

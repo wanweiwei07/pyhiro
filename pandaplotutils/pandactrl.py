@@ -11,7 +11,7 @@ import math
 
 class World(ShowBase, object):
 
-    def __init__(self, camp=[2000,500,2000], lookatp=[0,0,250]):
+    def __init__(self, camp=[2000,500,2000], lookatp=[0,0,250], fov = 40):
         super(self.__class__, self).__init__()
         self.setBackgroundColor(1, 1, 1)
 
@@ -22,6 +22,7 @@ class World(ShowBase, object):
 
         # set up lens
         lens = PerspectiveLens()
+        lens.setFov(fov)
         lens.setNearFar(1, 50000)
         self.disableMouse()
         self.cam.setPos(camp[0], camp[1], camp[2])
