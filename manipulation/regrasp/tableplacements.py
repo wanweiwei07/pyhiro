@@ -17,6 +17,7 @@ from utils import robotmath as rm
 from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
 from robotsim.hrp5n import hrp5n
+from robotsim.hrp2k import hrp2k
 from database import dbaccess as db
 import trimesh
 import time
@@ -327,21 +328,23 @@ if __name__ == '__main__':
     nxtrobot = nxt.NxtRobot()
     hrp5robot = hrp5.Hrp5Robot()
     hrp5n = hrp5n.Hrp5NRobot()
+    hrp2k = hrp2k.Hrp2KRobot()
 
     base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool2.stl")
     # done 20170307
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planelowerbody.stl")
     # done 20170313
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
 
     from manipulation.grip.hrp5three import hrp5threenm
-    # handpkg = hrp5threenm
-    handpkg = rtq85nm
+    handpkg = hrp5threenm
+    # handpkg = rtq85nm
     print objpath
     tps = TablePlacements(objpath, handpkg)
 
@@ -386,17 +389,19 @@ if __name__ == '__main__':
     # for x in range(300,401,100):
     #     for y in range(-200,201,200):
     #         grids.append([x,y,-55])
-    grids = []
-    for x in range(350,601,200):
-        for y in range(-350,351,200):
-            grids.append([x,y,-55])
+    # grids = []
+    # for x in range(350,601,200):
+    #     for y in range(-350,351,200):
+    #         grids.append([x,y,-55])
     gdb = db.GraspDB()
-    tps.saveToDB(grids, gdb)
+    # tps.saveToDB(grids, gdb)
     # # # tps.grpshow(base, gdb)
     # tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
     # tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
-    tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
-    tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
+    # tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
+    # tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
+    tps.updateDBwithIK(gdb, hrp2k, armname = "rgt")
+    tps.updateDBwithIK(gdb, hrp2k, armname = "lft")
 
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")

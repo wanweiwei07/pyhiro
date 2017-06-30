@@ -2,8 +2,8 @@
 
 from robotsim.nextage import nxt
 from robotsim.nextage import nxtplot
-from robotsim.hrp5n import hrp5n
-from robotsim.hrp5n import hrp5nplot
+from robotsim.hrp2k import hrp2k
+from robotsim.hrp2k import hrp2kplot
 from manipulation.grip.robotiq85 import rtq85nm
 from manipulation.grip.hrp5three import hrp5threenm
 
@@ -342,7 +342,7 @@ def getMotionSequence(regrip, id = 0):
 if __name__=='__main__':
     gdb = db.GraspDB()
     handpkg = hrp5threenm
-    hrp5nrobot = hrp5n.Hrp5NRobot()
+    hrp2krobot = hrp2k.Hrp2KRobot()
 
     base = pandactrl.World(camp=[3000,0,2000], lookatp=[300,0,300])
 
@@ -355,7 +355,7 @@ if __name__=='__main__':
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planelowerbody.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planerearstay.stl")
-    regrip = regriptpp.RegripTpp(objpath, hrp5nrobot, handpkg, gdb)
+    regrip = regriptpp.RegripTpp(objpath, hrp2krobot, handpkg, gdb)
 
     # ttube
     startrotmat4 = Mat4(-4.06358332355e-17,-0.183007523417,0.98311150074,0.0,
@@ -414,25 +414,25 @@ if __name__=='__main__':
 
     if len(regrip.directshortestpaths) > 0:
         [objms, numikrms, jawwidth] = getMotionSequence(regrip, id = id)
-        hrp5nmnp = [None]
+        hrp2kmnp = [None]
         objmnp = [None]
         counter = [0]
         import time
         start = time.clock()
-        def updateshow(objms, numikrms, jawwidth, hrp5nmnp, objmnp, counter, hrp5nrobot, handpkg, objpath, task):
+        def updateshow(objms, numikrms, jawwidth, hrp2kmnp, objmnp, counter, hrp2krobot, handpkg, objpath, task):
             end = time.clock()
             if end-start > 25.0:
                 if counter[0] < len(numikrms):
-                    if hrp5nmnp[0] is not None:
-                        hrp5nmnp[0].detachNode()
+                    if hrp2kmnp[0] is not None:
+                        hrp2kmnp[0].detachNode()
                     if objmnp[0] is not None:
                         objmnp[0].detachNode()
                     print counter[0]
                     print numikrms[counter[0]]
-                    hrp5nrobot.movearmfkr(numikrms[counter[0]])
-                    hrp5nmnp[0] = hrp5nplot.genmnp(hrp5nrobot, handpkg, jawwidthrgt=jawwidth[counter[0]])
-                    hrp5nrobot.goinitpose()
-                    hrp5nmnp[0].reparentTo(base.render)
+                    hrp2krobot.movearmfkr(numikrms[counter[0]])
+                    hrp2kmnp[0] = hrp2kplot.genmnp(hrp2krobot, handpkg, jawwidthrgt=jawwidth[counter[0]])
+                    hrp2krobot.goinitpose()
+                    hrp2kmnp[0].reparentTo(base.render)
                     objmnp[0] = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))
                     objmnp[0].setMat(objms[counter[0]])
                     # pg.plotAxisSelf(base.render,objms[counter[0]].getRow3(3), objms[counter[0]])
@@ -440,7 +440,7 @@ if __name__=='__main__':
                     counter[0] += 1
             return task.again
         taskMgr.doMethodLater(.1, updateshow, "updateshow",
-                              extraArgs = [objms, numikrms, jawwidth, hrp5nmnp, objmnp, counter, hrp5nrobot, handpkg,objpath],
+                              extraArgs = [objms, numikrms, jawwidth, hrp2kmnp, objmnp, counter, hrp2krobot, handpkg,objpath],
                               appendTask = True)
 
     # one time show for start and end

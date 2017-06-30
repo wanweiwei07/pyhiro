@@ -5,7 +5,6 @@ import os
 import MySQLdb as mdb
 import numpy as np
 from manipulation.grip.robotiq85 import rtq85nm
-from manipulation.grip.hrp5three import hrp5threenm
 from panda3d.bullet import BulletWorld
 from panda3d.core import *
 
@@ -199,7 +198,7 @@ class Freegrip(fgcp.FreegripContactpairs):
                 handfgrpcc0.setPos(cctpnt0[0], cctpnt0[1], cctpnt0[2])
                 handfgrpcc0.lookAt(cctpnt0[0] + cctnormal0[0], cctpnt0[1] + cctnormal0[1],
                                  cctpnt0[2] + cctnormal0[2])
-                handfgrpcc1 = NodePath("handpcc1")
+                handfgrpcc1 = NodePath("handfgrpcc1")
                 self.handfgrpcc_uninstanced.instanceTo(handfgrpcc1)
                 handfgrpcc1.setPos(cctpnt1[0], cctpnt1[1], cctpnt1[2])
                 handfgrpcc1.lookAt(cctpnt1[0] + cctnormal1[0], cctpnt1[1] + cctnormal1[1],
@@ -594,7 +593,6 @@ if __name__=='__main__':
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
 
     handpkg = rtq85nm
-    handpkg = hrp5threenm
     freegriptst = Freegrip(objpath, handpkg, readser=False, torqueresist = 50)
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,

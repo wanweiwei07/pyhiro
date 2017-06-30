@@ -20,7 +20,7 @@ from panda3d.bullet import BulletDebugNode
 
 class Freethreegrip(fgcp.FreegripContactpairs):
 
-    def __init__(self, objpath, handpkg, ser=False, torqueresist = 50):
+    def __init__(self, objpath, handpkg, readser=False, torqueresist = 50):
         """
         initialization
 
@@ -32,10 +32,10 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         date: 20161201, osaka
         """
 
-        super(self.__class__, self).__init__(objpath, ser)
+        super(self.__class__, self).__init__(objpath, readser)
         self.handpkg = handpkg
         self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
-        if ser is False:
+        if readser is False:
             self.removeBadSamples()
             self.clusterFacetSamplesRNN(reduceRadius=20)
             self.planContactpairs(torqueresist, self.hand.jawwidthopen)
@@ -51,6 +51,11 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.gripcontactpairnormals_precc = None
         self.gripcontactpairfacets_precc = None
         self.gripcontactpairangles_precc = None
+        # fliphand
+        self.flipgripcontactpairs_precc = None
+        self.flipgripcontactpairnormals_precc = None
+        self.flipgripcontactpairfacets_precc = None
+        self.flipgripcontactpairangles_precc = None
 
         # the final results: gripcontacts: a list of [cct0, cct1]
         # griprotmats: a list of Mat4
@@ -68,7 +73,6 @@ class Freethreegrip(fgcp.FreegripContactpairs):
 
         # for plot
         self.handplotlist = []
-        self.counter2 = 0
 
         # for dbupdate
         self.dbobjname = os.path.splitext(os.path.basename(objpath))[0]
@@ -109,6 +113,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
             facetidx0 = facetpair[0]
             facetidx1 = facetpair[1]
 
+            # cct0 first
             for j, contactpair in enumerate(self.gripcontactpairs_precc[self.counter]):
                 cctpnt0 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
                 cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
@@ -143,6 +148,40 @@ class Freethreegrip(fgcp.FreegripContactpairs):
 
                 # reset initial hand pose
                 tmphand.setMat(initmat)
+            # cct1 first
+            for j, contactpair in enumerate(self.flipgripcontactpairs_precc[self.counter]):
+                cctpnt1 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
+                cctpnt0 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
+                cctnormal1 = self.flipgripcontactpairnormals_precc[self.counter][j][0]
+                cctnormal0 = [-cctnormal1[0], -cctnormal1[1], -cctnormal1[2]]
+                tmphand = self.hand
+                # save initial hand pose
+                initmat = tmphand.getMat()
+                # save initial hand pose
+                fgrcenter = (cctpnt0+cctpnt1)/2
+                fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
+                if fgrdist > self.hand.jawwidthopen:
+                    continue
+                rotangle = self.flipgripcontactpairangles_precc[self.counter][j]
+                tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
+
+                # collision detection
+
+                self.hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
+                result = self.bulletworld.contactTest(self.hndbullnode)
+
+                if not result.getNumContacts():
+                    print "add handcc"
+                    self.gripcontacts.append(contactpair)
+                    self.griprotmats.append(tmphand.getMat())
+                    self.gripjawwidth.append(fgrdist)
+                    self.gripcontactnormals.append(self.flipgripcontactpairnormals_precc[self.counter][j])
+                    # pg.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
+                    # pg.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
+                    #                 tmprtq85.getMat(), length=30, thickness=2)
+
+                # reset initial hand pose
+                tmphand.setMat(initmat)
             self.counter+=1
         self.counter = 0
 
@@ -156,10 +195,16 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         date: 20161212, tsukuba
         """
 
+        # cct0 first
         self.gripcontactpairs_precc = []
         self.gripcontactpairnormals_precc = []
         self.gripcontactpairfacets_precc = []
         self.gripcontactpairangles_precc = []
+        # cct1 first
+        self.flipgripcontactpairs_precc = []
+        self.flipgripcontactpairnormals_precc = []
+        self.flipgripcontactpairfacets_precc = []
+        self.flipgripcontactpairangles_precc = []
 
         plotoffsetfp = 6
         contactdifference = 3
@@ -170,15 +215,22 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         bulletworldray.attachRigidBody(self.objmeshbullnode)
         while self.counter < self.facetpairs.shape[0]:
             print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
+            # cct0 first
             self.gripcontactpairs_precc.append([])
             self.gripcontactpairnormals_precc.append([])
             self.gripcontactpairfacets_precc.append([])
             self.gripcontactpairangles_precc.append([])
+            # cct1 first
+            self.flipgripcontactpairs_precc.append([])
+            self.flipgripcontactpairnormals_precc.append([])
+            self.flipgripcontactpairfacets_precc.append([])
+            self.flipgripcontactpairangles_precc.append([])
 
             facetpair = self.facetpairs[self.counter]
             facetidx0 = facetpair[0]
             facetidx1 = facetpair[1]
 
+            # cctpnt0 first
             for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
                 cctpnt0 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
                 cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
@@ -253,6 +305,84 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                         self.gripcontactpairnormals_precc[-1].append(self.gripcontactpairnormals[self.counter][j])
                         self.gripcontactpairfacets_precc[-1].append(self.gripcontactpairfacets[self.counter])
                         self.gripcontactpairangles_precc[-1].append(rotangle)
+            # cctpnt1 first
+            for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
+                cctpnt1 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
+                cctpnt0 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
+                cctnormal1 = self.facetnormals[facetidx0]
+                cctnormal0 = [-cctnormal1[0], -cctnormal1[1], -cctnormal1[2]]
+                tmphand = self.hand
+                # save initial hand pose
+                fgrcenter = (cctpnt0 + cctpnt1) / 2
+                fgrdist = np.linalg.norm((cctpnt0 - cctpnt1)) + 2 * plotoffsetfp
+                if fgrdist > self.hand.jawwidthopen:
+                    continue
+                for angleid in range(discretesize):
+                    rotangle = 360.0 / float(discretesize) * float(angleid)
+                    tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1],
+                                   cctnormal0[2], rotangle, fgrdist)
+
+                    # dist of cctpnt1 from surface
+                    pFrom = Point3(cctpnt1[0], cctpnt1[1], cctpnt1[2])
+                    pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                    result1 = bulletworldray.rayTestClosest(pFrom, pTo)
+                    # distances of virtual contact points
+                    cctpnt100 = pg.v3ToNp(pg.npToV3(cctpnt1) + tmphand.handpccnp.getMat().getRow3(2) * 15)
+                    cctpnt110 = pg.v3ToNp(pg.npToV3(cctpnt1) - tmphand.handpccnp.getMat().getRow3(2) * 15)
+                    cctpnt101 = pg.v3ToNp(pg.npToV3(cctpnt1) + tmphand.handpccnp.getMat().getRow3(2) * 30)
+                    cctpnt111 = pg.v3ToNp(pg.npToV3(cctpnt1) - tmphand.handpccnp.getMat().getRow3(2) * 30)
+                    # 100
+                    pFrom = Point3(cctpnt100[0], cctpnt100[1], cctpnt100[2])
+                    pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                    result100 = bulletworldray.rayTestClosest(pFrom, pTo)
+                    # 110
+                    pFrom = Point3(cctpnt110[0], cctpnt110[1], cctpnt110[2])
+                    pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                    result110 = bulletworldray.rayTestClosest(pFrom, pTo)
+                    # 101
+                    pFrom = Point3(cctpnt101[0], cctpnt101[1], cctpnt101[2])
+                    pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                    result101 = bulletworldray.rayTestClosest(pFrom, pTo)
+                    # 111
+                    pFrom = Point3(cctpnt111[0], cctpnt111[1], cctpnt111[2])
+                    pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                    result111 = bulletworldray.rayTestClosest(pFrom, pTo)
+
+                    if not result1.hasHit():
+                        continue
+                    if ((not result100.hasHit()) and (not result101.hasHit())) or \
+                            ((not result110.hasHit()) and (not result111.hasHit())):
+                        continue
+                    distresult1 = (result1.getHitPos() - pg.npToV3(cctpnt1)).length()
+                    if result100.hasHit():
+                        distresult = (result100.getHitPos() - pg.npToV3(cctpnt100)).length()
+                        if distresult - distresult1 > contactdifference:
+                            continue
+                    if result101.hasHit():
+                        distresult = (result101.getHitPos() - pg.npToV3(cctpnt101)).length()
+                        if distresult - distresult1 > contactdifference:
+                            continue
+                    if result110.hasHit():
+                        distresult = (result110.getHitPos() - pg.npToV3(cctpnt110)).length()
+                        if distresult - distresult1 > contactdifference:
+                            continue
+                    if result111.hasHit():
+                        distresult = (result111.getHitPos() - pg.npToV3(cctpnt111)).length()
+                        if distresult - distresult1 > contactdifference:
+                            continue
+
+                    # prepare the model for collision detection
+                    handpccbullnode = cd.genCollisionMeshMultiNp(tmphand.handpccnp)
+                    result = self.bulletworld.contactTest(handpccbullnode)
+
+                    if not result.getNumContacts():
+                        print "add precc"
+                        self.flipgripcontactpairs_precc[-1].append(contactpair)
+                        self.flipgripcontactpairnormals_precc[-1].append(
+                            self.gripcontactpairnormals[self.counter][j])
+                        self.flipgripcontactpairfacets_precc[-1].append(
+                            self.gripcontactpairfacets[self.counter])
+                        self.flipgripcontactpairangles_precc[-1].append(rotangle)
             self.counter += 1
         self.counter=0
 
@@ -358,11 +488,113 @@ class Freethreegrip(fgcp.FreegripContactpairs):
 
         bulletworldray = BulletWorld()
         bulletworldray.attachRigidBody(self.objmeshbullnode)
+
+        # cct0 first
         for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
             cctpnt0 = contactpair[0] + contactdist * self.facetnormals[facetidx0]
             cctpnt1 = contactpair[1] + contactdist * self.facetnormals[facetidx1]
             cctnormal0 = self.facetnormals[facetidx0]
             cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
+            # save initial hand pose
+            fgrcenter = (cctpnt0 + cctpnt1) / 2
+            fgrdist = np.linalg.norm((cctpnt0 - cctpnt1)) + 2 * contactdist
+            if fgrdist > self.hand.jawwidthopen:
+                continue
+            for angleid in range(discretesize):
+                tmphand = self.handpkg.newHandNM()
+                rotangle = 360.0 / float(discretesize) * float(angleid)
+                tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2],
+                               rotangle, fgrdist)
+
+                # dist of cctpnt1 from surface
+                pFrom = Point3(cctpnt1[0], cctpnt1[1], cctpnt1[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result1 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # distances of virtual contact points
+                cctpnt100 = pg.v3ToNp(pg.npToV3(cctpnt1) + tmphand.handpccnp.getMat().getRow3(2) * 15)
+                cctpnt110 = pg.v3ToNp(pg.npToV3(cctpnt1) - tmphand.handpccnp.getMat().getRow3(2) * 15)
+                cctpnt101 = pg.v3ToNp(pg.npToV3(cctpnt1) + tmphand.handpccnp.getMat().getRow3(2) * 30)
+                cctpnt111 = pg.v3ToNp(pg.npToV3(cctpnt1) - tmphand.handpccnp.getMat().getRow3(2) * 30)
+                # 100
+                pFrom = Point3(cctpnt100[0], cctpnt100[1], cctpnt100[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result100 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # 110
+                pFrom = Point3(cctpnt110[0], cctpnt110[1], cctpnt110[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result110 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # 101
+                pFrom = Point3(cctpnt101[0], cctpnt101[1], cctpnt101[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result101 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # 111
+                pFrom = Point3(cctpnt111[0], cctpnt111[1], cctpnt111[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result111 = bulletworldray.rayTestClosest(pFrom, pTo)
+
+                if not result1.hasHit():
+                    continue
+                if ((not result100.hasHit()) and (not result101.hasHit())) or \
+                        ((not result110.hasHit()) and (not result111.hasHit())):
+                    tmphand.handpccnp.setColor(.5, 0, 0, .3)
+                    tmphand.handpccnp.reparentTo(brchild)
+                    continue
+                distresult1 = (result1.getHitPos() - pg.npToV3(cctpnt1)).length()
+                if result100.hasHit():
+                    distresult = (result100.getHitPos() - pg.npToV3(cctpnt100)).length()
+                    if distresult - distresult1 > contactdifference:
+                        tmphand.handpccnp.setColor(.5, 0, 0, .3)
+                        tmphand.handpccnp.reparentTo(brchild)
+                        continue
+                if result101.hasHit():
+                    distresult = (result101.getHitPos() - pg.npToV3(cctpnt101)).length()
+                    if distresult - distresult1 > contactdifference:
+                        tmphand.handpccnp.setColor(.5, 0, 0, .3)
+                        tmphand.handpccnp.reparentTo(brchild)
+                        continue
+                if result110.hasHit():
+                    distresult = (result110.getHitPos() - pg.npToV3(cctpnt110)).length()
+                    if distresult - distresult1 > contactdifference:
+                        tmphand.handpccnp.setColor(.5, 0, 0, .3)
+                        tmphand.handpccnp.reparentTo(brchild)
+                        continue
+                if result111.hasHit():
+                    distresult = (result111.getHitPos() - pg.npToV3(cctpnt111)).length()
+                    if distresult - distresult1 > contactdifference:
+                        tmphand.handpccnp.setColor(.5, 0, 0, .3)
+                        tmphand.handpccnp.reparentTo(brchild)
+                        continue
+
+                # prepare the model for collision detection
+                handpccbullnode = cd.genCollisionMeshMultiNp(tmphand.handpccnp, brchild)
+                result = self.bulletworld.contactTest(handpccbullnode)
+
+                # for contact in result.getContacts():
+                #     cp = contact.getManifoldPoint()
+                #     pg.plotSphere(brchild, pos=cp.getLocalPointA(), radius=3, rgba=Vec4(1, 0, 0, 1))
+                #     pg.plotSphere(brchild, pos=cp.getLocalPointB(), radius=3, rgba=Vec4(0, 0, 1, 1))
+
+                if result.getNumContacts():
+                    tmphand.handpccnp.setColor(.5, 0, 0, .3)
+                else:
+                    tmphand.handpccnp.setColor(1, 1, 1, .3)
+                tmphand.handpccnp.reparentTo(brchild)
+
+                pg.plotArrow(star0, spos=cctpnt0,
+                                epos=cctpnt0 + plotoffsetfp*self.facetnormals[facetidx0] + cctnormal0,
+                                rgba=[facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
+                                      facetcolorarray[facetidx0][2], facetcolorarray[facetidx0][3]], length=10)
+                pg.plotArrow(star1, spos=cctpnt1,
+                                epos=cctpnt1 + plotoffsetfp*self.facetnormals[facetidx1] + cctnormal1,
+                                rgba=[facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
+                                      facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]], length=10)
+        # cct1 first
+        for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
+            # swap cct
+            cctpnt1 = contactpair[0] + contactdist * self.facetnormals[facetidx0]
+            cctpnt0 = contactpair[1] + contactdist * self.facetnormals[facetidx1]
+            cctnormal1 = self.facetnormals[facetidx0]
+            cctnormal0 = [-cctnormal1[0], -cctnormal1[1], -cctnormal1[2]]
             # save initial hand pose
             fgrcenter = (cctpnt0 + cctpnt1) / 2
             fgrdist = np.linalg.norm((cctpnt0 - cctpnt1)) + 2 * contactdist
@@ -485,11 +717,87 @@ class Freethreegrip(fgcp.FreegripContactpairs):
 
         bulletworldray = BulletWorld()
         bulletworldray.attachRigidBody(self.objmeshbullnode)
+
+        # cct0 first
         for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
             cctpnt0 = contactpair[0] + contactdist * self.facetnormals[facetidx0]
             cctpnt1 = contactpair[1] + contactdist * self.facetnormals[facetidx1]
             cctnormal0 = self.facetnormals[facetidx0]
             cctnormal1 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
+            # save initial hand pose
+            fgrcenter = (cctpnt0 + cctpnt1) / 2
+            fgrdist = np.linalg.norm((cctpnt0 - cctpnt1)) + 2 * contactdist
+            if fgrdist > self.hand.jawwidthopen:
+                continue
+            for angleid in range(discretesize):
+                tmphand = self.handpkg.newHandNM()
+                rotangle = 360.0 / float(discretesize) * float(angleid)
+                tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2],
+                               rotangle, fgrdist)
+
+                # dist of cctpnt1 from surface
+                pFrom = Point3(cctpnt1[0], cctpnt1[1], cctpnt1[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result1 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # distances of virtual contact points
+                cctpnt100 = pg.v3ToNp(pg.npToV3(cctpnt1) + tmphand.handpccnp.getMat().getRow3(2) * 15)
+                cctpnt110 = pg.v3ToNp(pg.npToV3(cctpnt1) - tmphand.handpccnp.getMat().getRow3(2) * 15)
+                cctpnt101 = pg.v3ToNp(pg.npToV3(cctpnt1) + tmphand.handpccnp.getMat().getRow3(2) * 30)
+                cctpnt111 = pg.v3ToNp(pg.npToV3(cctpnt1) - tmphand.handpccnp.getMat().getRow3(2) * 30)
+                # 100
+                pFrom = Point3(cctpnt100[0], cctpnt100[1], cctpnt100[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result100 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # 110
+                pFrom = Point3(cctpnt110[0], cctpnt110[1], cctpnt110[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result110 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # 101
+                pFrom = Point3(cctpnt101[0], cctpnt101[1], cctpnt101[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result101 = bulletworldray.rayTestClosest(pFrom, pTo)
+                # 111
+                pFrom = Point3(cctpnt111[0], cctpnt111[1], cctpnt111[2])
+                pTo = pFrom + Vec3(cctnormal0[0], cctnormal0[1], cctnormal0[2]) * 9999
+                result111 = bulletworldray.rayTestClosest(pFrom, pTo)
+
+                if not result1.hasHit():
+                    continue
+                if ((not result100.hasHit()) and (not result101.hasHit())) or \
+                        ((not result110.hasHit()) and (not result111.hasHit())):
+                    continue
+                distresult1 = (result1.getHitPos() - pg.npToV3(cctpnt1)).length()
+                if result100.hasHit():
+                    distresult = (result100.getHitPos() - pg.npToV3(cctpnt100)).length()
+                    if distresult - distresult1 > contactdifference:
+                        continue
+                if result101.hasHit():
+                    distresult = (result101.getHitPos() - pg.npToV3(cctpnt101)).length()
+                    if distresult - distresult1 > contactdifference:
+                        continue
+                if result110.hasHit():
+                    distresult = (result110.getHitPos() - pg.npToV3(cctpnt110)).length()
+                    if distresult - distresult1 > contactdifference:
+                        continue
+                if result111.hasHit():
+                    distresult = (result111.getHitPos() - pg.npToV3(cctpnt111)).length()
+                    if distresult - distresult1 > contactdifference:
+                        continue
+
+                # prepare the model for collision detection
+                handpccbullnode = cd.genCollisionMeshMultiNp(tmphand.handpccnp)
+                result = self.bulletworld.contactTest(handpccbullnode)
+
+                if not result.getNumContacts():
+                    tmphand.handpccnp.setColor(1, 1, 1, .3)
+                    tmphand.handpccnp.reparentTo(base.render)
+
+        # cct1 first
+        for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
+            cctpnt1 = contactpair[0] + contactdist * self.facetnormals[facetidx0]
+            cctpnt0 = contactpair[1] + contactdist * self.facetnormals[facetidx1]
+            cctnormal1 = self.facetnormals[facetidx0]
+            cctnormal0 = [-cctnormal0[0], -cctnormal0[1], -cctnormal0[2]]
             # save initial hand pose
             fgrcenter = (cctpnt0 + cctpnt1) / 2
             fgrdist = np.linalg.norm((cctpnt0 - cctpnt1)) + 2 * contactdist
@@ -583,13 +891,9 @@ class Freethreegrip(fgcp.FreegripContactpairs):
 
         plotoffsetfp = 6
 
-        if self.counter2 == 0:
-            self.counter += 1
-            if self.counter >= self.facetpairs.shape[0]:
-                self.counter = 0
-        self.counter2 += 1
-        if self.counter2 >= discretesize:
-            self.counter2 = 0
+        self.counter += 1
+        if self.counter >= self.facetpairs.shape[0]:
+            self.counter = 0
 
         print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
 
@@ -597,11 +901,9 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         facetidx0 = facetpair[0]
         facetidx1 = facetpair[1]
 
+        # cct0 first
         for j, contactpair in enumerate(self.gripcontactpairs_precc[self.counter]):
-            # if j == 0:
             print j, contactpair
-            # for angleid in range(discretesize):
-            angleid = self.counter2
             cctpnt0 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
             cctpnt1 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
             cctnormal0 = self.gripcontactpairnormals_precc[self.counter][j][0]
@@ -625,7 +927,44 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                 # pandageom.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
                 # pandageom.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
                 #                 tmprtq85.getMat(), length=30, thickness=2)
-                tmphand.setColor([1, 1, 1, .3])
+                tmphand.setColor([0, 0, 1, .3])
+                tmphand.reparentTo(base.render)
+                self.handplotlist.append(tmphand)
+            else:
+                # for contact in result.getContacts():
+                    # cp = contact.getManifoldPoint()
+                    # pandageom.plotSphere(brchild, pos=cp.getLocalPointA(), radius=3, rgba=Vec4(1, 0, 0, 1))
+                    # pandageom.plotSphere(brchild, pos=cp.getLocalPointB(), radius=3, rgba=Vec4(0, 0, 1, 1))
+                tmphand.setColor([.5, 0, 0, .3])
+                tmphand.reparentTo(base.render)
+                self.handplotlist.append(tmphand)
+
+        # cct1 first
+        for j, contactpair in enumerate(self.flipgripcontactpairs_precc[self.counter]):
+            print j, contactpair
+            cctpnt1 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
+            cctpnt0 = contactpair[1] + plotoffsetfp * self.facetnormals[facetidx1]
+            cctnormal1 = self.flipgripcontactpairnormals_precc[self.counter][j][0]
+            cctnormal0 = [-cctnormal1[0], -cctnormal1[1], -cctnormal1[2]]
+            tmphand = self.handpkg.newHandNM(hndcolor=[.2,.7,.2,1])
+            # save initial hand pose
+            fgrcenter = (cctpnt0+cctpnt1)/2
+            fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
+            if fgrdist > self.hand.jawwidthopen:
+                continue
+            rotangle = self.flipgripcontactpairangles_precc[self.counter][j]
+            tmphand.gripAt(fgrcenter[0], fgrcenter[1], fgrcenter[2], cctnormal0[0], cctnormal0[1], cctnormal0[2], rotangle, fgrdist)
+
+            # collision detection
+
+            self.hndbullnode = cd.genCollisionMeshMultiNp(tmphand.handnp, base.render)
+            result = self.bulletworld.contactTest(self.hndbullnode)
+
+            if not result.getNumContacts():
+                # pandageom.plotDumbbell(base.render, (cctpnt0+cctpnt1)/2, cctcenter, length=245, thickness=5, rgba=[.4,.4,.4,1])
+                # pandageom.plotAxisSelf(base.render, (cctpnt0+cctpnt1)/2+245*np.array([axx[0], axx[1], axx[2]]),
+                #                 tmprtq85.getMat(), length=30, thickness=2)
+                tmphand.setColor([0, 1, 0, .3])
                 tmphand.reparentTo(base.render)
                 self.handplotlist.append(tmphand)
             else:
@@ -692,14 +1031,15 @@ if __name__=='__main__':
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
     # objpath = os.path.join(this_dir, "objects", "ttube.stl")
-    objpath = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool.stl")
+    objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
 
     handpkg = hrp5threenm
-    freegriptst = Freethreegrip(objpath, handpkg, ser=True, torqueresist = 100)
+    freegriptst = Freethreegrip(objpath, handpkg, readser=False, torqueresist = 100)
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
@@ -757,7 +1097,7 @@ if __name__=='__main__':
 
     freegriptst.removeFgrpcc(base)
     freegriptst.removeHndcc(base)
-    #
+
     gdb = db.GraspDB()
     freegriptst.saveToDB(gdb)
 
@@ -769,8 +1109,8 @@ if __name__=='__main__':
     #     # if abs(task.delayTime-13) < 1:
     #     #     task.delayTime -= 12.85
     #     return task.again
-    #
-    # taskMgr.doMethodLater(.2, updateshow, "tickTask")
+    # #
+    # taskMgr.doMethodLater(3, updateshow, "tickTask")
     # freegriptst.removeFgrpcc(base)
     # freegriptst.removeHndcc(base)
 

@@ -587,7 +587,7 @@ class RegripTpp():
         #     xyzpos = map(add, xyzglobalgrippos[placementid][angleid][str(globalgripid)],[tabletopposition[0], tabletopposition[1], tabletopposition[2]])
         #     plt.plot(xyzpos[0], xyzpos[1], 'ro')
 
-    def plotshortestpath(self, pltfig, id=None):
+    def plotshortestpath(self, pltfig, id = 0):
         """
         plot the shortest path
 
@@ -608,7 +608,7 @@ class RegripTpp():
         """
 
         for i,path in enumerate(self.directshortestpaths):
-            if i is 0:
+            if i is id:
                 pathedgestransit = []
                 pathedgestransfer = []
                 pathlength = len(path)
