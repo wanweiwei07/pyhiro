@@ -355,7 +355,7 @@ if __name__=='__main__':
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planelowerbody.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planerearstay.stl")
-    regrip = regriptpp.RegripTpp(objpath, hrp5nrobot, handpkg, gdb)
+    regrip = regriptpp.RegripTpp(objpath, hrp5nrobot, handpkg, gdb, offset = 100)
 
     # ttube
     startrotmat4 = Mat4(-4.06358332355e-17,-0.183007523417,0.98311150074,0.0,
