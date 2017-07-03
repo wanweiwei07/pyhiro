@@ -36,6 +36,17 @@ assemblyxgrippairs, assemblyxgripsp0, and assemblyxgrips1. It also updates the i
 ikassemblygrips1. Assembly (relative poses of two objects), Assemblyx: Assembly with rotation.
 5. Execute nxttppassplot.py to find one plan
 
+Delete the grasp data (in MySQL workbench):
+```sql
+SET FOREIGN_KEY_CHECKS=0;
+truncate table freegrip.tabletopplacements;
+truncate table freegrip.tabletopgrips;
+truncate table freegrip.ik;
+truncate table freegrip.freeairgrip;
+truncate table freegrip.freetabletopplacement;
+truncate table freegrip.freetabletopgrips;
+SET FOREIGN_KEY_CHECKS=1;
+
 Delete the tabletop regrasp data (in MySQL workbench):
 ```sql
 SET FOREIGN_KEY_CHECKS=0;
@@ -56,4 +67,3 @@ truncate table ikassemblyxgrips0;
 truncate table ikassemblyxgrips1;
 SET FOREIGN_KEY_CHECKS=1;
 ```
-
