@@ -599,8 +599,9 @@ if __name__=="__main__":
     from direct.filter.CommonFilters import CommonFilters
 
     from manipulation.grip.robotiq85 import rtq85nm
+    from manipulation.grip.hrp5three import hrp5threenm
 
-    base = pandactrl.World()
+    base = pandactrl.World(camp=[2000,0,500], lookatp=[0,0,0])
 
     nxtrobot = NxtRobot()
     nxtrobot.goinitpose()
@@ -612,6 +613,7 @@ if __name__=="__main__":
 
     import nxtplot
     handpkg = rtq85nm
+    # handpkg = hrp5threenm
     nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
     nxtmnp.reparentTo(base.render)
 
@@ -643,10 +645,10 @@ if __name__=="__main__":
     #     nxtrobot.movearmfk(armjntsgoal6, armid)
     #     nxtmnp = nxtplot.genmnp_nm(nxtrobot, handpkg, plotcolor=[1,0,1,.51])
     #     nxtmnp.reparentTo(base.render)
-
-    dcam = loader.loadShader('dcam.sha')
-    # render everything through this camera and shader
-    base.render.setShader(dcam)
-    # loadPrcFileData('', 'show-buffers 1')
+    #
+    # dcam = loader.loadShader('dcam.sha')
+    # # render everything through this camera and shader
+    # base.render.setShader(dcam)
+    # # loadPrcFileData('', 'show-buffers 1')
 
     base.run()

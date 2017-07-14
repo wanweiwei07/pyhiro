@@ -396,8 +396,11 @@ class FreeTabletopPlacement(object):
         """
 
         for i in range(len(self.tpsmat4s)):
-            if i == 0:
+            if i == 1:
                 objrotmat  = self.tpsmat4s[i]
+                # objrotmat.setRow(0, -objrotmat.getRow3(0))
+                rotzmat = Mat4.rotateMat(0, Vec3(0,0,1))
+                objrotmat = objrotmat*rotzmat
                 # show object
                 geom = pg.packpandageom(self.objtrimesh.vertices,
                                         self.objtrimesh.face_normals,
@@ -406,15 +409,16 @@ class FreeTabletopPlacement(object):
                 node.addGeom(geom)
                 star = NodePath('obj')
                 star.attachNewNode(node)
-                star.setColor(Vec4(.77,0.67,0,1))
+                star.setColor(Vec4(.7,0.3,0,1))
                 star.setTransparency(TransparencyAttrib.MAlpha)
                 star.setMat(objrotmat)
                 star.reparentTo(base.render)
-                for j in range(len(self.tpsgriprotmats[i])):
+                # for j in range(len(self.tpsgriprotmats[i])):
+                for j in range(13,14):
                     hndrotmat = self.tpsgriprotmats[i][j]
                     hndjawwidth = self.tpsgripjawwidth[i][j]
                     # show grasps
-                    tmphnd = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .1])
+                    tmphnd = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .5])
                     tmphnd.setMat(hndrotmat)
                     tmphnd.setJawwidth(hndjawwidth)
                     # tmprtq85.setJawwidth(80)
@@ -456,9 +460,9 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
-    objpath = os.path.join(this_dir, "objects", "tool2.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
@@ -466,8 +470,8 @@ if __name__ == '__main__':
     print objpath
 
     from manipulation.grip.hrp5three import hrp5threenm
-    handpkg = hrp5threenm
-    # handpkg = rtq85nm
+    # handpkg = hrp5threenm
+    handpkg = rtq85nm
     gdb = db.GraspDB()
     tps = FreeTabletopPlacement(objpath, handpkg, gdb)
 

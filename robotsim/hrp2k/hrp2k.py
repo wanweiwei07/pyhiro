@@ -11,7 +11,7 @@ class Hrp2KRobot():
         # the remaining 14 are for each of the two 7-dof arms
         self.__name = 'hrp2k'
         # initjnts[0] = waist, 0,0 = head, 45,-20,0,-75,0,0,0 = rgt, 45,20,0,-75,0,0,0 = lft
-        self.__initjnts = np.array([0,0,0,-45,-20,0,-75,0,45,0,-45,20,0,-75,0,-45,0]);
+        self.__initjnts = np.array([0,0,0,-45,-70,0,-55,0,45,0,-45,70,0,-55,0,-45,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         # define the target joints for ik
@@ -607,11 +607,12 @@ if __name__=="__main__":
     # import hrp5nmesh
     from manipulation.grip.hrp5three import hrp5threenm
     from manipulation.grip.robotiq85 import rtq85nm
+    from manipulation.suction.sandmmbs import sdmbs
 
     # loadPrcFileData("", "want-directtools #t")
     # loadPrcFileData("", "want-tk #t")
 
-    base = pandactrl.World()
+    base = pandactrl.World(camp=[700,0,1200], lookatp=[0,0,0])
 
     hrp2krobot = Hrp2KRobot()
     # hrp2krobot.goinitpose()
@@ -619,10 +620,11 @@ if __name__=="__main__":
 
     import hrp2kplot
 
-    hrp2kplot.plotstick(base.render, hrp2krobot)
+    # hrp2kplot.plotstick(base.render, hrp2krobot)
 
-    handpkg = hrp5threenm
-    # handpkg = rtq85nm
+    # handpkg = hrp5threenm
+    handpkg = rtq85nm
+    # handpkg = sdmbs
     hrp2kmnp = hrp2kplot.genmnp(hrp2krobot, handpkg)
     hrp2kmnp.reparentTo(base.render)
 
@@ -644,27 +646,27 @@ if __name__=="__main__":
     # lfthnd
     # objpos = np.array([180,130,100])
     # objrot = np.array([[0,0,-1],[1,0,0],[0,-1,0]])
-    armid="rgt"
-    armjntsgoal = hrp2krobot.numik(objpos, objrot, armid)
-    if armjntsgoal is not None:
-        hrp2krobot.movearmfk(armjntsgoal, armid)
-        hrp2kplot.plotstick(base.render, hrp2krobot)
-        handpkg = rtq85nm
-        hrp2kmnp_nm = hrp2kplot.genmnp_nm(hrp2krobot, handpkg)
-        hrp2kmnp_nm.setColor(.7,.2,0.7,.1)
-        # hrp2kmnp_nm.reparentTo(base.render)
-
-    armid="lft"
-    objpos = np.array([500,290,50])
-    objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
-    armjntsgoal = hrp2krobot.numik(objpos, objrot, armid)
-    if armjntsgoal is not None:
-        hrp2krobot.movearmfk(armjntsgoal, armid)
-        hrp2kplot.plotstick(base.render, hrp2krobot)
-        handpkg = rtq85nm
-        hrp2kmnp_nm = hrp2kplot.genmnp_nm(hrp2krobot, handpkg)
-        hrp2kmnp_nm.setColor(.7,.2,0.7,1)
-        # hrp2kmnp_nm.reparentTo(base.render)
+    # armid="rgt"
+    # armjntsgoal = hrp2krobot.numik(objpos, objrot, armid)
+    # if armjntsgoal is not None:
+    #     hrp2krobot.movearmfk(armjntsgoal, armid)
+    #     hrp2kplot.plotstick(base.render, hrp2krobot)
+    #     handpkg = rtq85nm
+    #     hrp2kmnp_nm = hrp2kplot.genmnp_nm(hrp2krobot, handpkg)
+    #     hrp2kmnp_nm.setColor(.7,.2,0.7,.1)
+    #     # hrp2kmnp_nm.reparentTo(base.render)
+    #
+    # armid="lft"
+    # objpos = np.array([500,290,50])
+    # objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
+    # armjntsgoal = hrp2krobot.numik(objpos, objrot, armid)
+    # if armjntsgoal is not None:
+    #     hrp2krobot.movearmfk(armjntsgoal, armid)
+    #     hrp2kplot.plotstick(base.render, hrp2krobot)
+    #     handpkg = rtq85nm
+    #     hrp2kmnp_nm = hrp2kplot.genmnp_nm(hrp2krobot, handpkg)
+    #     hrp2kmnp_nm.setColor(.7,.2,0.7,1)
+    #     # hrp2kmnp_nm.reparentTo(base.render)
 
 
     startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,305.252044678,-400.073120117,-55.0000038147,1.0)

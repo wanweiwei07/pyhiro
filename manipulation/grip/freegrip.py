@@ -552,7 +552,8 @@ class Freegrip(fgcp.FreegripContactpairs):
             hndrotmat = self.griprotmats[i]
             hndjawwidth = self.gripjawwidth[i]
             # show grasps
-            tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[.7, .7, 0.7, .7])
+            # tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[.7, .7, 0.7, .7])
+            tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .5])
             tmprtq85.setMat(hndrotmat)
             tmprtq85.setJawwidth(hndjawwidth)
             # tmprtq85.setJawwidth(80)
@@ -584,9 +585,9 @@ if __name__=='__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,100])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
-    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
-    objpath = os.path.join(this_dir, "objects", "tool2.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")

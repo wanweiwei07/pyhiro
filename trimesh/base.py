@@ -881,7 +881,7 @@ class Trimesh(object):
     # def facets_depth(self, return_area=False):
     #     return graph.facets_depth(self)
 
-    def facets_over(self, faceangle=.9):
+    def facets_over(self, faceangle=.9, segangle = .9):
         """
         Compute facets using oversegmentation
 
@@ -897,7 +897,7 @@ class Trimesh(object):
         if cached is not None:
             return cached
 
-        facets, facetnormals = graph.facets_over(self, faceangle)
+        facets, facetnormals = graph.facets_over(self, faceangle, segangle)
         result = [facets, facetnormals]
         self._cache[key] = result
         return result

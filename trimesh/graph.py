@@ -200,12 +200,13 @@ def facets(mesh):
     return facets_nx()
 
 
-def facets_over(mesh, faceangle=.9):
+def facets_over(mesh, faceangle=.9, segangle = .9):
     """
     compute the clusters using mesh oversegmentation
 
     :param mesh: Trimesh object
     :param faceangle: the angle between two adjacent faces that are taken as coplanar
+    :param segangle: the angle between two adjacent segmentations that are taken as coplanar
     :return: the same as facets
 
     author: weiwei
@@ -331,7 +332,7 @@ def facets_over(mesh, faceangle=.9):
     knownfacets = []
     for i in faceids:
         if knownfacetnormals.size:
-            potentialfacetsidx = np.where(np.dot(knownfacetnormals, mesh.face_normals[i]) > faceangle)[0]
+            potentialfacetsidx = np.where(np.dot(knownfacetnormals, mesh.face_normals[i]) > segangle)[0]
             potentialfaceids = []
             if potentialfacetsidx.size:
                 for pfi in potentialfacetsidx:

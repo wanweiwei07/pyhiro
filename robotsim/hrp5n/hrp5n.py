@@ -672,6 +672,7 @@ if __name__=="__main__":
     from direct.filter.CommonFilters import CommonFilters
     import hrp5nmesh
     from manipulation.grip.hrp5three import hrp5threenm
+    from manipulation.grip.robotiq85 import rtq85nm
 
     # loadPrcFileData("", "want-directtools #t")
     # loadPrcFileData("", "want-tk #t")
@@ -685,6 +686,7 @@ if __name__=="__main__":
     hrp5nplot.plotstick(base.render, hrp5nrobot)
 
     handpkg = hrp5threenm
+    handpkg = rtq85nm
     hrp5nmeshgen = hrp5nmesh.Hrp5NMesh(handpkg)
     hrp5nmnp = hrp5nmeshgen.genmnp(hrp5nrobot)
     hrp5nmnp.reparentTo(base.render)
@@ -709,7 +711,7 @@ if __name__=="__main__":
     if armjntsgoal is not None:
         hrp5nrobot.movearmfkr(armjntsgoal, armid)
         hrp5nmnp = hrp5nmeshgen.genmnp(hrp5nrobot)
-        hrp5nmnp.reparentTo(base.render)
+        # hrp5nmnp.reparentTo(base.render)
 
 
     startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,305.252044678,-400.073120117,-55.0000038147,1.0)
@@ -720,7 +722,7 @@ if __name__=="__main__":
     objpath = os.path.join(os.path.split(this_dir)[0], "../manipulation/grip", "objects", "tool.stl")
     objmnp = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))
     objmnp.setMat(startrotmat4)
-    objmnp.reparentTo(base.render)
+    # objmnp.reparentTo(base.render)
     # goal hand
     # from manipulation.grip.robotiq85 import rtq85nm
     # hrp5robotrgthnd = rtq85nm.Rtq85NM()
@@ -741,7 +743,7 @@ if __name__=="__main__":
     # # nxtplot.plotmesh(base, nxtrobot)
     # # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
     # pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,0,1])
-    pg.plotAxisSelf(base.render, objpos, pg.npToMat4(objrot))
+    # pg.plotAxisSelf(base.render, objpos, pg.npToMat4(objrot))
     # pg.plotArrow(base.render, hrp5robot.rgtarm[8]['linkpos'], hrp5robot.rgtarm[8]['linkpos']+hrp5robot.rgtarm[8]['rotax']*1000)
     #
     # # nxtrobot.movearmfk6(armjntsgoal)

@@ -47,7 +47,7 @@ class Sdmbs():
     def setColor(self, r, g, b, a):
         self.__sdmbs.setColor(r,g,b,a)
 
-    def setPose(self, pgvec3):
+    def setPos(self, pgvec3):
         """
         set the pose of the hand
         changes self.rtq85np
@@ -57,6 +57,15 @@ class Sdmbs():
         """
 
         self.__sdmbs.setPos(pgvec3)
+
+    def getPos(self):
+        """
+        get the pose of the hand
+
+        :return:npvec3
+        """
+
+        return self.__sdmbs.getPos()
 
     def setMat(self, pgrotmat4):
         """
@@ -165,7 +174,10 @@ class Sdmbs():
 
         self.__sdmbs.setMat(Mat4.identMat())
 
-def newHandNM(hndcolor = [1,0,0,.1]):
+def newHandNM(hndid = 'rgt', hndcolor = [1,0,0,.1]):
+    return Sdmbs(Vec4(hndcolor[0], hndcolor[1], hndcolor[2], hndcolor[3]))
+
+def newHand(hndid = 'rgt', hndcolor = [.5,.5,.5,1]):
     return Sdmbs(Vec4(hndcolor[0], hndcolor[1], hndcolor[2], hndcolor[3]))
 
 if __name__=='__main__':

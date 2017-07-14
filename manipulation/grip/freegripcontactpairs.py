@@ -60,7 +60,8 @@ class FreegripContactpairs(object):
     def loadObjModel(self, ompath):
         self.objtrimesh=trimesh.load_mesh(ompath)
         # oversegmentation
-        self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.95)
+        self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.95, segangle = .95)
+        # self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.95)
         # conventional approach
         # self.facets = self.objtrimesh.facets()
         # self.facetnormals = []
@@ -554,11 +555,11 @@ class FreegripContactpairs(object):
                                             epos=apnt + plotoffsetf*i*self.facetnormals[i] + self.objsamplenrmls_refcls[i][j],
                                             rgba=rgbapnts2, length=10)
             if specificface:
-                plotoffsetf = .1
+                plotoffsetf = .3
                 if faceplotted:
                     continue
                 else:
-                    if len(self.objsamplepnts[i])>25:
+                    if len(self.objsamplepnts[i])>85:
                         faceplotted = True
                         geom = pandageom.packpandageom(self.objtrimesh.vertices+np.tile(plotoffsetf*i*self.facetnormals[i],
                                                                                         [self.objtrimesh.vertices.shape[0],1]),
@@ -568,6 +569,7 @@ class FreegripContactpairs(object):
                         star = NodePath('piece')
                         star.attachNewNode(node)
                         star.setColor(Vec4(facetcolorarray[i][0], facetcolorarray[i][1], facetcolorarray[i][2], 1))
+                        star.setColor(Vec4(.7,.3,.3, 1))
                         star.setTransparency(TransparencyAttrib.MAlpha)
 
                         star.setTwoSided(True)
@@ -604,7 +606,7 @@ class FreegripContactpairs(object):
         # the following sentence requires segshow to be executed first
         facetcolorarray = self.facetcolorarray
         # offsetfp = facetpair
-        plotoffsetfp = 10
+        plotoffsetfp = np.random.random()*50
         # plot the pairs and their contacts
         # for i in range(self.counter+1, len(self.facetpairs)):
         #     if self.gripcontactpairs[i]:
@@ -613,15 +615,16 @@ class FreegripContactpairs(object):
         # if i is len(self.facetpairs):
         #     return
         # delete the facetpair after show
-        np0 = base.render.find("**/pair0")
-        if np0:
-            np0.removeNode()
-        np1 = base.render.find("**/pair1")
-        if np1:
-            np1.removeNode()
+        # np0 = base.render.find("**/pair0")
+        # if np0:
+        #     np0.removeNode()
+        # np1 = base.render.find("**/pair1")
+        # if np1:
+        #     np1.removeNode()
         self.counter += 1
         if self.counter >= self.facetpairs.shape[0]:
-            self.counter = 0
+            # self.counter = 0
+            return
         facetpair = self.facetpairs[self.counter]
         facetidx0 = facetpair[0]
         facetidx1 = facetpair[1]
@@ -648,8 +651,11 @@ class FreegripContactpairs(object):
         node1.addGeom(geomfacet1)
         star1 = NodePath('pair1')
         star1.attachNewNode(node1)
-        star1.setColor(Vec4(facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
-                           facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]))
+        # star1.setColor(Vec4(facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
+        #                    facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]))
+        # set to the same color
+        star1.setColor(Vec4(facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
+                           facetcolorarray[facetidx0][2], facetcolorarray[facetidx0][3]))
         star1.setTwoSided(True)
         star1.reparentTo(base.render)
         if togglecontacts:
@@ -659,9 +665,13 @@ class FreegripContactpairs(object):
                 pandageom.plotSphere(star0, pos=cttpnt0+plotoffsetfp*self.facetnormals[facetidx0], radius=4,
                                      rgba=[facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
                                            facetcolorarray[facetidx0][2], facetcolorarray[facetidx0][3]])
+                # pandageom.plotSphere(star1, pos=cttpnt1+plotoffsetfp*self.facetnormals[facetidx1], radius=4,
+                #                      rgba=[facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
+                #                            facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]])
+                # use the same color
                 pandageom.plotSphere(star1, pos=cttpnt1+plotoffsetfp*self.facetnormals[facetidx1], radius=4,
-                                     rgba=[facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
-                                           facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]])
+                                     rgba=[facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
+                                           facetcolorarray[facetidx0][2], facetcolorarray[facetidx0][3]])
         if togglecontactnormals:
             for j, contactpair in enumerate(self.gripcontactpairs[self.counter]):
                 cttpnt0 = contactpair[0]
@@ -671,11 +681,17 @@ class FreegripContactpairs(object):
                                      self.gripcontactpairnormals[self.counter][j][0],
                                 rgba=[facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
                                       facetcolorarray[facetidx0][2], facetcolorarray[facetidx0][3]], length=10)
-                pandageom.plotArrow(star1,  spos=cttpnt1+plotoffsetfp*self.facetnormals[facetidx1],
+                # pandageom.plotArrow(star1,  spos=cttpnt1+plotoffsetfp*self.facetnormals[facetidx1],
+                #                 epos=cttpnt1 + plotoffsetfp*self.facetnormals[facetidx1] +
+                #                      self.gripcontactpairnormals[self.counter][j][1],
+                #                 rgba=[facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
+                #                       facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]], length=10)
+                # use the same color
+                pandageom.plotArrow(star1, spos=cttpnt1+plotoffsetfp*self.facetnormals[facetidx1],
                                 epos=cttpnt1 + plotoffsetfp*self.facetnormals[facetidx1] +
                                      self.gripcontactpairnormals[self.counter][j][1],
-                                rgba=[facetcolorarray[facetidx1][0], facetcolorarray[facetidx1][1],
-                                      facetcolorarray[facetidx1][2], facetcolorarray[facetidx1][3]], length=10)
+                                rgba=[facetcolorarray[facetidx0][0], facetcolorarray[facetidx0][1],
+                                      facetcolorarray[facetidx0][2], facetcolorarray[facetidx0][3]], length=10)
                 # break
         # except:
         #     print "You might need to loadmodel first!"
@@ -695,33 +711,35 @@ if __name__=='__main__':
     #
 
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
-    # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
+    objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
+    # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
     freegriptst = FreegripContactpairs(objpath)
     print len(freegriptst.objtrimesh.faces)
     # freegriptst.objtrimesh.show()
 
-    base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
-    freegriptst.removeBadSamples()
+    base = pandactrl.World(camp=[0,700,0], lookatp=[0,0,0])
+    freegriptst.removeBadSamples(mindist=2, maxdist=20)
     # freegriptst.clusterFacetSamplesKNN(reduceRatio=15, maxNPnts=5)
-    freegriptst.clusterFacetSamplesRNN(reduceRadius=10)
+    freegriptst.clusterFacetSamplesRNN(reduceRadius=11)
     freegriptst.planContactpairs()
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=False, togglenormals_refcls=False)
+                        togglesamples_refcls=False, togglenormals_refcls=False, alpha = 1)
 
     # objnp = pandageom.packpandanp(freegriptst.objtrimesh.vertices,
     #                               freegriptst.objtrimesh.face_normals, freegriptst.objtrimesh.faces)
-    # objnp.setColor(.7,.5,.3,1)
+    # objnp.setColor(.3,.3,.3,1)
     # objnp.reparentTo(base.render)
 
-    # freegriptst.segShow2(base, togglesamples=True, togglenormals=False,
+    # freegriptst.segShow2(base, togglesamples=False, togglenormals=False,
     #                     togglesamples_ref=False, togglenormals_ref=False,
-    #                     togglesamples_refcls=False, togglenormals_refcls=False, specificface = False)
+    #                     togglesamples_refcls=True, togglenormals_refcls=False, specificface = True)
     #
     # def updateshow0(freegriptst, task):
     #     npc = base.render.findAllMatches("**/piece")
@@ -764,13 +782,13 @@ if __name__=='__main__':
     # taskMgr.doMethodLater(30, updateshow2, "tickTask", extraArgs=[freegriptst], appendTask=True)
     # base.run()
 
-    def updateshow(task):
-        freegriptst.pairShow(base, togglecontacts=True, togglecontactnormals=True)
-        print task.delayTime
-        if abs(task.delayTime-13) < 1:
-            task.delayTime -= 12.85
-        return task.again
-    taskMgr.doMethodLater(1, updateshow, "tickTask")
+    # def updateshow(task):
+    #     freegriptst.pairShow(base, togglecontacts=True, togglecontactnormals=True)
+    #     print task.delayTime
+    #     # if abs(task.delayTime-13) < 1:
+    #     #     task.delayTime -= 12.85
+    #     return task.again
+    # taskMgr.doMethodLater(.1, updateshow, "tickTask")
 
     # geom = None
     # for i, faces in enumerate(freegriptst.objtrimesh.facets()):

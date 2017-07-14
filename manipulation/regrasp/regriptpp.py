@@ -34,7 +34,7 @@ import random
 # regriptpp means regrip using tabletop placements
 class RegripTpp():
 
-    def __init__(self, objpath, robot, handpkg, gdb):
+    def __init__(self, objpath, robot, handpkg, gdb, offset = -55):
         self.objtrimesh=trimesh.load_mesh(objpath)
         self.handpkg = handpkg
         self.handname = handpkg.getHandName()
@@ -54,7 +54,7 @@ class RegripTpp():
 
         # plane to remove hand
         self.bulletworld = BulletWorld()
-        self.planebullnode = cd.genCollisionPlane(offset = -55)
+        self.planebullnode = cd.genCollisionPlane(offset = offset)
         self.bulletworld.attachRigidBody(self.planebullnode)
 
         # add tabletop plane model to bulletworld

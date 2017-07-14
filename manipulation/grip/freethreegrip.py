@@ -37,7 +37,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
         if readser is False:
             self.removeBadSamples()
-            self.clusterFacetSamplesRNN(reduceRadius=20)
+            self.clusterFacetSamplesRNN(reduceRadius=5)
             self.planContactpairs(torqueresist, self.hand.jawwidthopen)
             self.saveSerialized("tmpcp.pickle")
         else:
@@ -207,7 +207,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.flipgripcontactpairangles_precc = []
 
         plotoffsetfp = 6
-        contactdifference = 3
+        contactdifference = 4.5
 
         self.counter = 0
 
@@ -411,7 +411,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
             if len(returnlist) != 0:
                 idobject = returnlist[0][0]
             else:
-                sql = "INSERT INTO object(objname) VALUES('%s')" % self.dbobjname
+                sql = "INSERT INTO object(name) VALUES('%s')" % self.dbobjname
                 idobject = gdb.execute(sql)
             print self.gripcontacts
             for i in range(len(self.gripcontacts)):
@@ -999,7 +999,8 @@ class Freethreegrip(fgcp.FreegripContactpairs):
             hndrotmat = self.griprotmats[i]
             hndjawwidth = self.gripjawwidth[i]
             # show grasps
-            tmphand = handpkg.newHandNM(hndcolor=[.2, .7, .2, .3])
+            # tmphand = handpkg.newHandNM(hndcolor=[.2, .7, .2, .3])
+            tmphand = handpkg.newHandNM(hndcolor=[1, 1, 1, .7])
             tmphand.setMat(hndrotmat)
             tmphand.setJawwidth(hndjawwidth)
             tmphand.reparentTo(base.render)
@@ -1030,9 +1031,9 @@ if __name__=='__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
-    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
-    objpath = os.path.join(this_dir, "objects", "tool2.stl")
+    # objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
@@ -1043,7 +1044,7 @@ if __name__=='__main__':
 
     freegriptst.segShow(base, togglesamples=False, togglenormals=False,
                         togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=True, togglenormals_refcls=False, alpha =.1)
+                        togglesamples_refcls=False, togglenormals_refcls=False, alpha =1)
 
     # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
@@ -1098,8 +1099,8 @@ if __name__=='__main__':
     freegriptst.removeFgrpcc(base)
     freegriptst.removeHndcc(base)
 
-    gdb = db.GraspDB()
-    freegriptst.saveToDB(gdb)
+    # gdb = db.GraspDB()
+    # freegriptst.saveToDB(gdb)
 
     # def updateshow(task):
     #     # freegriptst.removeFgrpccShow(base)

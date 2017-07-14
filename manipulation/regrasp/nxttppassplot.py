@@ -510,6 +510,18 @@ if __name__=='__main__':
     #                  500,350,-50.0,1.0)
     # assDirect1to0 = Vec3(0, -70, 0)
 
+    # initial plot
+    # nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
+    # nxtmnp.reparentTo(base.render)
+    # obj0mnp = pg.genObjmnp(obj0path, color = Vec4(.7,.3,0,1))
+    # obj0mnp.setMat(sprotmat4)
+    # obj1mnp = pg.genObjmnp(obj1path, color=Vec4(0, .3, .7, 1))
+    # obj1mnp.setMat(whrotmat4)
+    # obj0mnp.reparentTo(base.render)
+    # obj1mnp.reparentTo(base.render)
+    #
+    # base.run()
+
     regrip = regriptppass.RegripTppAss(base, obj0path, obj0Mat4, obj1path, obj1Mat4, assDirect1to0, gdb, nxtrobot, handpkg)
 
     import time

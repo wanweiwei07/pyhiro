@@ -198,7 +198,7 @@ class FloatingPoses(object):
         """
 
         sql = "SELECT * FROM floatingposes, object WHERE floatingposes.idobject = object.idobject \
-                        AND object.objname LIKE '%s'" % self.dbobjname
+                        AND object.name LIKE '%s'" % self.dbobjname
         result = self.gdb.execute(sql)
         if len(result) == 0:
             # the gridsfloatingposes for the self.dbobjname is not saved
@@ -213,7 +213,7 @@ class FloatingPoses(object):
         sql = "SELECT * FROM floatinggrips,floatingposes,object,freeairgrip,hand WHERE \
                         floatinggrips.idfloatingposes = floatingposes.idfloatingposes AND \
                         floatingposes.idobject = object.idobject AND \
-                        object.objname LIKE '%s' AND floatinggrips.idfreeairgrip=freeairgrip.idfreeairgrip AND \
+                        object.name LIKE '%s' AND floatinggrips.idfreeairgrip=freeairgrip.idfreeairgrip AND \
                         freeairgrip.idhand = hand.idhand AND hand.name LIKE '%s'" % (self.dbobjname, self.handpkg.getHandName())
         result = self.gdb.execute(sql)
         if len(result) == 0:
@@ -682,16 +682,17 @@ class FloatingPoses(object):
 
         objnp = pg.packpandanp(self.objtrimesh.vertices, self.objtrimesh.face_normals, self.objtrimesh.faces)
         objnp.setMat(self.gridsfloatingposemat4s[fpid])
+        objnp.setColor(Vec4(.7,0.3,0,1))
         objnp.reparentTo(parentnp)
         print self.floatinggrippairshndmat4s[fpid]
         for i, hndrotmat4pair in enumerate(self.floatinggrippairshndmat4s[fpid]):
-            # if i == 2:
+            # if i == 6:
             # show grasps
-            hand0 = self.handpkg.newHandNM(hndcolor=[1, 1, 0, 1])
+            hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .5])
             hand0.setMat(hndrotmat4pair[0])
             hand0.setJawwidth(self.floatinggrippairsjawwidths[fpid][i][0])
             hand0.reparentTo(parentnp)
-            hand1 = self.handpkg.newHandNM(hndcolor=[0, 1, 1, 1])
+            hand1 = self.handpkg.newHandNM(hndcolor=[0, .0, 1, .5])
             hand1.setMat(hndrotmat4pair[1])
             hand1.setJawwidth(self.floatinggrippairsjawwidths[fpid][i][1])
             hand1.reparentTo(parentnp)
@@ -723,21 +724,22 @@ if __name__=="__main__":
     # updateDBwithIK compute the ik feasible FGs
     # loadIKFeasibleFGPairsFromDB load DBFGpairs and DBwithIK and compute the IK-feasible FGpairs
 
-    grids = []
-    for x in range(400,401,100):
-        for y in [0]:
-            for z in range(400,401,100):
-                grids.append([x,y,z])
-    fpose.genFPandGs(grids)
-    fpose.saveToDB()
-    fpose.updateDBwithFGPairs()
-    nxtrobot = nextage.NxtRobot()
+    # grids = []
+    # for x in range(400,401,100):
+    #     for y in [0]:
+    #         for z in range(400,401,100):
+    #             grids.append([x,y,z])
+    # fpose.genFPandGs(grids)
+    # fpose.saveToDB()
+    fpose.loadFromDB()
+    # fpose.updateDBwithFGPairs()
+    nxtrobot = nxt.NxtRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):
     #     fpose.plotOneFPandG(base.render, i)
     fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
     # fpose.plotOneFPandG(base.render, 0)
-    fpose.plotOneFPandGPairs(base.render, 3)
+    fpose.plotOneFPandGPairs(base.render, 2)
 
     poseid = [0]
 
