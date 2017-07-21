@@ -8,10 +8,18 @@ import os
 import numpy as np
 import math
 
-
 class World(ShowBase, object):
 
-    def __init__(self, camp=[2000,500,2000], lookatp=[0,0,250], fov = 40):
+    def __init__(self, camp=[2000,500,2000], lookatp=[0,0,250], fov = 40, w = 2000, h = 1500):
+        """
+
+        :param camp:
+        :param lookatp:
+        :param fov:
+        :param w: width of window
+        :param h: height of window
+        """
+
         super(self.__class__, self).__init__()
         self.setBackgroundColor(1, 1, 1)
 
@@ -60,6 +68,11 @@ class World(ShowBase, object):
         # set up rotational cam
         # self.lookatp = lookatp
         # taskMgr.doMethodLater(.1, self.rotateCam, "rotate cam")
+
+        # set window size
+        props = WindowProperties()
+        props.setSize(w, h)
+        self.win.requestProperties(props)
 
     def cycleUpdate(self, task):
         # reset aspect ratio

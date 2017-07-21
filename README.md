@@ -46,6 +46,7 @@ truncate table freegrip.freeairgrip;
 truncate table freegrip.freetabletopplacement;
 truncate table freegrip.freetabletopgrips;
 SET FOREIGN_KEY_CHECKS=1;
+```
 
 Delete the tabletop regrasp data (in MySQL workbench):
 ```sql

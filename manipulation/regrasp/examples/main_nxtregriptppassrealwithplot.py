@@ -468,9 +468,9 @@ if __name__=='__main__':
     base = pandactrl.World(camp=[3000,0,1000], lookatp=[0,0,400])
 
     this_dir, this_filename = os.path.split(__file__)
-    obj0path = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planefrontstay.stl")
+    obj0path = os.path.join(os.path.split(os.path.split(this_dir)[0])[0]+os.sep, "grip", "objects", "planefrontstay.stl")
     obj0Mat4 = Mat4.identMat()
-    obj1path = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planewheel.stl")
+    obj1path = os.path.join(os.path.split(os.path.split(this_dir)[0])[0]+os.sep, "grip", "objects", "planewheel.stl")
     obj1Mat4 = Mat4(obj0Mat4)
     obj1Mat4.setCell(3,1,32)
     obj1Mat4.setCell(3,2,10)

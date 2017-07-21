@@ -223,6 +223,24 @@ def remove_close(points, radius):
         unique[i]           = True
     return points[unique]
 
+
+def remove_close_withfaceid(points, face_index, radius):
+    '''
+    Given an (n, m) set of points where n=(2|3) return a list of points
+    where no point is closer than radius
+    '''
+    from scipy.spatial import cKDTree as KDTree
+
+    tree     = KDTree(points)
+    consumed = np.zeros(len(points), dtype=np.bool)
+    unique   = np.zeros(len(points), dtype=np.bool)
+    for i in range(len(points)):
+        if consumed[i]: continue
+        neighbors = tree.query_ball_point(points[i], r=radius)
+        consumed[neighbors] = True
+        unique[i] = True
+    return points[unique], face_index[unique]
+
 def remove_close_set(points_fixed, points_reduce, radius):
     '''
     Given two sets of points and a radius, return a set of points

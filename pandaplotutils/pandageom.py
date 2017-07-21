@@ -911,8 +911,8 @@ def facetboundary(objtrimesh, facet, facetcenter, facetnormal):
     """
     compute a boundary polygon for facet
     assumptions:
-    1. there should be only one boundary
-    2. the facet should be convex
+    1. there is only one boundary
+    2. the facet is convex
 
     :param objtrimesh: a datatype defined in trimesh
     :param facet: a data type defined in trimesh

@@ -212,6 +212,8 @@ class RegripTpp():
             for globalidedgesid in globalidsedges:
                 for edge in list(itertools.combinations(globalidsedges[globalidedgesid], 2)):
                     self.regg.add_edge(*edge, weight=1, edgetype = 'transfer')
+        else:
+            assert('No placements planned!')
 
     def __addstartgoal(self, startrotmat4, goalrotmat4, base):
         """

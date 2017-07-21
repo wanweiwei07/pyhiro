@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib import collections as mc
 from mpl_toolkits.mplot3d import art3d as mc3d
 from operator import add
-from robotsim.nextage import nextage
+from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
 from database import dbaccess as db
 
@@ -80,7 +80,7 @@ class RegripTppFp():
         # for assembly at start and goal, worlda is computed by assembly planner
         self.worlda = Vec3(0,0,1)
 
-        self.floatingposes = floatingposes.FloatingPoses(objpath, gdb, handpkg, base, serfgps=True)
+        self.floatingposes = floatingposes.FloatingPoses(objpath, gdb, handpkg, base)
         self.floatingposes.loadIKFeasibleFGPairsFromDB(robot)
 
         # loadfreeairgrip
@@ -1126,8 +1126,8 @@ if __name__=='__main__':
     gdb = db.GraspDB()
 
     handpkg = rtq85nm
-    hrp5robot = hrp5.Hrp5Robot()
-    nxtrobot = nextage.NxtRobot()
+    hrp5nrobot = hrp5n.Hrp5Robot()
+    nxtrobot = nxt.NxtRobot()
 
     base = pandactrl.World(camp=[700,300,600], lookatp=[0,0,0])
 

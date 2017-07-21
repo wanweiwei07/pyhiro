@@ -56,7 +56,24 @@ def align_vectors(vector_start, vector_end, return_angle=False):
     
     vector_end == np.dot(T, np.append(vector_start, 1))[0:3]
     '''
-    
+
+    # the following code is added by weiwei on 07212017
+    # to correct the problems of same vectors and inverse vectors
+    if np.array_equal(vector_start, vector_end):
+        T = np.eye(4)
+        angle = 0.0
+        if return_angle:
+            return T, angle
+        return T
+    if np.array_equal(-vector_start, vector_end):
+        T = np.eye(4)
+        T[:3, 2] *= -1.0
+        T[:3, 1] *= -1.0
+        angle = np.pi
+        if return_angle:
+            return T, angle
+        return T
+
     vector_start = unitize(vector_start)
     vector_end   = unitize(vector_end)
     cross        = np.cross(vector_start, vector_end)
@@ -70,7 +87,7 @@ def align_vectors(vector_start, vector_end, return_angle=False):
         # and no rotation is needed
         T       = np.eye(4)
         T[0:3] *= direction
-    else:  
+    else:
         angle = np.arcsin(norm) 
         if direction < 0:
             angle = np.pi - angle

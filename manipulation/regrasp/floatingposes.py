@@ -37,13 +37,12 @@ class FloatingPoses(object):
     "s" is attached to the end of "floatingposes"
     """
 
-    def __init__(self, objpath, gdb, handpkg, base, serfgps = False):
+    def __init__(self, objpath, gdb, handpkg, base):
         """
         initialization
 
         :param objpath: path of the object
         :param base: for the loadFreeAirGrip --> genHandPairs functions (for collision detection)
-        :param serfgps: whether use serialized (true) or not (false)
 
         author: weiwei
         date: 20161215, tsukuba
@@ -73,7 +72,7 @@ class FloatingPoses(object):
 
         self.gdb = gdb
 
-        self.__loadFreeAirGrip(base, serfgps)
+        self.__loadFreeAirGrip(base)
 
         # for IK
         self.floatinggripikfeas_rgt = []
@@ -91,7 +90,7 @@ class FloatingPoses(object):
 
         self.__genPandaRotmat4()
 
-    def __loadFreeAirGrip(self, base, serfgps):
+    def __loadFreeAirGrip(self, base):
         """
         load self.freegripids, etc. from mysqldatabase
 
@@ -111,8 +110,6 @@ class FloatingPoses(object):
         self.freegripnormals = freeairgripdata[2]
         self.freegriprotmats = freeairgripdata[3]
         self.freegripjawwidth = freeairgripdata[4]
-
-        self.genHandPairs(base, serfgps)
 
     def __genPandaRotmat4(self, icolevel=1, angles=[0,45,90,135,180,225,270,315]):
         """
@@ -141,9 +138,9 @@ class FloatingPoses(object):
             self.objnp.setMat(initmat4)
         self.floatingposemat4 = [e for l in self.mat4list for e in l]
 
-    def genHandPairs(self, base, ser=False):
+    def genHandPairs(self, base, loadser=False):
         self.handpairList = []
-        if ser is False:
+        if loadser is False:
             hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             hand1 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             pairidlist = list(itertools.combinations(range(len(self.freegripids)), 2))
@@ -372,17 +369,20 @@ class FloatingPoses(object):
             for icomat4 in icomat4list:
                 pg.plotAxisSelf(nodepath, spos, icomat4, length=100, thickness=3)
 
-    def updateDBwithFGPairs(self):
+    def updateDBwithFGPairs(self, loadser = False):
         """
         compute the floatinggrippairs using freegrippairs and
         save the floatinggripspairs into Database
 
+        :param loadser whether use serialized data for handpairlist
         :return:
 
         author: weiwei
         date: 20170301
         """
 
+        if len(self.handpairList) == 0:
+            self.genHandPairs(base, loadser)
         tic = time.clock()
         for fpid in range(len(self.gridsfloatingposemat4s)):
             toc = time.clock()
@@ -714,7 +714,7 @@ if __name__=="__main__":
 
     this_dir, this_filename = os.path.split(__file__)
     objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
-    fpose = FloatingPoses(objpath, gdb, handpkg, base, True)
+    fpose = FloatingPoses(objpath, gdb, handpkg, base)
     # fpose.showIcomat4s(base.render)
 
     # usage:

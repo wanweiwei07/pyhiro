@@ -141,9 +141,11 @@ class FreeTabletopPlacement(object):
                 apntpnt = Point(facetinterpnt2d[0], facetinterpnt2d[1])
                 dist2p = apntpnt.distance(facetp.exterior)
                 dist2c = np.linalg.norm(np.array([hitpos[0],hitpos[1],hitpos[2]])-np.array([pFrom[0],pFrom[1],pFrom[2]]))
-                if dist2p/dist2c > doverh:
+                if dist2p/dist2c >= doverh:
                     # hit and stable
                     self.tpsmat4s.append(pg.cvtMat4np4(facetmat4))
+        for mat in self.tpsmat4s:
+            print mat
 
     def gentpsgrip(self, base):
         """
@@ -316,9 +318,6 @@ class FreeTabletopPlacement(object):
                 apntpnt = Point(facetinterpnt2d[0], facetinterpnt2d[1])
                 dist2p = apntpnt.distance(facetp.exterior)
                 dist2c = np.linalg.norm(np.array([hitpos[0],hitpos[1],hitpos[2]])-np.array([pFrom[0],pFrom[1],pFrom[2]]))
-                print dist2p
-                print dist2c
-                print dist2p/dist2c
                 if dist2p/dist2c < doverh:
                     print "not stable"
                     # return
@@ -413,8 +412,8 @@ class FreeTabletopPlacement(object):
                 star.setTransparency(TransparencyAttrib.MAlpha)
                 star.setMat(objrotmat)
                 star.reparentTo(base.render)
-                # for j in range(len(self.tpsgriprotmats[i])):
-                for j in range(13,14):
+                for j in range(len(self.tpsgriprotmats[i])):
+                # for j in range(13,14):
                     hndrotmat = self.tpsgriprotmats[i][j]
                     hndjawwidth = self.tpsgripjawwidth[i][j]
                     # show grasps
@@ -525,12 +524,13 @@ if __name__ == '__main__':
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
     #
-    if tps.loadFreeTabletopPlacement():
-        pass
-    else:
-        tps.removebadfacets(base, doverh=.2)
+    tps.removebadfacets(base, doverh=.15)
+    # if tps.loadFreeTabletopPlacement():
+    #     pass
+    # else:
+    #     tps.removebadfacets(base, doverh=.2)
     tps.gentpsgrip(base)
-    tps.saveToDB()
+    # tps.saveToDB()
     #
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')

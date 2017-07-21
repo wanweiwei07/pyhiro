@@ -349,7 +349,7 @@ if __name__=='__main__':
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "tool.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planewheel.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planelowerbody.stl")
-    objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planefrontstay.stl")
+    objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "planefrontstay.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planerearstay.stl")
     regrip = regriptpp.RegripTpp(objpath, nxtrobot, handpkg, gdb)
 
