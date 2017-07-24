@@ -144,8 +144,6 @@ class FreeTabletopPlacement(object):
                 if dist2p/dist2c >= doverh:
                     # hit and stable
                     self.tpsmat4s.append(pg.cvtMat4np4(facetmat4))
-        for mat in self.tpsmat4s:
-            print mat
 
     def gentpsgrip(self, base):
         """
@@ -459,9 +457,9 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
-    # objpath = os.path.join(this_dir, "objects", "tool2.stl")
+    objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
@@ -469,8 +467,8 @@ if __name__ == '__main__':
     print objpath
 
     from manipulation.grip.hrp5three import hrp5threenm
-    # handpkg = hrp5threenm
-    handpkg = rtq85nm
+    handpkg = hrp5threenm
+    # handpkg = rtq85nm
     gdb = db.GraspDB()
     tps = FreeTabletopPlacement(objpath, handpkg, gdb)
 
@@ -524,13 +522,12 @@ if __name__ == '__main__':
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
     #
-    tps.removebadfacets(base, doverh=.15)
-    # if tps.loadFreeTabletopPlacement():
-    #     pass
-    # else:
-    #     tps.removebadfacets(base, doverh=.2)
+    if tps.loadFreeTabletopPlacement():
+        pass
+    else:
+        tps.removebadfacets(base, doverh=.15)
     tps.gentpsgrip(base)
-    # tps.saveToDB()
+    tps.saveToDB()
     #
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')

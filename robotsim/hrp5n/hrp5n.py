@@ -11,7 +11,7 @@ class Hrp5NRobot():
         # the remaining 18 are for each of the two 9-dof arms
         self.__name = 'hrp5n'
         # initjnts[0] = waist, 0,0 = head, 0,45,-20,...-30,0,0 = rgt, 0,45,20,...,30,0,0 = lft
-        self.__initjnts = np.array([0,0,0,0,45,-20,0,-150,0,0,0,0,0,45,20,0,-150,0,0,0,0]);
+        self.__initjnts = np.array([0,0,0,0,45,-20,-45,-150,45,0,0,0,0,45,20,45,-150,-45,0,0,0]);
         # self.__initjnts = np.array([0,0,0,0,45,-20,0,-75,0,-30,0,0,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-64,82,-27,109,-111,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-68,77,-32,109,-122,0,45,20,0,-75,0,30,0,0]);
@@ -35,6 +35,26 @@ class Hrp5NRobot():
     def initjnts(self):
         # read-only property
         return self.__initjnts
+
+    @property
+    def initrgtjntsr(self):
+        # read-only property
+        return np.array([self.__initjnts[i] for i in [0,3,4,5,6,7,8,9,10,11]])
+
+    @property
+    def initlftjntsr(self):
+        # read-only property
+        return  np.array([self.__initjnts[i] for i in [0,12,13,14,15,16,17,18,19,20]])
+
+    @property
+    def initrgtjnts(self):
+        # read-only property
+        return np.array([self.__initjnts[i] for i in [3,4,5,6,7,8,9,10,11]])
+
+    @property
+    def initlftjnts(self):
+        # read-only property
+        return  np.array([self.__initjnts[i] for i in [12,13,14,15,16,17,18,19,20]])
 
     @property
     def rgtarm(self):
@@ -694,15 +714,15 @@ if __name__=="__main__":
     objpos = np.array([500,-400,305])
     objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
 
-    # objrot = np.array([[0.125178158283, 0.00399381108582, 0.992126166821], [0.98617619276, -0.109927728772, -0.123984932899], [0.108567006886, 0.993931531906, -0.0176991540939]]).T
-    # objrot = np.array([[0,1,0],[0,0,1],[1,0,0]])
-    # objrotmat4 = pg.npToMat4(objrot)
-    # objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
-    # objrot = pg.mat3ToNp(objrotmat4.getUpper3())
-    # objpos = np.array([401.67913818,-644.12841797,0])
-    # objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
-    #                     [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
-    #                     [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
+    objrot = np.array([[0.125178158283, 0.00399381108582, 0.992126166821], [0.98617619276, -0.109927728772, -0.123984932899], [0.108567006886, 0.993931531906, -0.0176991540939]]).T
+    objrot = np.array([[0,1,0],[0,0,1],[1,0,0]])
+    objrotmat4 = pg.npToMat4(objrot)
+    objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
+    objrot = pg.mat3ToNp(objrotmat4.getUpper3())
+    objpos = np.array([401.67913818,-644.12841797,0])
+    objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
+                        [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
+                        [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
     # lfthnd
     # objpos = np.array([180,130,100])
     # objrot = np.array([[0,0,-1],[1,0,0],[0,-1,0]])

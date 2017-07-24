@@ -6,6 +6,7 @@ import itertools
 import MySQLdb as mdb
 import numpy as np
 from manipulation.grip.robotiq85 import rtq85nm
+from manipulation.grip.hrp5three import hrp5threenm
 from panda3d.bullet import BulletWorld
 from panda3d.core import *
 
@@ -17,6 +18,7 @@ from utils import dbcvt as dc
 from utils import robotmath as rm
 from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
+from robotsim.hrp5n import hrp5n
 from database import dbaccess as db
 import trimesh
 import time
@@ -144,8 +146,8 @@ class FloatingPoses(object):
             hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             hand1 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             pairidlist = list(itertools.combinations(range(len(self.freegripids)), 2))
-            print len(pairidlist)/10000+1
-            for i in range(100,len(pairidlist),len(pairidlist)/10000+1):
+            print len(pairidlist)/700+1
+            for i in range(100,len(pairidlist),len(pairidlist)/700+1):
             # for i0, i1 in pairidlist:
                 i0, i1 = pairidlist[i]
                 print i, len(pairidlist)
@@ -202,7 +204,7 @@ class FloatingPoses(object):
             sql = "INSERT INTO floatingposes(rotmat, idobject) VALUES "
             for i in range(len(self.gridsfloatingposemat4s)):
                 # print i, "/", len(self.gridsfloatingposemat4s)
-                sql += "('%s', (SELECT idobject FROM object WHERE objname LIKE '%s')), " % \
+                sql += "('%s', (SELECT idobject FROM object WHERE name LIKE '%s')), " % \
                        (dc.mat4ToStr(self.gridsfloatingposemat4s[i]), self.dbobjname)
             sql = sql[:-2] + ";"
             self.gdb.execute(sql)
@@ -217,7 +219,7 @@ class FloatingPoses(object):
             for i in range(len(self.gridsfloatingposemat4s)):
                 sql = "SELECT floatingposes.idfloatingposes FROM floatingposes,object WHERE \
                         floatingposes.rotmat LIKE '%s' AND \
-                        object.objname LIKE '%s'" % (dc.mat4ToStr(self.gridsfloatingposemat4s[i]), self.dbobjname)
+                        object.name LIKE '%s'" % (dc.mat4ToStr(self.gridsfloatingposemat4s[i]), self.dbobjname)
                 result = self.gdb.execute(sql)[0]
                 if len(result) != 0:
                     idfloatingposes = result[0]
@@ -297,6 +299,10 @@ class FloatingPoses(object):
                     self.floatinggripnormals.append(floatinggripnormals)
                     self.floatinggripjawwidth.append(floatinggripjawwidths)
                     self.floatinggripidfreeair.append(floatinggripidfreeairs)
+                else:
+                    assert('Plan floating grips first!')
+        else:
+            assert('No object found!')
 
     def transformGrips(self):
         """
@@ -709,11 +715,13 @@ if __name__=="__main__":
 
     base = pandactrl.World(lookatp=[0,0,0])
 
-    handpkg = rtq85nm
+    # handpkg = rtq85nm
+    handpkg = hrp5threenm
     gdb = db.GraspDB()
 
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool2.stl")
     fpose = FloatingPoses(objpath, gdb, handpkg, base)
     # fpose.showIcomat4s(base.render)
 
@@ -731,17 +739,20 @@ if __name__=="__main__":
     #             grids.append([x,y,z])
     # fpose.genFPandGs(grids)
     # fpose.saveToDB()
-    fpose.loadFromDB()
+    # fpose.loadFromDB()
     # fpose.updateDBwithFGPairs()
     nxtrobot = nxt.NxtRobot()
+    hrp5nrobot = hrp5n.Hrp5NRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
+    # fpose.updateDBwithIK(robot=hrp5nrobot)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):
     #     fpose.plotOneFPandG(base.render, i)
-    fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
+    # fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
+    fpose.loadIKFeasibleFGPairsFromDB(robot=hrp5nrobot)
     # fpose.plotOneFPandG(base.render, 0)
     fpose.plotOneFPandGPairs(base.render, 2)
 
-    poseid = [0]
+    # poseid = [0]
 
     # def updateshow(poseid, task):
     #     gbnpcollection = base.render.findAllMatches("**/+GeomNode")

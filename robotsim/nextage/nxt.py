@@ -11,7 +11,7 @@ class NxtRobot():
         # the following 12 elements are the joint angles of right and left arms
         # the last element is the moving speed
         self.__name = 'nextage'
-        self.__initjnts = np.array([0,0,0,-15,0,-143,0,0,0,15,0,-143,0,0,0,0]);
+        self.__initjnts = np.array([0,0,0,-15,0,-143,0,0,0,15,0,-143,0,0,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         self.__base = self.__rgtarm[0]
@@ -614,6 +614,7 @@ if __name__=="__main__":
     import nxtplot
     handpkg = rtq85nm
     # handpkg = hrp5threenm
+    nxtrobot.movewaist(-15)
     nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
     nxtmnp.reparentTo(base.render)
 

@@ -38,7 +38,7 @@ def getMotionSequence(regrip, id, choice):
         directshortestpaths = regrip.directshortestpaths_startrgtgoallft
     elif choice is 'startlftgoalrgt':
         directshortestpaths = regrip.directshortestpaths_startlftgoalrgt
-    elif choice is 'startlftgoalft':
+    elif choice is 'startlftgoallft':
         directshortestpaths = regrip.directshortestpaths_startlftgoallft
 
     if len(directshortestpaths) == 0:
@@ -358,7 +358,7 @@ def getMotionSequence(regrip, id, choice):
                     numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp1])
                     jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth1])
                 elif nid0.startswith('holft'):
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrp1, regrip.robot.initlftjnts[1:]])
+                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrp1, regrip.robot.initlftjntsr[1:]])
                     jawwidth.append([grpjawwidth1, regrip.robothand.jawwidthopen])
                 objmat4b = regrip.regg.node[nid0]['floatingposerotmat4']
                 objmat4list.append(objmat4b)
@@ -430,62 +430,66 @@ def getMotionSequence(regrip, id, choice):
                     objmat4list.append(objmat4worldaworldz)
                 ## middle second
                 nid = pathnidlist[i + 1]
-                grpposworldaworldz = regrip.regg.node[nid]['fgrcenterworldaworldz']
-                grpposworlda = regrip.regg.node[nid]['fgrcenterworlda']
-                grppos = regrip.regg.node[nid]['fgrcenter']
-                grpposhandx = regrip.regg.node[nid]['fgrcenterhandx']
-                grpposhandxworldz = regrip.regg.node[nid]['fgrcenterhandxworldz']
-                grprot = regrip.regg.node[nid]['hndrotmat3np']
-                grpjawwidth = regrip.regg.node[nid]['jawwidth']
-                # initialize
-                # choice
-                if nid.startswith('rgt'):
-                    armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot, armid = 'rgt')
-                    armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = 'rgt')
-                    armjntsgrp = regrip.robot.numik(grppos, grprot, armid = 'rgt')
-                    armjntsgrphandx = regrip.robot.numik(grpposhandx, grprot, armid = 'rgt')
-                    armjntsgrphandxworldz = regrip.robot.numik(grpposhandxworldz, grprot, armid = 'rgt')
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrpworldaworldz, regrip.robot.initlftjntsr[1:]])
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrpworlda, regrip.robot.initlftjntsr[1:]])
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrp, regrip.robot.initlftjntsr[1:]])
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrp, regrip.robot.initlftjntsr[1:]])
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrphandx, regrip.robot.initlftjntsr[1:]])
-                    numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrphandxworldz, regrip.robot.initlftjntsr[1:]])
-                    jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
-                    jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
-                    jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
-                    jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-                    jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-                    jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-                if nid.startswith('lft'):
-                    armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot, armid = 'lft')
-                    armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = 'lft')
-                    armjntsgrp = regrip.robot.numik(grppos, grprot, armid = 'lft')
-                    armjntsgrphandx = regrip.robot.numik(grpposhandx, grprot, armid = 'lft')
-                    armjntsgrphandxworldz = regrip.robot.numik(grpposhandxworldz, grprot, armid = 'lft')
-                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworldaworldz])
-                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
-                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
-                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
-                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandx])
-                    numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandxworldz])
-                    jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
-                    jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
-                    jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
-                    jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-                    jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-                    jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
-                objmat4worldaworldz = regrip.regg.node[nid]['tabletopplacementrotmatworldaworldz']
-                objmat4worlda = regrip.regg.node[nid]['tabletopplacementrotmatworlda']
-                objmat4 = regrip.regg.node[nid]['tabletopplacementrotmat']
-                objmat4handx = regrip.regg.node[nid]['tabletopplacementrotmathandx']
-                objmat4handxworldz = regrip.regg.node[nid]['tabletopplacementrotmathandxworldz']
-                objmat4list.append(objmat4worldaworldz)
-                objmat4list.append(objmat4worlda)
-                objmat4list.append(objmat4)
-                objmat4list.append(objmat4)
-                objmat4list.append(objmat4handx)
-                objmat4list.append(objmat4handxworldz)
+                # could be ho
+                if nid.startswith('ho'):
+                    pass
+                else:
+                    grpposworldaworldz = regrip.regg.node[nid]['fgrcenterworldaworldz']
+                    grpposworlda = regrip.regg.node[nid]['fgrcenterworlda']
+                    grppos = regrip.regg.node[nid]['fgrcenter']
+                    grpposhandx = regrip.regg.node[nid]['fgrcenterhandx']
+                    grpposhandxworldz = regrip.regg.node[nid]['fgrcenterhandxworldz']
+                    grprot = regrip.regg.node[nid]['hndrotmat3np']
+                    grpjawwidth = regrip.regg.node[nid]['jawwidth']
+                    # initialize
+                    # choice
+                    if nid.startswith('rgt'):
+                        armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot, armid = 'rgt')
+                        armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = 'rgt')
+                        armjntsgrp = regrip.robot.numik(grppos, grprot, armid = 'rgt')
+                        armjntsgrphandx = regrip.robot.numik(grpposhandx, grprot, armid = 'rgt')
+                        armjntsgrphandxworldz = regrip.robot.numik(grpposhandxworldz, grprot, armid = 'rgt')
+                        numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrpworldaworldz, regrip.robot.initlftjntsr[1:]])
+                        numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrpworlda, regrip.robot.initlftjntsr[1:]])
+                        numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrp, regrip.robot.initlftjntsr[1:]])
+                        numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrp, regrip.robot.initlftjntsr[1:]])
+                        numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrphandx, regrip.robot.initlftjntsr[1:]])
+                        numikrlist.append([regrip.robot.initlftjntsr[0], armjntsgrphandxworldz, regrip.robot.initlftjntsr[1:]])
+                        jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
+                        jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
+                        jawwidth.append([grpjawwidth, regrip.robothand.jawwidthopen])
+                        jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                        jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                        jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                    if nid.startswith('lft'):
+                        armjntsgrpworldaworldz = regrip.robot.numik(grpposworldaworldz, grprot, armid = 'lft')
+                        armjntsgrpworlda = regrip.robot.numik(grpposworlda, grprot, armid = 'lft')
+                        armjntsgrp = regrip.robot.numik(grppos, grprot, armid = 'lft')
+                        armjntsgrphandx = regrip.robot.numik(grpposhandx, grprot, armid = 'lft')
+                        armjntsgrphandxworldz = regrip.robot.numik(grpposhandxworldz, grprot, armid = 'lft')
+                        numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworldaworldz])
+                        numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrpworlda])
+                        numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                        numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrp])
+                        numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandx])
+                        numikrlist.append([regrip.robot.initrgtjntsr[0], regrip.robot.initrgtjntsr[1:], armjntsgrphandxworldz])
+                        jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
+                        jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
+                        jawwidth.append([regrip.robothand.jawwidthopen, grpjawwidth])
+                        jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                        jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                        jawwidth.append([regrip.robothand.jawwidthopen, regrip.robothand.jawwidthopen])
+                    objmat4worldaworldz = regrip.regg.node[nid]['tabletopplacementrotmatworldaworldz']
+                    objmat4worlda = regrip.regg.node[nid]['tabletopplacementrotmatworlda']
+                    objmat4 = regrip.regg.node[nid]['tabletopplacementrotmat']
+                    objmat4handx = regrip.regg.node[nid]['tabletopplacementrotmathandx']
+                    objmat4handxworldz = regrip.regg.node[nid]['tabletopplacementrotmathandxworldz']
+                    objmat4list.append(objmat4worldaworldz)
+                    objmat4list.append(objmat4worlda)
+                    objmat4list.append(objmat4)
+                    objmat4list.append(objmat4)
+                    objmat4list.append(objmat4handx)
+                    objmat4list.append(objmat4handxworldz)
         else:
             # not two node path, end nodes, transfer
             ## second to last node
@@ -631,14 +635,19 @@ if __name__=='__main__':
     regrip = regriptppfp.RegripTppFp(objpath, nxtrobot, handpkg, gdb, base)
 
     # ttube
-    startrotmat4 = Mat4(1.0,0.0,0.0,0.0,
-                        0.0,6.12323426293e-17,-1.0,0.0,
-                        0.0,1.0,6.12323426293e-17,0.0,
-                        399.996276855,-199.998413086,44.9995155334,1.0)
-    goalrotmat4 = Mat4(1.0,0.0,0.0,0.0,
-                       0.0,6.12323426293e-17,-1.0,0.0,
-                       0.0,1.0,6.12323426293e-17,0.0,
-                       499.996276855,200.001571655,44.9995155334,1.0)
+    # startrotmat4 = Mat4(1.0,0.0,0.0,0.0,
+    #                     0.0,6.12323426293e-17,-1.0,0.0,
+    #                     0.0,1.0,6.12323426293e-17,0.0,
+    #                     399.996276855,-100.998413086,-10.9995155334,1.0)
+    # goalrotmat4 = Mat4(1.0,0.0,0.0,0.0,
+    #                    0.0,6.12323426293e-17,-1.0,0.0,
+    #                    0.0,1.0,6.12323426293e-17,0.0,
+    #                    499.996276855,200.001571655,-10.9995155334,1.0)
+    # startrotmat4 = Mat4(-0.707106769085,0.707106769085,0.0,0.0,0.707106769085,0.707106769085,-0.0,0.0,0.0,0.0,-1.0,0.0,450.004150391,-249.998901367,-16.9616088867,1.0)
+    goalrotmat4 = Mat4(-0.707106769085,0.707106769085,0.0,0.0,0.707106769085,0.707106769085,-0.0,0.0,0.0,0.0,-1.0,0.0,350.004150391,249.998901367,-16.9616088867,1.0)
+    startrotmat4 = Mat4(0.000547349976841, 2.33689494422e-08, -0.999999821186, 0.0, 2.33689494422e-08, 1.0, 2.33817445405e-08, 0.0, 0.999999821186, -2.33817445405e-08, 0.000547349976841, 0.0, 520.001556396, -249.997833252, -39.9998168945, 1.0)
+    # goalrotmat4 = Mat4(0.000547349976841,2.33689494422e-08,-0.999999821186,0.0,2.33689494422e-08,1.0,2.33817445405e-08,0.0,0.999999821186,-2.33817445405e-08,0.000547349976841,0.0,350.001556396,149.997833252,-39.9998168945,1.0)
+    # goalrotmat4 = Mat4(4.32978030171e-17,4.32978030171e-17,1.0,0.0,-0.707106769085,0.707106769085,0.0,0.0,-0.707106769085,-0.707106769085,6.12323426293e-17,0.0,349.997375488,-349.999572754,-40.0001792908,1.0)
     #tool
     # startrotmat4 = Mat4(-0.0176398064941,-0.0176398064941,-0.99968880415,0.0,-0.707106769085,0.707106769085,0.0,0.0,0.706886708736,0.706886708736,-0.0249464549124,0.0,225.010162354,100,44.9175643921,1.0)
     # startrotmat4 = Mat4(0.129405856133,0.129405856133,0.98311150074,0.0,0.707106769085,-0.707106769085,0.0,0.0,0.69516479969,0.69516479969,-0.183007523417,0.0,227.126983643,-327.023590088,74.7615509033,1.0)
@@ -662,8 +671,8 @@ if __name__=='__main__':
     objend.setMat(goalrotmat4)
     objstart.reparentTo(base.render)
     objend.reparentTo(base.render)
-
-
+    #
+    #
     import time
     tic = time.clock()
     regrip.findshortestpath(startrotmat4, goalrotmat4, base)
@@ -674,6 +683,9 @@ if __name__=='__main__':
     pltfig = plt.figure()
     regrip.plotgraph(pltfig)
     id = 0
+    # choice = 'startlftgoallft'
+    # choice = 'startrgtgoalrgt'
+    # choice = 'startlftgoalrgt'
     choice = 'startrgtgoallft'
     regrip.plotshortestpath(pltfig, id = id, choice = choice)
     plt.axis("equal")
@@ -691,7 +703,7 @@ if __name__=='__main__':
                 objmnp[0].detachNode()
             print counter[0]
             print numikrms[counter[0]]
-            nxtrobot.movealljnts(np.append(np.array([numikrms[counter[0]][0], 0, 0]), numikrms[counter[0]][1:]))
+            nxtrobot.movealljnts([numikrms[counter[0]][0], 0, 0]+numikrms[counter[0]][1].tolist()+numikrms[counter[0]][2].tolist() )
             nxtmnp[0] = nxtplot.genmnp(nxtrobot, handpkg, jawwidthrgt=jawwidth[counter[0]][0], jawwidthlft=jawwidth[counter[0]][1])
             nxtrobot.goinitpose()
             nxtmnp[0].reparentTo(base.render)

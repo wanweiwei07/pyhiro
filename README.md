@@ -44,7 +44,7 @@ truncate table freegrip.tabletopgrips;
 truncate table freegrip.ik;
 truncate table freegrip.freeairgrip;
 truncate table freegrip.freetabletopplacement;
-truncate table freegrip.freetabletopgrips;
+truncate table freegrip.freetabletopgrip;
 SET FOREIGN_KEY_CHECKS=1;
 ```
 
@@ -57,9 +57,20 @@ truncate table ik;
 SET FOREIGN_KEY_CHECKS=1;
 ```
 
+Delete the floating pose data (in MySQL workbench):
+```sql
+SET FOREIGN_KEY_CHECKS=0;
+truncate table floatingposes;
+truncate table floatinggrips;
+truncate table floatinggripspairs;
+truncate table ikfloatinggrips;
+SET FOREIGN_KEY_CHECKS=1;
+```
+
 Delete the dual-arm assembly data (in MySQL workbench):
 ```sql
 SET FOREIGN_KEY_CHECKS=0;
+truncate table assembly;
 truncate table assemblyx;
 truncate table assemblyxgrippairs;
 truncate table assemblyxgrips0;
@@ -68,3 +79,12 @@ truncate table ikassemblyxgrips0;
 truncate table ikassemblyxgrips1;
 SET FOREIGN_KEY_CHECKS=1;
 ```
+
+Delete the hand-over data (in MySQL workbench):
+``` sql
+SET FOREIGN_KEY_CHECKS=0;
+truncate table floatingposes;
+truncate table floatinggrips;
+truncate table floatinggripspairs;
+SET FOREIGN_KEY_CHECKS=1;
+``` sql

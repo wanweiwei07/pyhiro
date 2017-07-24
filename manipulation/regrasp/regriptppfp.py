@@ -35,7 +35,17 @@ import floatingposes
 # regriptppfp means regrip using tabletop placements and floating poses
 class RegripTppFp():
 
-    def __init__(self, objpath, robot, handpkg, gdb, base):
+    def __init__(self, objpath, robot, handpkg, gdb, base, tableheight = -55):
+        """
+
+        :param objpath:
+        :param robot:
+        :param handpkg:
+        :param gdb:
+        :param base:
+        :param tableheight: offset from 0
+        """
+
         self.handpkg = handpkg
         self.robot = robot
         self.objtrimesh=trimesh.load_mesh(objpath)
@@ -55,7 +65,7 @@ class RegripTppFp():
 
         # plane to remove hand
         self.bulletworld = BulletWorld()
-        self.planebullnode = cd.genCollisionPlane()
+        self.planebullnode = cd.genCollisionPlane(offset = tableheight)
         self.bulletworld.attachRigidBody(self.planebullnode)
 
         # add tabletop plane model to bulletworld
@@ -63,6 +73,7 @@ class RegripTppFp():
         ttpath = Filename.fromOsSpecific(os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "supports", "tabletop.egg"))
         self.ttnodepath = NodePath("tabletop")
         ttl = loader.loadModel(ttpath)
+        ttl.setPos(0, 0, tableheight)
         ttl.instanceTo(self.ttnodepath)
 
         self.startrgtnodeids = []
@@ -651,17 +662,20 @@ class RegripTppFp():
             goalgrip = self.goalrgtnodeids[0]
             self.shortestpaths = nx.all_shortest_paths(self.regg, source = startgrip, target = goalgrip)
             self.directshortestpaths_startrgtgoalrgt = []
-            for path in self.shortestpaths:
-                for i, pathnode in enumerate(path):
-                    if pathnode.startswith('start') and i < len(path)-1:
-                        continue
-                    else:
-                        self.directshortestpaths_startrgtgoalrgt.append(path[i-1:])
-                        break
-                for i, pathnode in enumerate(self.directshortestpaths_startrgtgoalrgt[-1]):
-                    if i > 0 and pathnode.startswith('goal'):
-                        self.directshortestpaths_startrgtgoalrgt[-1]=self.directshortestpaths_startrgtgoalrgt[-1][:i+1]
-                        break
+            try:
+                for path in self.shortestpaths:
+                    for i, pathnode in enumerate(path):
+                        if pathnode.startswith('start') and i < len(path)-1:
+                            continue
+                        else:
+                            self.directshortestpaths_startrgtgoalrgt.append(path[i-1:])
+                            break
+                    for i, pathnode in enumerate(self.directshortestpaths_startrgtgoalrgt[-1]):
+                        if i > 0 and pathnode.startswith('goal'):
+                            self.directshortestpaths_startrgtgoalrgt[-1]=self.directshortestpaths_startrgtgoalrgt[-1][:i+1]
+                            break
+            except:
+                assert('No startrgt goalrgt path')
 
         # startrgt goallft
         if len(self.startrgtnodeids) > 0 and len(self.goallftnodeids) > 0:
@@ -669,17 +683,20 @@ class RegripTppFp():
             goalgrip = self.goallftnodeids[0]
             self.shortestpaths = nx.all_shortest_paths(self.regg, source = startgrip, target = goalgrip)
             self.directshortestpaths_startrgtgoallft = []
-            for path in self.shortestpaths:
-                for i, pathnode in enumerate(path):
-                    if pathnode.startswith('start') and i < len(path)-1:
-                        continue
-                    else:
-                        self.directshortestpaths_startrgtgoallft.append(path[i-1:])
-                        break
-                for i, pathnode in enumerate(self.directshortestpaths_startrgtgoallft[-1]):
-                    if i > 0 and pathnode.startswith('goal'):
-                        self.directshortestpaths_startrgtgoallft[-1]=self.directshortestpaths_startrgtgoallft[-1][:i+1]
-                        break
+            try:
+                for path in self.shortestpaths:
+                    for i, pathnode in enumerate(path):
+                        if pathnode.startswith('start') and i < len(path)-1:
+                            continue
+                        else:
+                            self.directshortestpaths_startrgtgoallft.append(path[i-1:])
+                            break
+                    for i, pathnode in enumerate(self.directshortestpaths_startrgtgoallft[-1]):
+                        if i > 0 and pathnode.startswith('goal'):
+                            self.directshortestpaths_startrgtgoallft[-1]=self.directshortestpaths_startrgtgoallft[-1][:i+1]
+                            break
+            except:
+                assert('No startrgt goallft path')
 
         # startlft goalrgt
         if len(self.startlftnodeids) > 0 and len(self.goalrgtnodeids) > 0:
@@ -687,17 +704,20 @@ class RegripTppFp():
             goalgrip = self.goalrgtnodeids[0]
             self.shortestpaths = nx.all_shortest_paths(self.regg, source = startgrip, target = goalgrip)
             self.directshortestpaths_startlftgoalrgt = []
-            for path in self.shortestpaths:
-                for i, pathnode in enumerate(path):
-                    if pathnode.startswith('start') and i < len(path)-1:
-                        continue
-                    else:
-                        self.directshortestpaths_startlftgoalrgt.append(path[i-1:])
-                        break
-                for i, pathnode in enumerate(self.directshortestpaths_startlftgoalrgt[-1]):
-                    if i > 0 and pathnode.startswith('goal'):
-                        self.directshortestpaths_startlftgoalrgt[-1]=self.directshortestpaths_startlftgoalrgt[-1][:i+1]
-                        break
+            try:
+                for path in self.shortestpaths:
+                    for i, pathnode in enumerate(path):
+                        if pathnode.startswith('start') and i < len(path)-1:
+                            continue
+                        else:
+                            self.directshortestpaths_startlftgoalrgt.append(path[i-1:])
+                            break
+                    for i, pathnode in enumerate(self.directshortestpaths_startlftgoalrgt[-1]):
+                        if i > 0 and pathnode.startswith('goal'):
+                            self.directshortestpaths_startlftgoalrgt[-1]=self.directshortestpaths_startlftgoalrgt[-1][:i+1]
+                            break
+            except:
+                assert('No startlft goalrgt path')
 
         # startlft goallft
         if len(self.startlftnodeids) > 0 and len(self.goallftnodeids) > 0:
@@ -705,17 +725,20 @@ class RegripTppFp():
             goalgrip = self.goallftnodeids[0]
             self.shortestpaths = nx.all_shortest_paths(self.regg, source = startgrip, target = goalgrip)
             self.directshortestpaths_startlftgoallft = []
-            for path in self.shortestpaths:
-                for i, pathnode in enumerate(path):
-                    if pathnode.startswith('start') and i < len(path)-1:
-                        continue
-                    else:
-                        self.directshortestpaths_startlftgoallft.append(path[i-1:])
-                        break
-                for i, pathnode in enumerate(self.directshortestpaths_startlftgoallft[-1]):
-                    if i > 0 and pathnode.startswith('goal'):
-                        self.directshortestpaths_startlftgoallft[-1]=self.directshortestpaths_startlftgoallft[-1][:i+1]
-                        break
+            try:
+                for path in self.shortestpaths:
+                    for i, pathnode in enumerate(path):
+                        if pathnode.startswith('start') and i < len(path)-1:
+                            continue
+                        else:
+                            self.directshortestpaths_startlftgoallft.append(path[i-1:])
+                            break
+                    for i, pathnode in enumerate(self.directshortestpaths_startlftgoallft[-1]):
+                        if i > 0 and pathnode.startswith('goal'):
+                            self.directshortestpaths_startlftgoallft[-1]=self.directshortestpaths_startlftgoallft[-1][:i+1]
+                            break
+            except:
+                assert('No startlft goallft path')
 
     def plotgraph(self, pltfig):
         """
@@ -1042,7 +1065,7 @@ class RegripTppFp():
             directshortestpaths = self.directshortestpaths_startrgtgoallft
         elif choice is 'startlftgoalrgt':
             directshortestpaths = self.directshortestpaths_startlftgoalrgt
-        elif choice is 'startlftgoalft':
+        elif choice is 'startlftgoallft':
             directshortestpaths = self.directshortestpaths_startlftgoallft
         for i,path in enumerate(directshortestpaths):
             if i == id:

@@ -22,7 +22,7 @@ def eubik(pos, armid="rgt"):
         pass
     waistangle = (math.atan2(pos[1], pos[0]) + anglecomponent1)*180/math.pi
     if armid=="lft":
-        waistangle = -waistangle
+        waistangle = 180.0-2*math.atan2(pos[0], pos[1])*180.0/math.pi-waistangle
     return waistangle
 
 def jacobian(hrp5nrobot, armid="rgt"):
@@ -167,7 +167,7 @@ def numik(hrp5nrobot, tgtpos, tgtrot, armid="rgt"):
             # print armjntsiter
             # the robot may encounter overrange errors in the first few iterations
             # use i<50 to avoid these errors
-            if hrp5nrobot.chkrng(armjntsiter, armid) or i < 150:
+            if hrp5nrobot.chkrng(armjntsiter, armid) or i < 30:
                 # print armjntsiter
                 hrp5nrobot.movearmfk(armjntsiter, armid)
                 # import hrp5plot

@@ -17,12 +17,12 @@ def eubik(pos, armid="rgt"):
 
     anglecomponent1 = 0
     try:
-        anglecomponent1 = math.asin(145/np.linalg.norm(pos[0:2]))
+        anglecomponent1 = math.asin(145.0/np.linalg.norm(pos[0:2]))
     except:
         pass
-    waistangle = (math.atan2(pos[1], pos[0]) + anglecomponent1)*180/math.pi
+    waistangle = (math.atan2(pos[1], pos[0]) + anglecomponent1)*180.0/math.pi
     if armid=="lft":
-        waistangle = -waistangle
+        waistangle = 180.0-2*math.atan2(pos[0], pos[1])*180.0/math.pi-waistangle
     return waistangle
 
 

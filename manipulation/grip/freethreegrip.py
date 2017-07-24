@@ -37,7 +37,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
         if readser is False:
             self.removeBadSamples()
-            self.clusterFacetSamplesRNN(reduceRadius=5)
+            self.clusterFacetSamplesRNN(reduceRadius=10)
             self.planContactpairs(torqueresist, self.hand.jawwidthopen)
             self.saveSerialized("tmpcp.pickle")
         else:
@@ -1031,9 +1031,9 @@ if __name__=='__main__':
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
-    objpath = os.path.join(this_dir, "objects", "ttube.stl")
+    # objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
-    # objpath = os.path.join(this_dir, "objects", "tool2.stl")
+    objpath = os.path.join(this_dir, "objects", "tool2.stl")
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
@@ -1099,8 +1099,8 @@ if __name__=='__main__':
     freegriptst.removeFgrpcc(base)
     freegriptst.removeHndcc(base)
 
-    # gdb = db.GraspDB()
-    # freegriptst.saveToDB(gdb)
+    gdb = db.GraspDB()
+    freegriptst.saveToDB(gdb)
 
     # def updateshow(task):
     #     # freegriptst.removeFgrpccShow(base)
