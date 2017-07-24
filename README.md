@@ -86,5 +86,6 @@ SET FOREIGN_KEY_CHECKS=0;
 truncate table floatingposes;
 truncate table floatinggrips;
 truncate table floatinggripspairs;
+truncate table ikfloatinggrips;
 SET FOREIGN_KEY_CHECKS=1;
-``` sql
+```

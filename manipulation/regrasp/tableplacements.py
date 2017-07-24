@@ -292,7 +292,7 @@ class TablePlacements(object):
                 tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
                 freetabletopplacement.idobject = object.idobject AND object.name LIKE '%s' AND \
                 tabletopplacements.idangle = angle.idangle AND \
-                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 37, 45)
+                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 11, 45)
         result = gdb.execute(sql)
         if len(result) != 0:
             for resultrow in result:
@@ -371,7 +371,6 @@ if __name__ == '__main__':
     # star.setTransparency(TransparencyAttrib.MAlpha)
     # star.reparentTo(base.render)
 
-
     # def updateshow(task):
     #     # tps.ocfacetshow(base)
     #     tps.removebadfacetsshow(base, doverh=.033)
@@ -389,15 +388,15 @@ if __name__ == '__main__':
     # for x in range(300,401,100):
     #     for y in range(-200,201,200):
     #         grids.append([x,y,-55])
-    grids = []
-    for x in range(350,501,200):
-        for y in range(-350,351,400):
-            grids.append([x,y,100])
+    # grids = []
+    # for x in range(400,401,200):
+    #     for y in range(-300,301,600):
+    #         grids.append([x,y,120])
     gdb = db.GraspDB()
-    tps.saveToDB(grids, gdb)
+    # tps.saveToDB(grids, gdb)
     # # # tps.grpshow(base, gdb)
-    tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
-    tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
+    # tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
+    # tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
     # tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
     # tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
     # tps.updateDBwithIK(gdb, hrp2k, armname = "rgt")
@@ -413,5 +412,6 @@ if __name__ == '__main__':
     # tps.bulletworldtable.setDebugNode(debugNP.node())
     #
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldtable], appendTask=True)
+    tps.grpshow(base, gdb)
 
     base.run()

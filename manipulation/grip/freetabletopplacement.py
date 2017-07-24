@@ -512,22 +512,22 @@ if __name__ == '__main__':
     # star.setColor(Vec4(0, 1, 0, .3))
     # star.setTransparency(TransparencyAttrib.MAlpha)
     # star.reparentTo(base.render)
-    # def updateshow(task):
-    #     # tps.ocfacetshow(base)
-    #     tps.removebadfacetsshow(base, doverh=.1)
-    #     return task.again
-    # taskMgr.doMethodLater(.1, updateshow, "tickTask")
+    def updateshow(task):
+        # tps.ocfacetshow(base)
+        tps.removebadfacetsshow(base, doverh=.15)
+        return task.again
+    taskMgr.doMethodLater(.1, updateshow, "tickTask")
 
     # def updateworld(world, task):
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
     #
-    if tps.loadFreeTabletopPlacement():
-        pass
-    else:
-        tps.removebadfacets(base, doverh=.15)
-    tps.gentpsgrip(base)
-    tps.saveToDB()
+    # if tps.loadFreeTabletopPlacement():
+    #     pass
+    # else:
+    #     tps.removebadfacets(base, doverh=.15)
+    # tps.gentpsgrip(base)
+    # tps.saveToDB()
     #
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
@@ -540,5 +540,5 @@ if __name__ == '__main__':
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldhp], appendTask=True)
 
     # tps.grpshow(base)
-    tps.showOnePlacementAndAssociatedGrips(base)
+    # tps.showOnePlacementAndAssociatedGrips(base)
     base.run()

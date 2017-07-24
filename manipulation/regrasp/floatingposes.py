@@ -51,6 +51,9 @@ class FloatingPoses(object):
         """
 
         self.handpkg = handpkg
+        self.handname = handpkg.getHandName()
+        self.hand0 = handpkg.newHandNM(hndcolor=[1,0,0,.1])
+        self.hand1 = handpkg.newHandNM(hndcolor=[0,0,1,.1])
 
         self.objtrimesh = trimesh.load_mesh(objpath)
         self.objnp = pg.packpandanp(self.objtrimesh.vertices, self.objtrimesh.face_normals, self.objtrimesh.faces)
@@ -143,20 +146,20 @@ class FloatingPoses(object):
     def genHandPairs(self, base, loadser=False):
         self.handpairList = []
         if loadser is False:
-            hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
-            hand1 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
+            # hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
+            # hand1 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             pairidlist = list(itertools.combinations(range(len(self.freegripids)), 2))
-            print len(pairidlist)/700+1
-            for i in range(100,len(pairidlist),len(pairidlist)/700+1):
+            print len(pairidlist)/3000+1
+            for i in range(100,len(pairidlist),len(pairidlist)/3000+1):
             # for i0, i1 in pairidlist:
                 i0, i1 = pairidlist[i]
                 print i, len(pairidlist)
-                hand0.setMat(self.freegriprotmats[i0])
-                hand0.setJawwidth(self.freegripjawwidth[i0])
-                hand1.setMat(self.freegriprotmats[i1])
-                hand1.setJawwidth(self.freegripjawwidth[i1])
-                hndbullnodei0 = cd.genCollisionMeshMultiNp(hand0.handnp, base.render)
-                hndbullnodei1 = cd.genCollisionMeshMultiNp(hand1.handnp, base.render)
+                self.hand0.setMat(self.freegriprotmats[i0])
+                self.hand0.setJawwidth(self.freegripjawwidth[i0])
+                self.hand1.setMat(self.freegriprotmats[i1])
+                self.hand1.setJawwidth(self.freegripjawwidth[i1])
+                hndbullnodei0 = cd.genCollisionMeshMultiNp(self.hand0.handnp, base.render)
+                hndbullnodei1 = cd.genCollisionMeshMultiNp(self.hand1.handnp, base.render)
                 result = self.bulletworld.contactTestPair(hndbullnodei0, hndbullnodei1)
                 if not result.getNumContacts():
                     self.handpairList.append([self.freegripids[i0], self.freegripids[i1]])
@@ -732,19 +735,19 @@ if __name__=="__main__":
     # updateDBwithIK compute the ik feasible FGs
     # loadIKFeasibleFGPairsFromDB load DBFGpairs and DBwithIK and compute the IK-feasible FGpairs
 
-    # grids = []
-    # for x in range(400,401,100):
-    #     for y in [0]:
-    #         for z in range(400,401,100):
-    #             grids.append([x,y,z])
-    # fpose.genFPandGs(grids)
-    # fpose.saveToDB()
-    # fpose.loadFromDB()
-    # fpose.updateDBwithFGPairs()
+    grids = []
+    for x in range(400,401,100):
+        for y in [0]:
+            for z in range(400,401,100):
+                grids.append([x,y,z])
+    fpose.genFPandGs(grids)
+    fpose.saveToDB()
+    fpose.loadFromDB()
+    fpose.updateDBwithFGPairs()
     nxtrobot = nxt.NxtRobot()
     hrp5nrobot = hrp5n.Hrp5NRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
-    # fpose.updateDBwithIK(robot=hrp5nrobot)
+    fpose.updateDBwithIK(robot=hrp5nrobot)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):
     #     fpose.plotOneFPandG(base.render, i)
     # fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
