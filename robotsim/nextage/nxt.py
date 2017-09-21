@@ -601,7 +601,7 @@ if __name__=="__main__":
     from manipulation.grip.robotiq85 import rtq85nm
     from manipulation.grip.hrp5three import hrp5threenm
 
-    base = pandactrl.World(camp=[2000,0,500], lookatp=[0,0,0])
+    base = pandactrl.World(camp=[1400,0,3000], lookatp=[0,0,0])
 
     nxtrobot = NxtRobot()
     nxtrobot.goinitpose()
@@ -614,7 +614,7 @@ if __name__=="__main__":
     import nxtplot
     handpkg = rtq85nm
     # handpkg = hrp5threenm
-    nxtrobot.movewaist(-15)
+    # nxtrobot.movewaist(-15)
     nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
     nxtmnp.reparentTo(base.render)
 

@@ -682,11 +682,11 @@ if __name__=='__main__':
     #
     pltfig = plt.figure()
     regrip.plotgraph(pltfig)
-    id = 0
+    id = 1
     # choice = 'startlftgoallft'
-    # choice = 'startrgtgoalrgt'
+    choice = 'startrgtgoalrgt'
     # choice = 'startlftgoalrgt'
-    choice = 'startrgtgoallft'
+    # choice = 'startrgtgoallft'
     regrip.plotshortestpath(pltfig, id = id, choice = choice)
     plt.axis("equal")
     plt.show()
@@ -703,7 +703,12 @@ if __name__=='__main__':
                 objmnp[0].detachNode()
             print counter[0]
             print numikrms[counter[0]]
-            hrp5nrobot.movealljnts([numikrms[counter[0]][0], 0, 0]+numikrms[counter[0]][1].tolist()+numikrms[counter[0]][2].tolist() )
+            # rotate lfthand by 180, because left and right hand are symmetric
+            lftarmjnts = numikrms[counter[0]][2].tolist()
+            lftarmjnts[-1] = lftarmjnts[-1]+180
+            if lftarmjnts[-1] > 300:
+                lftarmjnts[-1] = lftarmjnts[-1]-360
+            hrp5nrobot.movealljnts([numikrms[counter[0]][0], 0, 0]+numikrms[counter[0]][1].tolist()+lftarmjnts)
             rbtmnp[0] = hrp5nplot.genmnp(hrp5nrobot, handpkg, jawwidthrgt=jawwidth[counter[0]][0], jawwidthlft=jawwidth[counter[0]][1])
             hrp5nrobot.goinitpose()
             rbtmnp[0].reparentTo(base.render)

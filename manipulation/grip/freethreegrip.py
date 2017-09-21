@@ -37,7 +37,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.hand = handpkg.newHandNM(hndcolor=[0,1,0,.1])
         if readser is False:
             self.removeBadSamples()
-            self.clusterFacetSamplesRNN(reduceRadius=10)
+            self.clusterFacetSamplesRNN(reduceRadius=2)
             self.planContactpairs(torqueresist, self.hand.jawwidthopen)
             self.saveSerialized("tmpcp.pickle")
         else:
@@ -123,8 +123,8 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                 # save initial hand pose
                 initmat = tmphand.getMat()
                 # save initial hand pose
-                fgrcenter = (cctpnt0+cctpnt1)/2
-                fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2*plotoffsetfp
+                fgrcenter = (cctpnt0+cctpnt1)/2.0
+                fgrdist = np.linalg.norm((cctpnt0 - cctpnt1))+2.0*plotoffsetfp
                 if fgrdist > self.hand.jawwidthopen:
                     continue
                 rotangle = self.gripcontactpairangles_precc[self.counter][j]
@@ -147,7 +147,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                     #                 tmprtq85.getMat(), length=30, thickness=2)
 
                 # reset initial hand pose
-                tmphand.setMat(initmat)
+                tmphand.setMat(pandanpmat4 = initmat)
             # cct1 first
             for j, contactpair in enumerate(self.flipgripcontactpairs_precc[self.counter]):
                 cctpnt1 = contactpair[0] + plotoffsetfp * self.facetnormals[facetidx0]
@@ -181,7 +181,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
                     #                 tmprtq85.getMat(), length=30, thickness=2)
 
                 # reset initial hand pose
-                tmphand.setMat(initmat)
+                tmphand.setMat(pandanpmat4 = initmat)
             self.counter+=1
         self.counter = 0
 
@@ -207,7 +207,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
         self.flipgripcontactpairangles_precc = []
 
         plotoffsetfp = 6
-        contactdifference = 4.5
+        contactdifference = 5
 
         self.counter = 0
 
@@ -1001,7 +1001,7 @@ class Freethreegrip(fgcp.FreegripContactpairs):
             # show grasps
             # tmphand = handpkg.newHandNM(hndcolor=[.2, .7, .2, .3])
             tmphand = handpkg.newHandNM(hndcolor=[1, 1, 1, .7])
-            tmphand.setMat(hndrotmat)
+            tmphand.setMat(pandanpmat4 = hndrotmat)
             tmphand.setJawwidth(hndjawwidth)
             tmphand.reparentTo(base.render)
 

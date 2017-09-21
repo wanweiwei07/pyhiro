@@ -627,27 +627,16 @@ if __name__=='__main__':
     # ttube.stl
     this_dir, this_filename = os.path.split(__file__)
     objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "ttube.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "tool.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planewheel.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planelowerbody.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planefrontstay.stl")
-    # objpath = os.path.join(os.path.split(this_dir)[0], "grip", "objects", "planerearstay.stl")
+    # objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "tool.stl")
+    # objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "planewheel.stl")
+    # objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "planelowerbody.stl")
+    # objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "planefrontstay.stl")
+    # objpath = os.path.join(os.path.split(os.path.split(this_dir)[0])[0], "grip", "objects", "planerearstay.stl")
     regrip = regriptppfp.RegripTppFp(objpath, nxtrobot, handpkg, gdb, base)
 
     # ttube
-    # startrotmat4 = Mat4(1.0,0.0,0.0,0.0,
-    #                     0.0,6.12323426293e-17,-1.0,0.0,
-    #                     0.0,1.0,6.12323426293e-17,0.0,
-    #                     399.996276855,-100.998413086,-10.9995155334,1.0)
-    # goalrotmat4 = Mat4(1.0,0.0,0.0,0.0,
-    #                    0.0,6.12323426293e-17,-1.0,0.0,
-    #                    0.0,1.0,6.12323426293e-17,0.0,
-    #                    499.996276855,200.001571655,-10.9995155334,1.0)
-    # startrotmat4 = Mat4(-0.707106769085,0.707106769085,0.0,0.0,0.707106769085,0.707106769085,-0.0,0.0,0.0,0.0,-1.0,0.0,450.004150391,-249.998901367,-16.9616088867,1.0)
     goalrotmat4 = Mat4(-0.707106769085,0.707106769085,0.0,0.0,0.707106769085,0.707106769085,-0.0,0.0,0.0,0.0,-1.0,0.0,350.004150391,249.998901367,-16.9616088867,1.0)
     startrotmat4 = Mat4(0.000547349976841, 2.33689494422e-08, -0.999999821186, 0.0, 2.33689494422e-08, 1.0, 2.33817445405e-08, 0.0, 0.999999821186, -2.33817445405e-08, 0.000547349976841, 0.0, 520.001556396, -249.997833252, -39.9998168945, 1.0)
-    # goalrotmat4 = Mat4(0.000547349976841,2.33689494422e-08,-0.999999821186,0.0,2.33689494422e-08,1.0,2.33817445405e-08,0.0,0.999999821186,-2.33817445405e-08,0.000547349976841,0.0,350.001556396,149.997833252,-39.9998168945,1.0)
-    # goalrotmat4 = Mat4(4.32978030171e-17,4.32978030171e-17,1.0,0.0,-0.707106769085,0.707106769085,0.0,0.0,-0.707106769085,-0.707106769085,6.12323426293e-17,0.0,349.997375488,-349.999572754,-40.0001792908,1.0)
     #tool
     # startrotmat4 = Mat4(-0.0176398064941,-0.0176398064941,-0.99968880415,0.0,-0.707106769085,0.707106769085,0.0,0.0,0.706886708736,0.706886708736,-0.0249464549124,0.0,225.010162354,100,44.9175643921,1.0)
     # startrotmat4 = Mat4(0.129405856133,0.129405856133,0.98311150074,0.0,0.707106769085,-0.707106769085,0.0,0.0,0.69516479969,0.69516479969,-0.183007523417,0.0,227.126983643,-327.023590088,74.7615509033,1.0)
@@ -663,8 +652,8 @@ if __name__=='__main__':
     # goalrotmat4 = Mat4(-4.32978030171e-17,-4.32978030171e-17,-1.0,0.0,0.707106769085,-0.707106769085,0.0,0.0,-0.707106769085,-0.707106769085,6.12323426293e-17,0.0,424.570098877,224.573623657,14.9999990463,1.0)
     # goalrotmat4 = Mat4(-6.12323426293e-17,7.49879952079e-33,1.0,0.0,-1.22464685259e-16,-1.0,0.0,0.0,1.0,-1.22464685259e-16,6.12323426293e-17,0.0,465.250152588,200.002487183,15.000002861,1.0)
     # planerearstay
-    # startrotmat4 = Mat4(-0.771227538586,-0.409778445959,-0.487123966217,0.0,-0.00774340564385,0.771227538586,-0.636512517929,0.0,0.636512517929,-0.487123966217,-0.597964942455,0.0,293.626312256,-47.1169815063,-13.2552099228,1.0)
-    # goalrotmat4 = Mat4(0.705433428288,0.705435693264,0.0687321424484,0.0,-0.707105636597,0.707107901573,-4.63324249722e-05,0.0,-0.0486337244511,-0.04856820032,0.997635126114,0.0,491.219848633,-108.780509949,11.8269386292,1.0)
+    # startrotmat4 = Mat4(0.997635126114,1.59414832979e-06,0.0687321424484,0.0,1.59414832979e-06,1.0,-4.63324249722e-05,0.0,-0.0687321424484,4.63324249722e-05,0.997635126114,0.0,529.004089355,-300.000244141,-43.1730613708,1.0)
+    # goalrotmat4 = Mat4(-0.319523245096,-0.00040422056918,0.947578370571,0.0,-0.00040422056918,0.999999880791,0.000290279567707,0.0,-0.947578370571,-0.000290279567707,-0.319523364305,0.0,469.728881836,200.048553467,101.955215454,1.0)
     objstart = pg.genObjmnp(objpath, color=Vec4(.3, .0, .0, .1))
     objstart.setMat(startrotmat4)
     objend = pg.genObjmnp(objpath, color=Vec4(.0, .3, .0, .1))
@@ -684,9 +673,9 @@ if __name__=='__main__':
     regrip.plotgraph(pltfig)
     id = 0
     # choice = 'startlftgoallft'
-    # choice = 'startrgtgoalrgt'
+    choice = 'startrgtgoalrgt'
     # choice = 'startlftgoalrgt'
-    choice = 'startrgtgoallft'
+    # choice = 'startrgtgoallft'
     regrip.plotshortestpath(pltfig, id = id, choice = choice)
     plt.axis("equal")
     plt.show()

@@ -15,7 +15,7 @@ from sklearn import linear_model
 
 class Calibrate(object):
 
-    def __init__(self, ompath, npntsonverts = 200):
+    def __init__(self, ompath, density = 4.0):
         """
 
         :param ompath: path of the mesh template
@@ -24,7 +24,7 @@ class Calibrate(object):
         date: 20170711
         """
 
-        cadtemp = CADTemp.CADTemp(ompath = ompath, numpointsoververts = npntsonverts)
+        cadtemp = CADTemp.CADTemp(ompath = ompath, density = density)
 
         self.objnp = pg.packpandanp(cadtemp.objtrimesh.vertices,
                                cadtemp.objtrimesh.face_normals,
@@ -224,54 +224,43 @@ if __name__=='__main__':
     objpath = os.path.join(this_dir, "models", "calibtable.stl")
 
     caliber = Calibrate(objpath)
-    # tablepnts = caliber.getTablePcd(sampleradius=5)
-    # T, distances = caliber.getRotMat()
-    #
-    # R = T[0:3, 0:3]
-    # t = T[0:3, 3]
-    # npmat4 = pg.cvtMat4(R, t)
-    # caliber.objnp.setColor(.37,.37,.35,1)
-    # caliber.objnp.setMat(npmat4)
-    # caliber.objnp.reparentTo(base.render)
+    tablepnts = caliber.getTablePcd(sampleradius=5)
 
-    # colors = []
-    # color = [np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]
-    # for pnt in tablepnts:
-    #     colors.append(color)
-    # pntsnp = pg.genPntsnp(tablepnts, colors=colors)
-    # pntsnp.reparentTo(base.render)
+    colors = []
+    color = [np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]
+    for pnt in tablepnts:
+        colors.append(color)
+    pntsnp = pg.genPntsnp(tablepnts, colors=colors)
+    pntsnp.reparentTo(base.render)
 
-    # temppntsnp = pg.genPntsnp(caliber.temppnt)
-    # temppntsnp.reparentTo(base.render)
-
-    # normals
+    #normals
     # normals = tools.estimatenormals(caliber.temppnt)
     # for i, normal in enumerate(normals):
     #     pg.plotArrow(base.render, spos = caliber.temppnt[i], epos = normal+caliber.temppnt[i], thickness = 2, length = 100)
-    # # normals
+    # normals
     # normals = tools.estimatenormals(tablepnts, method = 'ransac')
     # for i, normal in enumerate(normals):
     #     pg.plotArrow(base.render, spos = tablepnts[i], epos = normal+tablepnts[i], thickness = 2, length = 100)
 
-    # points
-    objectpnts = caliber.getObjectPcd()
-    print objectpnts
-    # # normals
-    normals = tools.estimatenormals(objectpnts)
-
-    # transform
-    objectpntscenter = np.mean(objectpnts, axis=0)
-    for i in range(objectpnts.shape[0]):
-        objectpnts[i] = objectpnts[i]-objectpntscenter
-
-    colors = []
-    color = [np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]
-    for pnt in objectpnts:
-        colors.append(color)
-    pntsnp = pg.genPntsnp(objectpnts, colors=colors)
-    pntsnp.reparentTo(base.render)
-    for i, normal in enumerate(normals):
-        pg.plotArrow(base.render, spos = objectpnts[i], epos = normal+objectpnts[i], thickness = .2, length =10)
+    # # points
+    # objectpnts = caliber.getObjectPcd()
+    # print objectpnts
+    # # # normals
+    # normals = tools.estimatenormals(objectpnts)
+    #
+    # # transform
+    # objectpntscenter = np.mean(objectpnts, axis=0)
+    # for i in range(objectpnts.shape[0]):
+    #     objectpnts[i] = objectpnts[i]-objectpntscenter
+    #
+    # colors = []
+    # color = [np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]
+    # for pnt in objectpnts:
+    #     colors.append(color)
+    # pntsnp = pg.genPntsnp(objectpnts, colors=colors)
+    # pntsnp.reparentTo(base.render)
+    # for i, normal in enumerate(normals):
+    #     pg.plotArrow(base.render, spos = objectpnts[i], epos = normal+objectpnts[i], thickness = .2, length =10)
 
     # import robotsim.nextage.nxt as nxt
     # import robotsim.nextage.nxtplot as nxtplot

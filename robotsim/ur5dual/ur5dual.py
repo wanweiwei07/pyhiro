@@ -317,7 +317,7 @@ class Ur5DualRobot():
         rgtlj[0]['mother'] = -1
         rgtlj[0]['child'] = 1
         rgtlj[0]['linkpos'] = np.array([0,0,0])
-        rgtlj[0]['linkvec'] = np.array([0, -235.00, 965.00])+np.dot(rm.rodrigues([1,0,0],135), np.array([0,0,89.159]))
+        rgtlj[0]['linkvec'] = np.array([0, -237.50, 954.39])+np.dot(rm.rodrigues([1,0,0],135), np.array([0,0,89.159]))
         rgtlj[0]['rotax'] = np.array([0,0,1])
         rgtlj[0]['rotangle'] = 0
         rgtlj[0]['rotmat'] = np.eye(3)
@@ -460,7 +460,7 @@ class Ur5DualRobot():
         lftlj[0]['mother'] = -1
         lftlj[0]['child'] = 1
         lftlj[0]['linkpos'] = np.array([0,0,0])
-        lftlj[0]['linkvec'] = np.array([0, 235.00, 965.00])+np.dot(rm.rodrigues([1,0,0], -135), np.array([0,0,89.159]))
+        lftlj[0]['linkvec'] = np.array([0, 237.50, 954.39])+np.dot(rm.rodrigues([1,0,0], -135), np.array([0,0,89.159]))
         lftlj[0]['rotax'] = np.array([0,0,1])
         lftlj[0]['rotangle'] = 0
         lftlj[0]['rotmat'] = np.eye(3)

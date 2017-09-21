@@ -8,433 +8,469 @@ from shapely.geometry import Point
 from trimesh.transformations import *
 from shapely import affinity
 import numpy as np
+import time
 
-def genMinkovSeg(polygon, segment):
-    """
-    convert to minkov sum, sppoint is the supporting point.
-    the reference point is chosen as the geometric center of polygon
+class Stability(object):
 
-    :param polygon: polygon of the object
-    :param segment: a segment finger, composed of two points [sppoint0, sppoint1]
-    :param sppoint:
-    :return:
-    """
+    def __init__(self, rotrange, scale, steplength):
+        self.rotrange = rotrange
+        self.scale = scale
+        self.heightrange = int(self.rotrange*self.scale)
+        self.steplength = steplength
 
-    resultpolpoints = []
-    for i in range(2):
-        sppoint = segment[i]
-        if i == 0:
-            vecsp = np.array([segment[1].x-segment[0].x, segment[1].y-segment[0].y,0])
+    def genMinkovSeg(self, polygon, segment):
+        """
+        convert to minkov sum, sppoint is the supporting point.
+        the reference point is chosen as the geometric center of polygon
+
+        :param polygon: polygon of the object
+        :param segment: a segment finger, composed of two points [sppoint0, sppoint1]
+        :param sppoint:
+        :return:
+        """
+
+        resultpolpoints = []
+        for i in range(2):
+            sppoint = segment[i]
+            if i == 0:
+                vecsp = np.array([segment[1].x-segment[0].x, segment[1].y-segment[0].y,0])
+            else:
+                vecsp = np.array([segment[0].x-segment[1].x, segment[0].y-segment[1].y,0])
+            pol = self.genMinkovPnt(polygon, sppoint)
+            vertspol = pol.exterior.coords
+            nvertspol = len(vertspol)
+            # save data
+            polysegstartid = -1
+            polysegendid = -1
+            for i in range(nvertspol):
+                ithis = i
+                inext = i+1
+                inextnext = i+2
+                if inext == nvertspol:
+                    inext = 0
+                    inextnext = 1
+                if inext == nvertspol-1:
+                    inextnext = 0
+                vecpolnt = np.array([vertspol[inext][0]-vertspol[ithis][0],
+                                    vertspol[inext][1]-vertspol[ithis][1],0])
+                veccrossnext =  np.cross(vecpolnt, vecsp)
+                vecpolnnt = np.array([vertspol[inextnext][0]-vertspol[inext][0],
+                                    vertspol[inextnext][1]-vertspol[inext][1],0])
+                veccrossnextnext =  np.cross(vecpolnnt, vecsp)
+                if veccrossnext[2] <= 0 and veccrossnextnext[2] > 0 and polysegstartid == -1:
+                    polysegstartid = inext
+                if veccrossnext[2] > 0 and veccrossnextnext[2] <= 0 and polysegendid == -1:
+                    polysegendid = inext
+            if polysegendid < polysegstartid:
+                resultpolpoints.extend(vertspol[polysegstartid:])
+                resultpolpoints.extend(vertspol[1:polysegendid+1])
+            else:
+                resultpolpoints.extend(vertspol[polysegstartid:polysegendid+1])
+
+        return Polygon(resultpolpoints)
+
+    def genMinkovPnt(self, polygon, sppoint):
+        """
+        convert to minkov sum, sppoint is the supporting point.
+        the reference point is chosen as the geometric center of polygon
+
+        :param polygon:
+        :param sppoint:
+        :return:
+        """
+
+        return self.translate(self.rotate(polygon, 180), sppoint)
+
+    def rotate(self, polygon, angle, refpoint=Point()):
+        """
+        rotate polygon around ref point
+
+        :param polygon:
+        :param angle: in degree
+        :param point:
+        :return:
+        """
+
+        if refpoint.is_empty:
+            refpoint = polygon.centroid
+            return affinity.rotate(polygon, angle, refpoint)
         else:
-            vecsp = np.array([segment[0].x-segment[1].x, segment[0].y-segment[1].y,0])
-        pol = genMinkovPnt(polygon, sppoint)
-        vertspol = pol.exterior.coords
-        nvertspol = len(vertspol)
-        # save data
-        polysegstartid = -1
-        polysegendid = -1
-        for i in range(nvertspol):
-            ithis = i
-            inext = i+1
-            inextnext = i+2
-            if inext == nvertspol:
-                inext = 0
-                inextnext = 1
-            if inext == nvertspol-1:
-                inextnext = 0
-            vecpolnt = np.array([vertspol[inext][0]-vertspol[ithis][0],
-                                vertspol[inext][1]-vertspol[ithis][1],0])
-            veccrossnext =  np.cross(vecpolnt, vecsp)
-            vecpolnnt = np.array([vertspol[inextnext][0]-vertspol[inext][0],
-                                vertspol[inextnext][1]-vertspol[inext][1],0])
-            veccrossnextnext =  np.cross(vecpolnnt, vecsp)
-            if veccrossnext[2] <= 0 and veccrossnextnext[2] > 0 and polysegstartid == -1:
-                polysegstartid = inext
-            if veccrossnext[2] > 0 and veccrossnextnext[2] <= 0 and polysegendid == -1:
-                polysegendid = inext
-        if polysegendid < polysegstartid:
-            resultpolpoints.extend(vertspol[polysegstartid:])
-            resultpolpoints.extend(vertspol[1:polysegendid+1])
+            return affinity.rotate(polygon, angle, refpoint)
+
+    def translate(self, polygon, newcenterpoint):
+        """
+        translate polygon around ref point
+
+        :param polygon:
+        :param newcenterpoint: shapely point
+        :return:
+        """
+
+        xoff = newcenterpoint.x - polygon.centroid.x
+        yoff = newcenterpoint.y - polygon.centroid.y
+        return affinity.translate(polygon, xoff, yoff)
+
+    def genPolygonFromConf(self, polygon, configuration, refpoint=Point()):
+        """
+        recover the workspace polygon using a configuration point
+
+        :param configuration:
+        :return:
+        """
+
+        if refpoint.is_empty:
+            xoff = configuration[0]
+            yoff = configuration[1]
+            rotpoly = self.rotate(polygon, (configuration[2])/self.scale)
+            transpoly = self.translate(rotpoly, Point(xoff, yoff))
+            # print configuration[0], configuration[1]
+            # print transpoly.centroid.x, transpoly.centroid.y
+            return transpoly
         else:
-            resultpolpoints.extend(vertspol[polysegstartid:polysegendid+1])
+            xoff = configuration[0]
+            yoff = configuration[1]
+            rotpoly = self.rotate(polygon, configuration[2]/self.scale)
+            transpoly = self.translate(rotpoly, Point(xoff, yoff))
+            return transpoly
 
-    return Polygon(resultpolpoints)
-
-def genMinkovPnt(polygon, sppoint):
-    """
-    convert to minkov sum, sppoint is the supporting point.
-    the reference point is chosen as the geometric center of polygon
-
-    :param polygon:
-    :param sppoint:
-    :return:
-    """
-
-    return translate(rotate(polygon, 180), sppoint)
-
-def rotate(polygon, angle, refpoint=Point()):
-    """
-    rotate polygon around ref point
-
-    :param polygon:
-    :param angle: in degree
-    :param point:
-    :return:
-    """
-
-    if refpoint.is_empty:
-        refpoint = polygon.centroid
-        return affinity.rotate(polygon, angle, refpoint)
-    else:
-        return affinity.rotate(polygon, angle, refpoint)
-
-def translate(polygon, newcenterpoint):
-    """
-    translate polygon around ref point
-
-    :param polygon:
-    :param newcenterpoint: shapely point
-    :return:
-    """
-
-    xoff = newcenterpoint.x - polygon.centroid.x
-    yoff = newcenterpoint.y - polygon.centroid.y
-    return affinity.translate(polygon, xoff, yoff)
-
-def genPolygonsnp(polygon, height, color = [], thickness = 20.0):
-    polygons = []
-    if polygon.geom_type == "Polygon":
-        verts3d = []
-        for vert in polygon.exterior.coords:
-            verts3d.append([vert[0], vert[1], height])
-            polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
-    else:
-        for polygonpart in polygon:
+    def genPolygonsnp(self, polygon, height, color = [], thickness = 20.0):
+        polygons = []
+        if polygon.geom_type == "Polygon":
             verts3d = []
-            for vert in polygonpart.exterior.coords:
+            for vert in polygon.exterior.coords:
                 verts3d.append([vert[0], vert[1], height])
-            polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
-    return polygons
+                polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
+        else:
+            for polygonpart in polygon:
+                verts3d = []
+                for vert in polygonpart.exterior.coords:
+                    verts3d.append([vert[0], vert[1], height])
+                polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
+        return polygons
 
-def genCobtnp(polygonlist, steplength):
-    """
-    generate a mesh model for polygonlist
+    def genCobtnp(self, polygonlist, steplength):
+        """
+        generate a mesh model for polygonlist
 
-    :param polygonlist:
-    :param color:
-    :return:
+        :param polygonlist:
+        :param color:
+        :return:
 
-    author: weiwei
-    date: 20170517
-    """
+        author: weiwei
+        date: 20170517
+        """
 
-    npolygon = len(polygonlist)
-    vertices = []
-    facenormals = []
-    triangles = []
-    nvertperpolygon = len(polygonlist[0].exterior.coords)-1
-    height = -steplength
-    for polygon in polygonlist:
-        height = height+steplength
-        for pointid in range(0, nvertperpolygon):
-            point = polygon.exterior.coords[pointid]
-            vertices.append(np.array([point[0], point[1], height]))
-    for polygonid in range(0, npolygon-1):
-        startingid = polygonid*nvertperpolygon
-        startingidnext = (polygonid+1)*nvertperpolygon
-        for vertid in range(0, nvertperpolygon):
-            id0 = startingid+vertid
-            id1 = startingid+vertid+1
-            if vertid == nvertperpolygon-1:
-                id1 = startingid
-            idnext0 = startingidnext+vertid
-            idnext1 = startingidnext+vertid+1
-            if vertid == nvertperpolygon-1:
-                idnext1 = startingidnext
-            triangles.append(np.array([id0, id1, idnext0]))
-            rawnormal0 = np.cross(vertices[id1]-vertices[id0], vertices[idnext0]-vertices[id1])
-            triangles.append(np.array([id1, idnext1, idnext0]))
-            rawnormal1 = np.cross(vertices[idnext1]-vertices[id1], vertices[idnext0]-vertices[idnext1])
-            rawnormal = rawnormal0+rawnormal1
+        npolygon = len(polygonlist)
+        vertices = []
+        facenormals = []
+        triangles = []
+        nvertperpolygon = len(polygonlist[0].exterior.coords)-1
+        height = -steplength
+        for polygon in polygonlist:
+            height = height+steplength
+            for pointid in range(0, nvertperpolygon):
+                point = polygon.exterior.coords[pointid]
+                vertices.append(np.array([point[0], point[1], height]))
+        for polygonid in range(0, npolygon-1):
+            startingid = polygonid*nvertperpolygon
+            startingidnext = (polygonid+1)*nvertperpolygon
+            for vertid in range(0, nvertperpolygon):
+                id0 = startingid+vertid
+                id1 = startingid+vertid+1
+                if vertid == nvertperpolygon-1:
+                    id1 = startingid
+                idnext0 = startingidnext+vertid
+                idnext1 = startingidnext+vertid+1
+                if vertid == nvertperpolygon-1:
+                    idnext1 = startingidnext
+                triangles.append(np.array([id0, id1, idnext0]))
+                rawnormal0 = np.cross(vertices[id1]-vertices[id0], vertices[idnext0]-vertices[id1])
+                triangles.append(np.array([id1, idnext1, idnext0]))
+                rawnormal1 = np.cross(vertices[idnext1]-vertices[id1], vertices[idnext0]-vertices[idnext1])
+                rawnormal = rawnormal0+rawnormal1
+                facenormals.append(rawnormal/np.linalg.norm(rawnormal))
+                facenormals.append(rawnormal/np.linalg.norm(rawnormal))
+
+        # top and bottom
+        for vertid in range(2, nvertperpolygon):
+            triangles.append(np.array([0, vertid, vertid-1]))
+            rawnormal = np.cross(vertices[vertid]-vertices[0], vertices[vertid-1]-vertices[vertid])
             facenormals.append(rawnormal/np.linalg.norm(rawnormal))
+        nverts = len(vertices)
+        for vertid in range(2, nvertperpolygon):
+            triangles.append(np.array([nverts-1, nverts-1-vertid, nverts-vertid]))
+            rawnormal = np.cross(vertices[nverts-1-vertid]-vertices[nverts-1],
+                                 vertices[nverts-vertid]-vertices[nverts-1-vertid])
             facenormals.append(rawnormal/np.linalg.norm(rawnormal))
 
-    # top and bottom
-    for vertid in range(2, nvertperpolygon):
-        triangles.append(np.array([0, vertid, vertid-1]))
-        rawnormal = np.cross(vertices[vertid]-vertices[0], vertices[vertid-1]-vertices[vertid])
-        facenormals.append(rawnormal/np.linalg.norm(rawnormal))
-    nverts = len(vertices)
-    for vertid in range(2, nvertperpolygon):
-        triangles.append(np.array([nverts-1, nverts-1-vertid, nverts-vertid]))
-        rawnormal = np.cross(vertices[nverts-1-vertid]-vertices[nverts-1],
-                             vertices[nverts-vertid]-vertices[nverts-1-vertid])
-        facenormals.append(rawnormal/np.linalg.norm(rawnormal))
+        cobnp = pg.packpandanp(np.asarray(vertices), np.asarray(facenormals), np.asarray(triangles))
+        return cobnp
 
-    cobnp = pg.packpandanp(np.asarray(vertices), np.asarray(facenormals), np.asarray(triangles))
-    return cobnp
+    def genLinesegsnp(self, verts3d, color = [], thickness = 20.0):
+        return pg.genLinesegsnp(verts3d, color, thickness)
 
-def genLinesegsnp(verts3d, color = [], thickness = 20.0):
-    return pg.genLinesegsnp(verts3d, color, thickness)
+    def plotLinesegsnp(self, verts3d, color = [], thickness = 20.0):
+        return pg.genLinesegsnp(verts3d, color, thickness)
 
-def plotLinesegsnp(verts3d, color = [], thickness = 20.0):
-    return pg.genLinesegsnp(verts3d, color, thickness)
+    def genPointsnp(self, point, height, color = [], size = 2.0):
+        verts3d = [[point.x, point.y, height]]
+        return pg.genPntsnp(verts3d, color, size)
 
-def genPointsnp(point, height, color = [], size = 2.0):
-    verts3d = [[point.x, point.y, height]]
-    return pg.genPntsnp(verts3d, color, size)
+    def genOneDCurve(self, polygon, fingerpoint0, fingerpoint1, constraindirect = [0,1]):
+        """
+        compute one dimensional curve given the initial coordinates of polygon, fingerpoint0, and fingerpoint1
 
-def genOneDCurve(polygon, fingerpoint0, fingerpoint1, constraindirect = [0,1], scale = 10.0, steplength = 111):
-    """
-    compute one dimensional curve given the initial coordinates of polygon, fingerpoint0, and fingerpoint1
+        :param polygon: follows shapely definitioin
+        :param fingerpoint0: point, follows shapely def
+        :param fingerpoint1: same
+        :param constraindirect: the direction of constraint (default y+)
+        :return: [onedcurves, polygonxoncurves, fingerp0s3d, fingerp1s3d], each element is a list (multi-sections)
 
-    :param polygon: follows shapely definitioin
-    :param fingerpoint0: point, follows shapely def
-    :param fingerpoint1: same
-    :param constraindirect: the direction of constraint (default y+)
-    :return: [onedcurves, polygonxoncurves, fingerp0s3d, fingerp1s3d], each element is a list (multi-sections)
+        author: weiwei
+        date: 20170509
+        """
 
-    author: weiwei
-    date: 20170509
-    """
+        # obstacles
+        cobtfgr0 = self.genMinkovPnt(polygon, fingerpoint0)
+        cobtfgr1 = self.genMinkovPnt(polygon, fingerpoint1)
 
-    # obstacles
-    cobtfgr0 = genMinkovPnt(polygon, fingerpoint0)
-    cobtfgr1 = genMinkovPnt(polygon, fingerpoint1)
-
-    # onedcurves saves multiple onedcurve
-    onedcurves = []
-    onedcurve = []
-    lastxy = []
-    fingerp0s3d = []
-    fingerp03d = []
-    fingerp1s3d = []
-    fingerp13d = []
-    polygonxoncurves = []
-    polygonxoncurve = []
-    heightrange = int(360.0*scale)
-    for height in range(0, heightrange, steplength):
-        rotedcobsp0 = rotate(cobtfgr0, height / scale)
-        rotedcobsp1 = rotate(cobtfgr1, height / scale)
-        cobsintersections = rotedcobsp0.boundary.intersection(rotedcobsp1.boundary)
-        if not cobsintersections.is_empty:
-            if len(lastxy) != 0:
-                mindist = 9999999999999.9
-                minlastxy = []
-                for cobsintersection in cobsintersections:
-                    if cobsintersection.geom_type == "Point":
-                        diffx = cobsintersection.x - lastxy[0]
-                        diffy = cobsintersection.y - lastxy[1]
-                        diff = math.sqrt(diffx * diffx + diffy * diffy)
-                        if diff < mindist:
-                            mindist = diff
-                            minlastxy = [cobsintersection.x, cobsintersection.y]
-                    elif cobsintersection.geom_type == "LineString":
-                        for vert in cobsintersection.coords:
-                            diffx = vert[0] - lastxy[0]
-                            diffy = vert[1] - lastxy[1]
+        # onedcurves saves multiple onedcurve
+        onedcurves = []
+        onedcurve = []
+        lastxy = []
+        fingerp0s3d = []
+        fingerp03d = []
+        fingerp1s3d = []
+        fingerp13d = []
+        polygonxoncurves = []
+        polygonxoncurve = []
+        for height in range(0, self.heightrange, self.steplength):
+            rotedcobsp0 = self.rotate(cobtfgr0, height / self.scale)
+            rotedcobsp1 = self.rotate(cobtfgr1, height / self.scale)
+            cobsintersections = rotedcobsp0.boundary.intersection(rotedcobsp1.boundary)
+            if not cobsintersections.is_empty:
+                if len(lastxy) != 0:
+                    mindist = 9999999999999.9
+                    minlastxy = []
+                    for cobsintersection in cobsintersections:
+                        if cobsintersection.geom_type == "Point":
+                            diffx = cobsintersection.x - lastxy[0]
+                            diffy = cobsintersection.y - lastxy[1]
                             diff = math.sqrt(diffx * diffx + diffy * diffy)
                             if diff < mindist:
                                 mindist = diff
-                                minlastxy = [vert[0], vert[1]]
-                lastxy = minlastxy
+                                minlastxy = [cobsintersection.x, cobsintersection.y]
+                        elif cobsintersection.geom_type == "LineString":
+                            for vert in cobsintersection.coords:
+                                diffx = vert[0] - lastxy[0]
+                                diffy = vert[1] - lastxy[1]
+                                diff = math.sqrt(diffx * diffx + diffy * diffy)
+                                if diff < mindist:
+                                    mindist = diff
+                                    minlastxy = [vert[0], vert[1]]
+                    lastxy = minlastxy
+                else:
+                    lastxy = [-constraindirect[0]*1000000.0, -constraindirect[1]*1000000.0]
+                    for cobsintersection in cobsintersections:
+                        # print cobsintersection.geom_type
+                        if cobsintersection.geom_type == "Point":
+                            vert = [cobsintersection.x, cobsintersection.y]
+                            projinter = vert[0]*constraindirect[0]+vert[1]*constraindirect[1]
+                            projlastxy = lastxy[0]*constraindirect[0] + lastxy[1]*constraindirect[1]
+                            if projinter >= projlastxy:
+                                lastxy = vert
+                        elif cobsintersection.geom_type == "LineString":
+                            for vert in cobsintersection.coords:
+                                projinter = vert[0]*constraindirect[0]+vert[1]*constraindirect[1]
+                                projlastxy = lastxy[0]*constraindirect[0] + lastxy[1]*constraindirect[1]
+                                if projinter >= projlastxy:
+                                    lastxy = vert
+                onedcurve.append([lastxy[0], lastxy[1], height])
+                fingerp03d.append([fingerpoint0.x, fingerpoint0.y, height])
+                fingerp13d.append([fingerpoint1.x, fingerpoint1.y, height])
+
+                polygonx = self.rotate(polygon, height / self.scale)
+                polygonx = self.translate(polygonx, Point([lastxy[0], lastxy[1]]))
+                polygonxoncurve.append(polygonx)
+
+                # validate the case with only one intersection point
+                lastxy = []
+
+                # if reach the end of rotation, save onedcurve into onedcurves and start a new onedcurve
+                if height >= self.heightrange - self.steplength:
+                    onedcurves.append(onedcurve)
+                    onedcurve = []
+                    fingerp0s3d.append(fingerp03d)
+                    fingerp03d = []
+                    fingerp1s3d.append(fingerp13d)
+                    fingerp13d = []
+                    polygonxoncurves.append(polygonxoncurve)
+                    polygonxoncurve = []
+                    lastxy = []
             else:
-                lastxy = [-constraindirect[0]*10000000.0, -constraindirect[1]*10000000.0]
-                for cobsintersection in cobsintersections:
-                    projinter = cobsintersection.x*constraindirect[0]+cobsintersection.y*constraindirect[1]
-                    projlastxy = lastxy[0]*constraindirect[0] + lastxy[1]*constraindirect[1]
-                    if projinter >= projlastxy:
-                        lastxy = [cobsintersection.x, cobsintersection.y]
-            onedcurve.append([lastxy[0], lastxy[1], height])
-            fingerp03d.append([fingerpoint0.x, fingerpoint0.y, height])
-            fingerp13d.append([fingerpoint1.x, fingerpoint1.y, height])
-
-            polygonx = rotate(polygon, height / scale)
-            polygonx = translate(polygonx, Point([lastxy[0], lastxy[1]]))
-            polygonxoncurve.append(polygonx)
-
-            # validate the case with only one intersection point
-            lastxy = []
-
-            # if reach the end of rotation, save onedcurve into onedcurves and start a new onedcurve
-            if height > heightrange - steplength:
+                # if intersection disappeared, save onedcurve into onedcurves and start a new onedcurve
                 onedcurves.append(onedcurve)
                 onedcurve = []
-                fingerp0s3d.append(fingerp03d)
-                fingerp03d = []
-                fingerp1s3d.append(fingerp13d)
-                fingerp13d = []
                 polygonxoncurves.append(polygonxoncurve)
                 polygonxoncurve = []
                 lastxy = []
-        else:
-            # if intersection disappeared, save onedcurve into onedcurves and start a new onedcurve
-            onedcurves.append(onedcurve)
-            onedcurve = []
-            polygonxoncurves.append(polygonxoncurve)
-            polygonxoncurve = []
-            lastxy = []
 
-    return [onedcurves, polygonxoncurves, fingerp0s3d, fingerp1s3d]
+        return [onedcurves, polygonxoncurves, fingerp0s3d, fingerp1s3d]
 
-def genOneDCurveSeg(polygon, segfgr, sppoint, constraindirect = [0,1], scale = 10.0, steplength = 111):
-    """
-    compute one dimensional curve given the initial coordinates of polygon, fingerpoint0, and fingerpoint1
+    def genOneDCurveSeg(self, polygon, segfgr, sppoint, constraindirect = [0,1]):
+        """
+        compute one dimensional curve given the initial coordinates of polygon, fingerpoint0, and fingerpoint1
 
-    :param polygon: follows shapely definitioin
-    :param segfgr: a segment in the form of [Point, Point]
-    :param sppoint: a support Point
-    :param constraindirect: the direction of constraint (default y+)
-    :return: [onedcurves, polygonxoncurves, segfgr3d, sppoint3d], each element is a list (multi-sections)
+        :param polygon: follows shapely definitioin
+        :param segfgr: a segment in the form of [Point, Point]
+        :param sppoint: a support Point
+        :param constraindirect: the direction of constraint (default y+)
+        :return: [onedcurves, polygonxoncurves, segfgr3d, sppoint3d], each element is a list (multi-sections)
 
-    author: weiwei
-    date: 20170525
-    """
+        author: weiwei
+        date: 20170525
+        """
 
-    # obstacles
-    cobtspbase = genMinkovPnt(polygon, sppoint)
+        # obstacles
+        cobtspbase = self.genMinkovPnt(polygon, sppoint)
 
-    # onedcurves saves multiple onedcurve
-    lastxy = []
-    # upper: on all curves, lower: on one curve
-    onedcurves = []
-    onedcurve = []
-    segfgrs3d = []
-    segfgr3d = []
-    sppoints3d = []
-    sppoint3d = []
-    polygonxoncurves = []
-    polygonxoncurve = []
-    heightrange = int(360.0*scale)
-    for height in range(0, heightrange, steplength):
-        cobtseg = genMinkovSeg(rotate(polygon, height/scale), segfgr)
-        cobtsp = rotate(cobtspbase, height / scale)
-        cobsintersections = cobtseg.boundary.intersection(cobtsp.boundary)
-        if not cobsintersections.is_empty:
-            if len(lastxy) != 0:
-                mindist = 9999999999999.9
-                minlastxy = []
-                for cobsintersection in cobsintersections:
-                    if cobsintersection.geom_type == "Point":
-                        diffx = cobsintersection.x - lastxy[0]
-                        diffy = cobsintersection.y - lastxy[1]
-                        diff = math.sqrt(diffx * diffx + diffy * diffy)
-                        if diff < mindist:
-                            mindist = diff
-                            minlastxy = [cobsintersection.x, cobsintersection.y]
-                    elif cobsintersection.geom_type == "LineString":
-                        for vert in cobsintersection.coords:
-                            diffx = vert[0] - lastxy[0]
-                            diffy = vert[1] - lastxy[1]
+        # onedcurves saves multiple onedcurve
+        lastxy = []
+        # upper: on all curves, lower: on one curve
+        onedcurves = []
+        onedcurve = []
+        segfgrs3d = []
+        segfgr3d = []
+        sppoints3d = []
+        sppoint3d = []
+        polygonxoncurves = []
+        polygonxoncurve = []
+        for height in range(0, self.heightrange, self.steplength):
+            cobtseg = self.genMinkovSeg(self.rotate(polygon, height/self.scale), segfgr)
+            cobtsp = self.rotate(cobtspbase, height / self.scale)
+            cobsintersections = cobtseg.boundary.intersection(cobtsp.boundary)
+            if not cobsintersections.is_empty:
+                if len(lastxy) != 0:
+                    mindist = 9999999999999.9
+                    minlastxy = []
+                    for cobsintersection in cobsintersections:
+                        if cobsintersection.geom_type == "Point":
+                            diffx = cobsintersection.x - lastxy[0]
+                            diffy = cobsintersection.y - lastxy[1]
                             diff = math.sqrt(diffx * diffx + diffy * diffy)
                             if diff < mindist:
                                 mindist = diff
-                                minlastxy = [vert[0], vert[1]]
-                lastxy = minlastxy
+                                minlastxy = [cobsintersection.x, cobsintersection.y]
+                        elif cobsintersection.geom_type == "LineString":
+                            for vert in cobsintersection.coords:
+                                diffx = vert[0] - lastxy[0]
+                                diffy = vert[1] - lastxy[1]
+                                diff = math.sqrt(diffx * diffx + diffy * diffy)
+                                if diff < mindist:
+                                    mindist = diff
+                                    minlastxy = [vert[0], vert[1]]
+                    lastxy = minlastxy
+                else:
+                    lastxy = [-constraindirect[0]*10000000.0, -constraindirect[1]*10000000.0]
+                    for cobsintersection in cobsintersections:
+                        projinter = cobsintersection.x*constraindirect[0]+cobsintersection.y*constraindirect[1]
+                        projlastxy = lastxy[0]*constraindirect[0] + lastxy[1]*constraindirect[1]
+                        if projinter >= projlastxy:
+                            lastxy = [cobsintersection.x, cobsintersection.y]
+                onedcurve.append([lastxy[0], lastxy[1], height])
+                segfgr3d.append([[segfgr[0].x, segfgr[0].y, height], [segfgr[1].x, segfgr[1].y, height]])
+                sppoint3d.append([sppoint.x, sppoint.y, height])
+
+                polygonx = self.rotate(polygon, height / self.scale)
+                polygonx = self.translate(polygonx, Point([lastxy[0], lastxy[1]]))
+                polygonxoncurve.append(polygonx)
+
+                # validate the case with only one intersection point
+                lastxy = []
+
+                # if reach the end of rotation, save onedcurve into onedcurves and start a new onedcurve
+                if height > heightrange - steplength:
+                    onedcurves.append(onedcurve)
+                    onedcurve = []
+                    segfgrs3d.append(segfgr3d)
+                    segfgr3d = []
+                    sppoints3d.append(sppoint3d)
+                    sppoint3d = []
+                    polygonxoncurves.append(polygonxoncurve)
+                    polygonxoncurve = []
+                    lastxy = []
             else:
-                lastxy = [-constraindirect[0]*10000000.0, -constraindirect[1]*10000000.0]
-                for cobsintersection in cobsintersections:
-                    projinter = cobsintersection.x*constraindirect[0]+cobsintersection.y*constraindirect[1]
-                    projlastxy = lastxy[0]*constraindirect[0] + lastxy[1]*constraindirect[1]
-                    if projinter >= projlastxy:
-                        lastxy = [cobsintersection.x, cobsintersection.y]
-            onedcurve.append([lastxy[0], lastxy[1], height])
-            segfgr3d.append([[segfgr[0].x, segfgr[0].y, height], [segfgr[1].x, segfgr[1].y, height]])
-            sppoint3d.append([sppoint.x, sppoint.y, height])
-
-            polygonx = rotate(polygon, height / scale)
-            polygonx = translate(polygonx, Point([lastxy[0], lastxy[1]]))
-            polygonxoncurve.append(polygonx)
-
-            # validate the case with only one intersection point
-            lastxy = []
-
-            # if reach the end of rotation, save onedcurve into onedcurves and start a new onedcurve
-            if height > heightrange - steplength:
+                # if intersection disappeared, save onedcurve into onedcurves and start a new onedcurve
                 onedcurves.append(onedcurve)
                 onedcurve = []
+                polygonxoncurves.append(polygonxoncurve)
+                polygonxoncurve = []
                 segfgrs3d.append(segfgr3d)
                 segfgr3d = []
                 sppoints3d.append(sppoint3d)
                 sppoint3d = []
-                polygonxoncurves.append(polygonxoncurve)
-                polygonxoncurve = []
                 lastxy = []
-        else:
-            # if intersection disappeared, save onedcurve into onedcurves and start a new onedcurve
-            onedcurves.append(onedcurve)
-            onedcurve = []
-            polygonxoncurves.append(polygonxoncurve)
-            polygonxoncurve = []
-            segfgrs3d.append(segfgr3d)
-            segfgr3d = []
-            sppoints3d.append(sppoint3d)
-            sppoint3d = []
-            lastxy = []
-    return [onedcurves, polygonxoncurves, segfgrs3d, sppoints3d]
+        return [onedcurves, polygonxoncurves, segfgrs3d, sppoints3d]
 
-def cavities(onedcurve):
-    """
-    find the cavities of onedcurve
-    cavities are represented by triples (leftlocalmax, localmin, rightlocalmax)
+    def cavities(self, onedcurve):
+        """
+        find the cavities of onedcurve
+        cavities are represented by triples (leftlocalmax, localmin, rightlocalmax)
 
-    :param onedcurve:
-    :return: [cavities0, cavities1, ...]
+        :param onedcurve:
+        :return: [cavities0, cavities1, ...]
 
-    author: weiwei
-    date: 20170511
-    """
+        author: weiwei
+        date: 20170511
+        """
 
-    onedcavities = []
-    cavity = []
-    inc = False
-    dec = False
-    for i, point in enumerate(onedcurve):
-        if i >= 1:
-            prepoint = onedcurve[i-1]
-            if point[1] > prepoint[1] and dec:
-                # local minima
-                inc = True
-                dec = False
-                if len(cavity) == 1:
-                    cavity.append(i-1)
-            elif point[1] > prepoint[1] and not inc:
-                inc = True
-                dec = False
-            if point[1] < prepoint[1] and inc:
-                # local maxima
-                inc = False
-                dec = True
-                if len(cavity) == 0:
-                    cavity.append(i-1)
-                elif len(cavity) == 2:
-                    cavity.append(i-1)
-                    onedcavities.append(cavity)
-                    cavity = [i-1]
+        onedcavities = []
+        cavity = []
+        inc = False
+        dec = False
+        for i, point in enumerate(onedcurve):
+            if i >= 1:
+                prepoint = onedcurve[i-1]
+                if point[1] > prepoint[1] and dec:
+                    # local minima
+                    inc = True
+                    dec = False
+                    if len(cavity) == 1:
+                        cavity.append(i-1)
+                elif point[1] > prepoint[1] and not inc:
+                    inc = True
+                    dec = False
+                if point[1] < prepoint[1] and inc:
+                    # local maxima
                     inc = False
                     dec = True
-            elif point[1] < prepoint[1] and not dec:
-                inc = False
-                dec = True
-    return onedcavities
+                    if len(cavity) == 0:
+                        cavity.append(i-1)
+                    elif len(cavity) == 2:
+                        cavity.append(i-1)
+                        onedcavities.append(cavity)
+                        cavity = [i-1]
+                        inc = False
+                        dec = True
+                elif point[1] < prepoint[1] and not dec:
+                    inc = False
+                    dec = True
+        return onedcavities
 
-def genCobt(polygon, point, scale = 10.0, steplength = 111):
-    heightrange = int(360*scale)
-    cobtslice = genMinkovPnt(polygon, point)
-    cobtsdict = {}
-    for height in range(0,heightrange,steplength):
-        rotedcobtslice = rotate(cobtslice, height/10.0)
-        cobtsdict[height] = rotedcobtslice
-    return cobtsdict
+    def genCobt(self, polygon, point):
+        cobtslice = self.genMinkovPnt(polygon, point)
+        cobtsdict = {}
+        for height in range(0,self.heightrange,self.steplength):
+            rotedcobtslice = self.rotate(cobtslice, height/self.scale)
+            cobtsdict[height] = rotedcobtslice
+        return cobtsdict
 
-def genCobtSeg(polygon, segment, scale = 10.0, steplength = 111):
-    heightrange = int(360*scale)
-    cobtsdict = {}
-    for height in range(0,heightrange,steplength):
-        rotedcobtslice = genMinkovSeg(rotate(polygon, height/scale), segment)
-        cobtsdict[height] = rotedcobtslice
-    return cobtsdict
-
+    def genCobtSeg(self, polygon, segment):
+        cobtsdict = {}
+        for height in range(0,self.heightrange,self.steplength):
+            rotedcobtslice = self.genMinkovSeg(self.rotate(polygon, height/self.scale), segment)
+            cobtsdict[height] = rotedcobtslice
+        return cobtsdict
 
 if __name__=="__main__":
     base = pc.World(camp=[0,0,5800], lookatp=[0,0,1800])

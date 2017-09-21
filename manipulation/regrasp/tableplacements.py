@@ -292,7 +292,7 @@ class TablePlacements(object):
                 tabletopplacements.idfreetabletopplacement = freetabletopplacement.idfreetabletopplacement AND \
                 freetabletopplacement.idobject = object.idobject AND object.name LIKE '%s' AND \
                 tabletopplacements.idangle = angle.idangle AND \
-                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 11, 45)
+                freetabletopplacement.idfreetabletopplacement = %d AND angle.value = %d" % (self.dbobjname, 1, 45)
         result = gdb.execute(sql)
         if len(result) != 0:
             for resultrow in result:
@@ -320,7 +320,7 @@ class TablePlacements(object):
                     hndjawwidth = float(resultrow[1])
                     # show grasps
                     tmphnd = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .1])
-                    tmphnd.setMat(hndrotmat)
+                    tmphnd.setMat(pandanpmat4 = hndrotmat)
                     tmphnd.setJawwidth(hndjawwidth)
                     tmphnd.reparentTo(base.render)
 
@@ -332,6 +332,7 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[1000,400,1000], lookatp=[400,0,0])
     this_dir, this_filename = os.path.split(__file__)
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "sandpart.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool.stl")
     objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool2.stl")
@@ -383,25 +384,24 @@ if __name__ == '__main__':
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
 
-    # # build grid space
+    # build grid space
     # grids = []
-    # for x in range(300,401,100):
-    #     for y in range(-200,201,200):
-    #         grids.append([x,y,-55])
-    # grids = []
-    # for x in range(400,401,200):
+    # for x in range(400,551,100):
     #     for y in range(-300,301,600):
-    #         grids.append([x,y,120])
+    #         grids.append([x,y,-55])
+    grids = []
+    for x in range(400,401,200):
+        for y in range(-250,251,600):
+            grids.append([x,y,150])
     gdb = db.GraspDB()
-    # tps.saveToDB(grids, gdb)
+    tps.saveToDB(grids, gdb)
     # # # tps.grpshow(base, gdb)
-    # tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
-    # tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
+    tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
+    tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
     # tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
     # tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
     # tps.updateDBwithIK(gdb, hrp2k, armname = "rgt")
     # tps.updateDBwithIK(gdb, hrp2k, armname = "lft")
-
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')

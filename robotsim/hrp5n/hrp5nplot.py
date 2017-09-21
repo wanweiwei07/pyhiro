@@ -270,7 +270,7 @@ def genmnp(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     hrp5nrobotrgthnd = handpkg.newHand('rgt')
     hrp5nrobotrgtarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.rgtarm[9]['rotmat'], hrp5nrobot.rgtarm[9]['linkpos'])
     # pg.plotAxisSelf(hrp5nmnp, hrp5nrobot.rgtarm[9]['linkend'], hrp5nrobotrgtarmlj9_rotmat)
-    hrp5nrobotrgthnd.setMat(hrp5nrobotrgtarmlj9_rotmat)
+    hrp5nrobotrgthnd.setMat(pandanpmat4 = hrp5nrobotrgtarmlj9_rotmat)
     hrp5nrobotrgthnd.reparentTo(hrp5nmnp)
     if jawwidthrgt is not None:
         hrp5nrobotrgthnd.setJawwidth(jawwidthrgt)
@@ -279,7 +279,7 @@ def genmnp(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     hrp5nrobotlfthnd = handpkg.newHand('lft')
     hrp5nrobotlftarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.lftarm[9]['rotmat'], hrp5nrobot.lftarm[9]['linkpos'])
     # pg.plotAxisSelf(hrp5nmnp, hrp5nrobot.lftarm[9]['linkend'], hrp5nrobotlftarmlj9_rotmat)
-    hrp5nrobotlfthnd.setMat(hrp5nrobotlftarmlj9_rotmat)
+    hrp5nrobotlfthnd.setMat(pandanpmat4 = hrp5nrobotlftarmlj9_rotmat)
     hrp5nrobotlfthnd.reparentTo(hrp5nmnp)
     if jawwidthlft is not None:
         hrp5nrobotlfthnd.setJawwidth(jawwidthlft)
@@ -526,7 +526,7 @@ def genmnplist(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     hrp5nrobotrgthnd = handpkg.newHand('rgt')
     hrp5nrobotrgtarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.rgtarm[9]['rotmat'], hrp5nrobot.rgtarm[9]['linkpos'])
     # pg.plotAxisSelf(hrp5nmnp, hrp5nrobot.rgtarm[9]['linkend'], hrp5nrobotrgtarmlj9_rotmat)
-    hrp5nrobotrgthnd.setMat(hrp5nrobotrgtarmlj9_rotmat)
+    hrp5nrobotrgthnd.setMat(pandanpmat4 = hrp5nrobotrgtarmlj9_rotmat)
     hrp5nrobotrgthnd.reparentTo(hrp5nmnp)
     if jawwidthrgt is not None:
         hrp5nrobotrgthnd.setJawwidth(jawwidthrgt)
@@ -535,7 +535,7 @@ def genmnplist(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     hrp5nrobotlfthnd = handpkg.newHand('lft')
     hrp5nrobotlftarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.lftarm[9]['rotmat'], hrp5nrobot.lftarm[9]['linkpos'])
     # pg.plotAxisSelf(hrp5nmnp, hrp5nrobot.lftarm[9]['linkend'], hrp5nrobotlftarmlj9_rotmat)
-    hrp5nrobotlfthnd.setMat(hrp5nrobotlftarmlj9_rotmat)
+    hrp5nrobotlfthnd.setMat(pandanpmat4 = hrp5nrobotlftarmlj9_rotmat)
     hrp5nrobotlfthnd.reparentTo(hrp5nmnp)
     if jawwidthlft is not None:
         hrp5nrobotlfthnd.setJawwidth(jawwidthlft)
@@ -858,7 +858,7 @@ def genmnp_nm(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     hrp5nrobotrgthnd = handpkg.newHand('rgt')
     hrp5nrobotrgtarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.rgtarm[9]['rotmat'], hrp5nrobot.rgtarm[9]['linkpos'])
     # pg.plotAxisSelf(hrp5nmnp, hrp5nrobot.rgtarm[9]['linkend'], hrp5nrobotrgtarmlj9_rotmat)
-    hrp5nrobotrgthnd.setMat(hrp5nrobotrgtarmlj9_rotmat)
+    hrp5nrobotrgthnd.setMat(pandanpmat4 = hrp5nrobotrgtarmlj9_rotmat)
     hrp5nrobotrgthnd.reparentTo(hrp5nmnp)
     if jawwidthrgt is not None:
         hrp5nrobotrgthnd.setJawwidth(jawwidthrgt)
@@ -867,7 +867,7 @@ def genmnp_nm(hrp5nrobot, handpkg, jawwidthrgt = None, jawwidthlft = None):
     hrp5nrobotlfthnd = handpkg.newHand('lft')
     hrp5nrobotlftarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.lftarm[9]['rotmat'], hrp5nrobot.lftarm[9]['linkpos'])
     # pg.plotAxisSelf(hrp5nmnp, hrp5nrobot.lftarm[9]['linkend'], hrp5nrobotlftarmlj9_rotmat)
-    hrp5nrobotlfthnd.setMat(hrp5nrobotlftarmlj9_rotmat)
+    hrp5nrobotlfthnd.setMat(pandanpmat4 = hrp5nrobotlftarmlj9_rotmat)
     hrp5nrobotlfthnd.reparentTo(hrp5nmnp)
     if jawwidthlft is not None:
         hrp5nrobotlfthnd.setJawwidth(jawwidthlft)

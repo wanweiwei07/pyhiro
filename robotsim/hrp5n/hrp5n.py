@@ -11,7 +11,7 @@ class Hrp5NRobot():
         # the remaining 18 are for each of the two 9-dof arms
         self.__name = 'hrp5n'
         # initjnts[0] = waist, 0,0 = head, 0,45,-20,...-30,0,0 = rgt, 0,45,20,...,30,0,0 = lft
-        self.__initjnts = np.array([0,0,0,0,45,-20,-45,-150,45,0,0,0,0,45,20,45,-150,-45,0,0,0]);
+        self.__initjnts = np.array([0,0,0,0,45,-50,-45,-150,45,0,0,0,0,45,50,45,-150,-45,0,0,0]);
         # self.__initjnts = np.array([0,0,0,0,45,-20,0,-75,0,-30,0,0,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-64,82,-27,109,-111,0,45,20,0,-75,0,30,0,0]);
         # self.__initjnts = np.array([0,0,0,45,-20,0,-68,77,-32,109,-122,0,45,20,0,-75,0,30,0,0]);
@@ -706,7 +706,7 @@ if __name__=="__main__":
     hrp5nplot.plotstick(base.render, hrp5nrobot)
 
     handpkg = hrp5threenm
-    handpkg = rtq85nm
+    # handpkg = rtq85nm
     hrp5nmeshgen = hrp5nmesh.Hrp5NMesh(handpkg)
     hrp5nmnp = hrp5nmeshgen.genmnp(hrp5nrobot)
     hrp5nmnp.reparentTo(base.render)

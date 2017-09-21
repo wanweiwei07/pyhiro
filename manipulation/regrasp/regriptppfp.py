@@ -25,6 +25,7 @@ from mpl_toolkits.mplot3d import art3d as mc3d
 from operator import add
 from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
+from robotsim.hrp5n import hrp5n
 from database import dbaccess as db
 
 import networkx as nx
@@ -195,6 +196,8 @@ class RegripTppFp():
                     ttgsjawwidth = float(ttgsrow[4])
                     ttgsidfreeair = int(ttgsrow[5])
                     ttgsfgrcenter = (ttgscct0+ttgscct1)/2
+                    # if ttgsfgrcenter[1] < 200 or ttgsfgrcenter[1] > -200:
+                    #     continue
                     handx = ttgsrotmat.getRow3(0)
                     ttgsfgrcenterhandx = ttgsfgrcenter + handx*self.rethandx
                     ttgsfgrcenterhandxworldz = ttgsfgrcenterhandx + self.worldz*self.retworldz
@@ -299,7 +302,7 @@ class RegripTppFp():
             # set to gripping with is unnecessary
             # tmprtq85.setJawwidth(self.freegripjawwidth[j])
             tmphnd.setJawwidth(80)
-            tmphnd.setMat(ttgsrotmatx0y0)
+            tmphnd.setMat(pandanpmat4 = ttgsrotmatx0y0)
             # add hand model to bulletworld
             hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
@@ -350,7 +353,7 @@ class RegripTppFp():
                     nodeidofglobalidinstartrgt[ttgsidfreeair]='startrgt'+str(j)
                     self.startrgtnodeids.append('startrgt'+str(j))
                     # tmprtq85.reparentTo(base.render)
-            tmphnd.setMat(initmat)
+            tmphnd.setMat(pandanpmat4 = initmat)
             tmphnd.setJawwidth(initjawwidth)
 
         if len(self.startrgtnodeids) == 0:
@@ -378,7 +381,7 @@ class RegripTppFp():
             # set to gripping with is unnecessary
             # tmprtq85.setJawwidth(self.freegripjawwidth[j])
             tmphnd.setJawwidth(80)
-            tmphnd.setMat(ttgsrotmatx0y0)
+            tmphnd.setMat(pandanpmat4 = ttgsrotmatx0y0)
             # add hand model to bulletworld
             hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
@@ -429,7 +432,7 @@ class RegripTppFp():
                     nodeidofglobalidinstartlft[ttgsidfreeair]='startlft'+str(j)
                     self.startlftnodeids.append('startlft'+str(j))
                     # tmprtq85.reparentTo(base.render)
-            tmphnd.setMat(initmat)
+            tmphnd.setMat(pandanpmat4 = initmat)
             tmphnd.setJawwidth(initjawwidth)
 
         if len(self.startlftnodeids) == 0:
@@ -481,7 +484,7 @@ class RegripTppFp():
             initmat = tmphnd.getMat()
             initjawwidth = tmphnd.jawwidth
             tmphnd.setJawwidth(self.freegripjawwidth[j])
-            tmphnd.setMat(ttgsrotmatx0y0)
+            tmphnd.setMat(pandanpmat4 = ttgsrotmatx0y0)
             # add hand model to bulletworld
             hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
@@ -531,7 +534,7 @@ class RegripTppFp():
                                        angleid = 'na', tabletopposition = tabletopposition)
                     nodeidofglobalidingoalrgt[ttgsidfreeair]='goalrgt'+str(j)
                     self.goalrgtnodeids.append('goalrgt'+str(j))
-            tmphnd.setMat(initmat)
+            tmphnd.setMat(pandanpmat4 = initmat)
             tmphnd.setJawwidth(initjawwidth)
 
         if len(self.goalrgtnodeids) == 0:
@@ -555,7 +558,7 @@ class RegripTppFp():
             initmat = tmphnd.getMat()
             initjawwidth = tmphnd.jawwidth
             tmphnd.setJawwidth(self.freegripjawwidth[j])
-            tmphnd.setMat(ttgsrotmatx0y0)
+            tmphnd.setMat(pandanpmat4 = ttgsrotmatx0y0)
             # add hand model to bulletworld
             hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
             result = self.bulletworld.contactTest(hndbullnode)
@@ -605,7 +608,7 @@ class RegripTppFp():
                                        angleid = 'na', tabletopposition = tabletopposition)
                     nodeidofglobalidingoallft[ttgsidfreeair]='goallft'+str(j)
                     self.goallftnodeids.append('goallft'+str(j))
-            tmphnd.setMat(initmat)
+            tmphnd.setMat(pandanpmat4 = initmat)
             tmphnd.setJawwidth(initjawwidth)
 
         if len(self.goallftnodeids) == 0:
@@ -653,8 +656,9 @@ class RegripTppFp():
                 if startnodeggid == goalnodeggid:
                     self.regg.add_edge(startnodeid, goalnodeid, weight=1, edgetype = 'startgoallfttransfer')
 
-    def findshortestpath(self, startrotmat4, goalrotmat4, base):
-        self.__addstartgoal(startrotmat4, goalrotmat4, base)
+    def findshortestpath(self, startrotmat4, goalrotmat4, base, bagain = False):
+        if bagain == False:
+            self.__addstartgoal(startrotmat4, goalrotmat4, base)
 
         # startrgt goalrgt
         if len(self.startrgtnodeids) > 0 and len(self.goalrgtnodeids) > 0:
@@ -739,6 +743,19 @@ class RegripTppFp():
                             break
             except:
                 assert('No startlft goallft path')
+
+    def removeBadNodes(self, nodelist):
+        """
+        remove the invalidated nodes to prepare for a new plan
+
+        :param nodelist: a list of invalidated nodes
+        :return:
+
+        author: weiwei
+        date: 20170920
+        """
+
+        self.regg.remove_nodes_from(nodelist)
 
     def plotgraph(self, pltfig):
         """

@@ -132,7 +132,7 @@ if __name__ == '__main__':
     handpkg = rtq85nm
 
     base = pc.World(camp = [3000,0,3000], lookatp = [0,0,700])
-    ur5dualrobot = u5d.Ur5Dual()
+    ur5dualrobot = u5d.Ur5DualRobot()
     ur5dualrobot.goinitpose()
     ur5u = Ur5DualUrx()
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
         for arrow in arrownp:
             arrow.detachNode()
 
-        ur5dualmnp = u5p.genUr5dualmnp(ur5dualrobot, handpkg)
+        ur5dualmnp = u5p.genmnp(ur5dualrobot, handpkg)
         ur5dualmnp.reparentTo(base.render)
         robotnp.append(ur5dualmnp)
 

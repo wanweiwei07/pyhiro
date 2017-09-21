@@ -19,6 +19,7 @@ from utils import robotmath as rm
 from robotsim.nextage import nxt
 from robotsim.hrp5 import hrp5
 from robotsim.hrp5n import hrp5n
+from robotsim.hrp2k import hrp2k
 from database import dbaccess as db
 import trimesh
 import time
@@ -149,14 +150,14 @@ class FloatingPoses(object):
             # hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             # hand1 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .1])
             pairidlist = list(itertools.combinations(range(len(self.freegripids)), 2))
-            print len(pairidlist)/3000+1
-            for i in range(100,len(pairidlist),len(pairidlist)/3000+1):
+            print len(pairidlist)/5000+1
+            for i in range(100,len(pairidlist),len(pairidlist)/5000+1):
             # for i0, i1 in pairidlist:
                 i0, i1 = pairidlist[i]
                 print i, len(pairidlist)
-                self.hand0.setMat(self.freegriprotmats[i0])
+                self.hand0.setMat(pandanpmat4 = self.freegriprotmats[i0])
                 self.hand0.setJawwidth(self.freegripjawwidth[i0])
-                self.hand1.setMat(self.freegriprotmats[i1])
+                self.hand1.setMat(pandanpmat4 = self.freegriprotmats[i1])
                 self.hand1.setJawwidth(self.freegripjawwidth[i1])
                 hndbullnodei0 = cd.genCollisionMeshMultiNp(self.hand0.handnp, base.render)
                 hndbullnodei1 = cd.genCollisionMeshMultiNp(self.hand1.handnp, base.render)
@@ -221,6 +222,7 @@ class FloatingPoses(object):
         if len(result) == 0:
             for i in range(len(self.gridsfloatingposemat4s)):
                 sql = "SELECT floatingposes.idfloatingposes FROM floatingposes,object WHERE \
+                        floatingposes.idobject = object.idobject AND \
                         floatingposes.rotmat LIKE '%s' AND \
                         object.name LIKE '%s'" % (dc.mat4ToStr(self.gridsfloatingposemat4s[i]), self.dbobjname)
                 result = self.gdb.execute(sql)[0]
@@ -303,7 +305,8 @@ class FloatingPoses(object):
                     self.floatinggripjawwidth.append(floatinggripjawwidths)
                     self.floatinggripidfreeair.append(floatinggripidfreeairs)
                 else:
-                    assert('Plan floating grips first!')
+                    print 'Plan floating grips first!'
+                    assert(False)
         else:
             assert('No object found!')
 
@@ -412,7 +415,7 @@ class FloatingPoses(object):
                 sql = "INSERT IGNORE INTO floatinggripspairs VALUES (%d, %d)" % \
                         (self.floatinggripids[fpid][handidpair_indfg[-1][0]], self.floatinggripids[fpid][handidpair_indfg[-1][1]])
                 self.gdb.execute(sql)
-                # if 1 is left, 0 is right
+                # if 1 is right, 0 is left
                 sql = "INSERT IGNORE INTO floatinggripspairs VALUES (%d, %d)" % \
                         (self.floatinggripids[fpid][handidpair_indfg[-1][1]], self.floatinggripids[fpid][handidpair_indfg[-1][0]])
                 self.gdb.execute(sql)
@@ -488,6 +491,9 @@ class FloatingPoses(object):
                 self.floatinggrippairsnormals.append(floatinggrippairsnormals)
                 self.floatinggrippairsjawwidths.append(floatinggrippairsjawwidths)
                 self.floatinggrippairsidfreeairs.append(floatinggrippairsidfreeairs)
+        # for i,pairs in enumerate(self.floatinggrippairsids):
+        #     print i
+        #     print pairs
 
     def updateDBwithIK(self, robot):
         """
@@ -650,7 +656,7 @@ class FloatingPoses(object):
             if i == 7:
                 # show grasps
                 hand0 = self.handpkg.newHandNM(hndcolor=[0, 1, 0, 1])
-                hand0.setMat(hndrotmat4)
+                hand0.setMat(pandanpmat4 = hndrotmat4)
                 hand0.setJawwidth(self.floatinggripjawwidth[fpid][i])
                 hand0.reparentTo(parentnp)
                 print self.handpairList
@@ -663,7 +669,7 @@ class FloatingPoses(object):
                         # if self.floatinggripikfeas_lft[fpid][i1] == 'True':
                         hand1 = self.handpkg.newHandNM(hndcolor=[0, 1, 1, 1])
                         hndrotmat4 = self.floatinggripmat4s[fpid][i1]
-                        hand1.setMat(hndrotmat4)
+                        hand1.setMat(pandanpmat4 = hndrotmat4)
                         hand1.setJawwidth(self.floatinggripjawwidth[fpid][i1])
                         hand1.reparentTo(parentnp)
                     if handidpair[1] == self.floatinggripidfreeair[fpid][i]:
@@ -674,7 +680,7 @@ class FloatingPoses(object):
                         # if self.floatinggripikfeas_lft[fpid][i1] == 'True':
                         hand1 = self.handpkg.newHandNM(hndcolor=[0, 1, 1, 1])
                         hndrotmat4 = self.floatinggripmat4s[fpid][i1]
-                        hand1.setMat(hndrotmat4)
+                        hand1.setMat(pandanpmat4 = hndrotmat4)
                         hand1.setJawwidth(self.floatinggripjawwidth[fpid][i1])
                         hand1.reparentTo(parentnp)
 
@@ -695,14 +701,22 @@ class FloatingPoses(object):
         objnp.reparentTo(parentnp)
         print self.floatinggrippairshndmat4s[fpid]
         for i, hndrotmat4pair in enumerate(self.floatinggrippairshndmat4s[fpid]):
-            # if i == 6:
+            # if i == 9:
             # show grasps
             hand0 = self.handpkg.newHandNM(hndcolor=[1, 0, 0, .5])
-            hand0.setMat(hndrotmat4pair[0])
+            hand0mat4 = Mat4(hndrotmat4pair[0])
+            # h0row3 = hand0mat4.getRow3(3)
+            # h0row3[2] = h0row3[2]+i*20.0
+            # hand0mat4.setRow(3, h0row3[2])
+            hand0.setMat(pandanpmat4 = hand0mat4)
             hand0.setJawwidth(self.floatinggrippairsjawwidths[fpid][i][0])
             hand0.reparentTo(parentnp)
             hand1 = self.handpkg.newHandNM(hndcolor=[0, .0, 1, .5])
-            hand1.setMat(hndrotmat4pair[1])
+            hand1mat4 = Mat4(hndrotmat4pair[1])
+            # h1row3 = hand1mat4.getRow3(3)
+            # h1row3[2] = h1row3[2]+i*20.0
+            # hand1mat4.setRow(3, h1row3[2])
+            hand1.setMat(pandanpmat4 = hand1mat4)
             hand1.setJawwidth(self.floatinggrippairsjawwidths[fpid][i][1])
             hand1.reparentTo(parentnp)
 
@@ -725,6 +739,8 @@ if __name__=="__main__":
     this_dir, this_filename = os.path.split(__file__)
     # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "ttube.stl")
     objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "tool2.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "sandpart.stl")
+    # objpath = os.path.join(os.path.split(this_dir)[0]+os.sep, "grip", "objects", "planerearstay.stl")
     fpose = FloatingPoses(objpath, gdb, handpkg, base)
     # fpose.showIcomat4s(base.render)
 
@@ -744,16 +760,19 @@ if __name__=="__main__":
     fpose.saveToDB()
     fpose.loadFromDB()
     fpose.updateDBwithFGPairs()
-    nxtrobot = nxt.NxtRobot()
+    # nxtrobot = nxt.NxtRobot()
     hrp5nrobot = hrp5n.Hrp5NRobot()
+    # hrp2k = hrp2k.Hrp2KRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
     fpose.updateDBwithIK(robot=hrp5nrobot)
+    # fpose.updateDBwithIK(robot=hrp2k)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):
     #     fpose.plotOneFPandG(base.render, i)
     # fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
     fpose.loadIKFeasibleFGPairsFromDB(robot=hrp5nrobot)
-    # fpose.plotOneFPandG(base.render, 0)
-    fpose.plotOneFPandGPairs(base.render, 2)
+    # fpose.loadIKFeasibleFGPairsFromDB(robot=hrp2k)
+    # fpose.plotOneFPandG(base.render, 0)4
+    fpose.plotOneFPandGPairs(base.render, 0)
 
     # poseid = [0]
 

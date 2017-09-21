@@ -141,7 +141,7 @@ class KinectInterface(object):
                 self.tablepnt = points.remove_close(self.tablepnt, sampleradius)
                 return self.tablepnt
 
-    def getObjectPcd(self, sampleradius = 2):
+    def getObjectPcd(self, sampleradius = 2, nframe = 5):
         """
         Get the pointcloud of an object # first cluster
         :return: a list of points representing the object
@@ -152,7 +152,7 @@ class KinectInterface(object):
         date: 20170711
         """
 
-        tmpvertsarray = self.__getClustersofPnts(self.__getMultiframeVerts(nframe = 5))
+        tmpvertsarray = self.__getClustersofPnts(self.__getMultiframeVerts(nframe = nframe))
 
         # use the largest cluster as object
         nmaxverts = 0

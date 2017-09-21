@@ -180,7 +180,7 @@ class FreeTabletopPlacement(object):
                 # open the hand to ensure it doesnt collide with surrounding obstacles
                 # tmprtq85.setJawwidth(self.freegripjawwidth[j])
                 tmphnd.setJawwidth(80)
-                tmphnd.setMat(tpsgriprotmat)
+                tmphnd.setMat(pandanpmat4 = tpsgriprotmat)
                 # add hand model to bulletworld
                 hndbullnode = cd.genCollisionMeshMultiNp(tmphnd.handnp)
                 result = self.bulletworldhp.contactTest(hndbullnode)
@@ -195,7 +195,7 @@ class FreeTabletopPlacement(object):
                     self.tpsgripnormals[-1].append([cctn0, cctn1])
                     self.tpsgripjawwidth[-1].append(self.freegripjawwidth[j])
                     self.tpsgripidfreeair[-1].append(self.freegripid[j])
-                tmphnd.setMat(initmat)
+                tmphnd.setMat(pandanpmat4 = initmat)
                 tmphnd.setJawwidth(initjawwidth)
 
     def saveToDB(self):
@@ -305,7 +305,7 @@ class FreeTabletopPlacement(object):
                 facetinterpnt = np.array([hitpos[0],hitpos[1],hitpos[2]])
                 facetnormal = np.array(self.ocfacetnormals[i])
                 bdverts3d, bdverts2d, facetmat4 = pg.facetboundary(self.objtrimeshconv, self.ocfacets[i],
-                                                                     facetinterpnt, facetnormal)
+                                                                   facetinterpnt, facetnormal)
                 for j in range(len(bdverts3d)-1):
                     spos = bdverts3d[j]
                     epos = bdverts3d[j+1]
@@ -380,7 +380,7 @@ class FreeTabletopPlacement(object):
                 hndjawwidth = float(resultrow[1])
                 # show grasps
                 tmprtq85 = rtq85nm.Rtq85NM(hndcolor=[0, 1, 0, .1])
-                tmprtq85.setMat(hndrotmat)
+                tmprtq85.setMat(pandanpmat4 = hndrotmat)
                 tmprtq85.setJawwidth(hndjawwidth)
                 # tmprtq85.setJawwidth(80)
                 tmprtq85.reparentTo(base.render)
@@ -393,7 +393,7 @@ class FreeTabletopPlacement(object):
         """
 
         for i in range(len(self.tpsmat4s)):
-            if i == 1:
+            if i == 0:
                 objrotmat  = self.tpsmat4s[i]
                 # objrotmat.setRow(0, -objrotmat.getRow3(0))
                 rotzmat = Mat4.rotateMat(0, Vec3(0,0,1))
@@ -416,7 +416,7 @@ class FreeTabletopPlacement(object):
                     hndjawwidth = self.tpsgripjawwidth[i][j]
                     # show grasps
                     tmphnd = self.handpkg.newHandNM(hndcolor=[0, 1, 0, .5])
-                    tmphnd.setMat(hndrotmat)
+                    tmphnd.setMat(pandanpmat4 = hndrotmat)
                     tmphnd.setJawwidth(hndjawwidth)
                     # tmprtq85.setJawwidth(80)
                     tmphnd.reparentTo(base.render)
@@ -457,6 +457,7 @@ if __name__ == '__main__':
 
     base = pandactrl.World(camp=[700,300,700], lookatp=[0,0,0])
     this_dir, this_filename = os.path.split(__file__)
+    # objpath = os.path.join(this_dir, "objects", "sandpart.stl")
     # objpath = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath = os.path.join(this_dir, "objects", "tool.stl")
     objpath = os.path.join(this_dir, "objects", "tool2.stl")
@@ -499,9 +500,9 @@ if __name__ == '__main__':
     # node.addGeom(geom)
     # star = NodePath('obj')
     # star.attachNewNode(node)
-    # star.setColor(Vec4(1,0,0,1))
+    # star.setColor(Vec4(1,1,0,1))
     # star.setTransparency(TransparencyAttrib.MAlpha)
-    # # star.reparentTo(base.render)
+    # star.reparentTo(base.render)
     # geom = pandageom.packpandageom(tps.objtrimeshconv.vertices,
     #                                tps.objtrimeshconv.face_normals,
     #                                tps.objtrimeshconv.faces)
@@ -512,22 +513,22 @@ if __name__ == '__main__':
     # star.setColor(Vec4(0, 1, 0, .3))
     # star.setTransparency(TransparencyAttrib.MAlpha)
     # star.reparentTo(base.render)
-    def updateshow(task):
-        # tps.ocfacetshow(base)
-        tps.removebadfacetsshow(base, doverh=.15)
-        return task.again
-    taskMgr.doMethodLater(.1, updateshow, "tickTask")
+    # def updateshow(task):
+    #     # tps.ocfacetshow(base)
+    #     tps.removebadfacetsshow(base, doverh=.1)
+    #     return task.again
+    # taskMgr.doMethodLater(.1, updateshow, "tickTask")
 
     # def updateworld(world, task):
     #     world.doPhysics(globalClock.getDt())
     #     return task.cont
     #
-    # if tps.loadFreeTabletopPlacement():
-    #     pass
-    # else:
-    #     tps.removebadfacets(base, doverh=.15)
-    # tps.gentpsgrip(base)
-    # tps.saveToDB()
+    if tps.loadFreeTabletopPlacement():
+        pass
+    else:
+        tps.removebadfacets(base, doverh=.15)
+    tps.gentpsgrip(base)
+    tps.saveToDB()
     #
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')
@@ -540,5 +541,5 @@ if __name__ == '__main__':
     # taskMgr.add(updateworld, "updateworld", extraArgs=[tps.bulletworldhp], appendTask=True)
 
     # tps.grpshow(base)
-    # tps.showOnePlacementAndAssociatedGrips(base)
+    tps.showOnePlacementAndAssociatedGrips(base)
     base.run()

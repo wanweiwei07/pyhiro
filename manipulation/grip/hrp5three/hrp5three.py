@@ -318,7 +318,7 @@ class Hrp5Three():
 
         return self.__hrp5threenp.getPos()
 
-    def setMat(self, pandanpmat4 = Mat4.identMat(), nodepath = None):
+    def setMat(self, nodepath = None, pandanpmat4 = Mat4.identMat()):
         """
         set the absoluted translation and rotation of a robotiq hand
         with respect to nodepath

@@ -338,13 +338,15 @@ class Hrp5NMesh(object):
 
         # rgthand
         hrp5nrobotrgtarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.rgtarm[9]['rotmat'], hrp5nrobot.rgtarm[9]['linkpos'])
-        self.hrp5nrobotrgthnd.setMat(hrp5nrobotrgtarmlj9_rotmat)
+        self.hrp5nrobotrgthnd.setMat(pandanpmat4 = hrp5nrobotrgtarmlj9_rotmat)
+        # pg.plotAxisSelf(self.__hrp5nmnp, hrp5nrobot.rgtarm[9]['linkend'], hrp5nrobotrgtarmlj9_rotmat)
         if jawwidthrgt is not None:
             self.hrp5nrobotrgthnd.setJawwidth(jawwidthrgt)
 
         # lfthand
         hrp5nrobotlftarmlj9_rotmat = pg.cvtMat4(hrp5nrobot.lftarm[9]['rotmat'], hrp5nrobot.lftarm[9]['linkpos'])
-        self.hrp5nrobotlfthnd.setMat(hrp5nrobotlftarmlj9_rotmat)
+        self.hrp5nrobotlfthnd.setMat(pandanpmat4 = hrp5nrobotlftarmlj9_rotmat)
+        # pg.plotAxisSelf(self.__hrp5nmnp, hrp5nrobot.lftarm[9]['linkend'], hrp5nrobotlftarmlj9_rotmat)
         if jawwidthlft is not None:
             self.hrp5nrobotlfthnd.setJawwidth(jawwidthlft)
 

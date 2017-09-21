@@ -156,7 +156,7 @@ def numik(hrp2krobot, tgtpos, tgtrot, armid="rgt"):
             # todo dq definition
             armjntsiter += dq
             armjntsiter = rm.cvtRngPM180(armjntsiter)
-            if hrp2krobot.chkrng(armjntsiter, armid) or i < 150:
+            if hrp2krobot.chkrng(armjntsiter, armid) or i < 30:
                 hrp2krobot.movearmfk(armjntsiter, armid)
                 # import hrp2kplot
                 # from manipulation.grip.robotiq85 import rtq85nm

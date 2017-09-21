@@ -11,7 +11,7 @@ class Hrp2KRobot():
         # the remaining 14 are for each of the two 7-dof arms
         self.__name = 'hrp2k'
         # initjnts[0] = waist, 0,0 = head, 45,-20,0,-75,0,0,0 = rgt, 45,20,0,-75,0,0,0 = lft
-        self.__initjnts = np.array([0,0,0,-45,-70,0,-55,0,45,0,-45,70,0,-55,0,-45,0]);
+        self.__initjnts = np.array([0,0,0,45,-25,-45,-130,0,45,0,45,25,45,-130,0,-45,0]);
         self.__rgtarm = self.__initrgtlj()
         self.__lftarm = self.__initlftlj()
         # define the target joints for ik
@@ -29,6 +29,26 @@ class Hrp2KRobot():
     def initjnts(self):
         # read-only property
         return self.__initjnts
+
+    @property
+    def initrgtjntsr(self):
+        # read-only property
+        return np.array([self.__initjnts[i] for i in [0,3,4,5,6,7,8,9]])
+
+    @property
+    def initlftjntsr(self):
+        # read-only property
+        return  np.array([self.__initjnts[i] for i in [0,10,11,12,13,14,15,16]])
+
+    @property
+    def initrgtjnts(self):
+        # read-only property
+        return np.array([self.__initjnts[i] for i in [3,4,5,6,7,8,9]])
+
+    @property
+    def initlftjnts(self):
+        # read-only property
+        return  np.array([self.__initjnts[i] for i in [10,11,12,13,14,15,16]])
 
     @property
     def rgtarm(self):
@@ -125,8 +145,8 @@ class Hrp2KRobot():
         rgtlj[2]['rotangle'] = 0
         rgtlj[2]['rotmat'] = np.dot(rgtlj[1]['rotmat'], rm.rodrigues(rgtlj[2]['rotax'], rgtlj[2]['rotangle']))
         rgtlj[2]['linkend'] = np.dot(rgtlj[2]['rotmat'], rgtlj[2]['linkvec'])+rgtlj[2]['linkpos']
-        rgtlj[2]['rngmin'] = -(90-rngsafemargin)
-        rgtlj[2]['rngmax'] = +(10-rngsafemargin)
+        rgtlj[2]['rngmin'] = -(10-rngsafemargin)
+        rgtlj[2]['rngmax'] = +(90-rngsafemargin)
 
         # the 3rd joint and link
         rgtlj[3]['name'] = 'link3'
@@ -626,7 +646,7 @@ if __name__=="__main__":
     handpkg = rtq85nm
     # handpkg = sdmbs
     hrp2kmnp = hrp2kplot.genmnp(hrp2krobot, handpkg)
-    hrp2kmnp.reparentTo(base.render)
+    # hrp2kmnp.reparentTo(base.render)
 
     objpos = np.array([500,-390,-150])
     objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
@@ -674,10 +694,10 @@ if __name__=="__main__":
     startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,405.252044678,-199.926864624,-55.0000038147,1.0)
     import os
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0], "../manipulation/grip", "objects", "tool.stl")
-    objmnp = pg.genObjmnp(objpath, color = Vec4(.7,.7,0,1))
+    objpath = os.path.join(os.path.split(this_dir)[0], "../manipulation/grip", "objects", "sandpart.stl")
+    objmnp = pg.genObjmnp(objpath, color = Vec4(.7,0.3,0,1))
     objmnp.setMat(startrotmat4)
-    # objmnp.reparentTo(base.render)
+    objmnp.reparentTo(base.render)
     # goal hand
     # from manipulation.grip.robotiq85 import rtq85nm
     # hrp5robotrgthnd = rtq85nm.Rtq85NM()
