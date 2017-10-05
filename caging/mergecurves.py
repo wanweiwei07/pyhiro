@@ -162,15 +162,15 @@ class Mergecurves(object):
 
     def plotCobtSeg(self, nodepath, segment, polygon, rgba = [.5, .5, .5, 1]):
         """
-        TODO WRONG! segments do not confirm!
         generate the configuration obstacle
+        obstacles are separated
 
         :param point:
         :param polygon:
         :return:
 
         author: weiwei
-        date: 20170517
+        date: 20170924, Vancouver
         """
 
         # plot
@@ -182,6 +182,32 @@ class Mergecurves(object):
         cobtnp.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
         cobtnp.setTransparency(TransparencyAttrib.MAlpha)
         cobtnp.reparentTo(nodepath)
+
+    def plotCobtDis(self, nodepath, point, polygon, rgba = [.5, .5, .5, 1]):
+        """
+        generate the configuration obstacle
+
+        :param point:
+        :param polygon:
+        :return:
+
+        author: weiwei
+        date: 20170517
+        """
+
+        # plot
+        cobt = self.stb.genMinkovPnt(polygon, point)
+        polygonlist = []
+        for height in range(0, self.heightrange, self.steplength):
+            rotedcobt = self.stb.rotate(cobt, height/self.scale)
+            polygonlist.append(rotedcobt)
+        cobtnp, polynps = self.stb.genCobtDisnp(polygonlist, self.steplength)
+        cobtnp.setColor(rgba[0], rgba[1], rgba[2], rgba[3])
+        cobtnp.setTransparency(TransparencyAttrib.MAlpha)
+        cobtnp.reparentTo(nodepath)
+        for polynp in polynps:
+            polynp.setColor(0,0,0,1)
+            polynp.reparentTo(nodepath)
 
     def plot2d(self, polygon, grppoint0, grppoint1, sppoint0, sppoint1, polygonfacecolor='g'):
         fig = plt.figure()
@@ -217,16 +243,12 @@ class Mergecurves(object):
             polygonfacecolor = polygonfacecolorlist[i]
             xpolygon, ypolygon = polygon.exterior.xy
             ax2.fill(xpolygon, ypolygon, alpha=.3, fc=polygonfacecolor, ec='none')
-            ax2.plot([grppoint0.x], [grppoint0.y], 'ro')
-            ax2.plot([grppoint1.x], [grppoint1.y], 'ro')
-            ax2.plot([sppoint0.x], [sppoint0.y], 'ko')
-            ax2.plot([sppoint1.x], [sppoint1.y], 'ko')
             if i == 1:
                 ax2.plot([polygon.centroid.x], [polygon.centroid.y], 'go')
             else:
                 ax2.plot([polygon.centroid.x], [polygon.centroid.y], 'bo')
             ax2.axis('equal')
-            ax2.axis([-3000, 4000, -1000, 3000])
+            ax2.axis([-3000, 4000, -1200, 3000])
         polyunion = polygonlist[-1]
         for i in range(-4,-1,1):
             polyunion = polyunion.union(polygonlist[i])
@@ -244,6 +266,13 @@ class Mergecurves(object):
         x, y = polyunion.exterior.xy
         ax2.plot(x, y, color='#ff0000', alpha=0.7,
             linewidth=3, solid_capstyle='round', zorder=2)
+
+        ax2.plot([polygonlist[1].centroid.x], [polygonlist[1].centroid.y], 'yo')
+        ax2.plot([polygonlist[0].centroid.x], [polygonlist[0].centroid.y], 'ro')
+        ax2.plot([grppoint0.x], [grppoint0.y], 'go')
+        ax2.plot([grppoint1.x], [grppoint1.y], 'go')
+        ax2.plot([sppoint0.x], [sppoint0.y], 'ko')
+        ax2.plot([sppoint1.x], [sppoint1.y], 'ko')
 
         curvepoint_shapely = polygonlist[1].centroid
         # ax2.plot([curvepoint_shapely.x], [curvepoint_shapely.y], 'ro', markersize = 30)
@@ -281,7 +310,7 @@ class Mergecurves(object):
         #     if verts[idxplus][1] < curvepoint_shapely.y and math.fabs(verts[idxplus][1]-curvepoint_shapely.y) > 10:
         #         break
 
-        # plt.show()
+        plt.show()
         # pass
         fig = plt.gcf()
         # compute orientation of grip

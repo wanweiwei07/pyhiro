@@ -10,7 +10,7 @@ import math
 
 class World(ShowBase, object):
 
-    def __init__(self, camp=[2000,500,2000], lookatp=[0,0,250], fov = 40, w = 2000, h = 1500):
+    def __init__(self, camp=[2000,500,2000], lookatp=[0,0,250], up = [0,0,1], fov = 40, w = 2000, h = 1500):
         """
 
         :param camp:
@@ -34,7 +34,7 @@ class World(ShowBase, object):
         lens.setNearFar(1, 50000)
         self.disableMouse()
         self.cam.setPos(camp[0], camp[1], camp[2])
-        self.cam.lookAt(lookatp[0], lookatp[1], lookatp[2])
+        self.cam.lookAt(Point3(lookatp[0], lookatp[1], lookatp[2]), Vec3(up[0], up[1], up[2]))
         self.cam.node().setLens(lens)
 
         # set up slight

@@ -153,19 +153,19 @@ class BulletSim(object):
         node.setMass(1.0)
         node.setName("part"+str(self.smileyCount))
         np = base.render.attachNewNode(node)
-        np.setPos(random.uniform(-2, 2), random.uniform(-2, 2), 5.0+self.smileyCount*25.0)
+        np.setPos(random.uniform(-2, 2), random.uniform(-2, 2), 15.0+self.smileyCount*25.0)
         sm = np.attachNewNode("partrender"+str(self.smileyCount))
         self.smiley.instanceTo(sm)
         self.bltWorld.attachRigidBody(node)
 
         self.smileyCount += 1
 
-        if self.smileyCount == 10:
+        if self.smileyCount == 20:
             return task.done
         return task.again
 
     def updateBlt(self, task):
-        self.bltWorld.doPhysics(globalClock.getDt()*500)
+        self.bltWorld.doPhysics(globalClock.getDt())
 
         # nodep = self.base.render.find("**/part1")
         # if nodep:
@@ -224,9 +224,9 @@ if __name__=='__main__':
     #     return task.again
     # taskMgr.doMethodLater(1, updateshow, "tickTask")
 
-    dcam = loader.loadShader("depthmap.sha")
-    # render everything through this camera and shader
-    base.render.setShader(dcam)
+    # dcam = loader.loadShader("depthmap.sha")
+    # # render everything through this camera and shader
+    # base.render.setShader(dcam)
     # loadPrcFileData('', 'show-buffers 1')
 
     base.run()

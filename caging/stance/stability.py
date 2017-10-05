@@ -139,13 +139,13 @@ class Stability(object):
             verts3d = []
             for vert in polygon.exterior.coords:
                 verts3d.append([vert[0], vert[1], height])
-                polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
+            polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
         else:
             for polygonpart in polygon:
                 verts3d = []
                 for vert in polygonpart.exterior.coords:
                     verts3d.append([vert[0], vert[1], height])
-                polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
+            polygons.append(pg.genPolygonsnp(verts3d, color, thickness))
         return polygons
 
     def genCobtnp(self, polygonlist, steplength):
@@ -205,6 +205,49 @@ class Stability(object):
 
         cobnp = pg.packpandanp(np.asarray(vertices), np.asarray(facenormals), np.asarray(triangles))
         return cobnp
+
+    def genCobtDisnp(self, polygonlist, steplength):
+        """
+        generate a mesh model for polygonlistSeg, each polygonis a separate one
+
+        :param polygonlist:
+        :param color:
+        :return:
+
+        author: weiwei
+        date: 20170924, Vancouver
+        """
+
+        npolygon = len(polygonlist)
+        vertices = []
+        facenormals = []
+        triangles = []
+        nvertperpolygon = len(polygonlist[0].exterior.coords)-1
+        height = -steplength
+        for polygon in polygonlist:
+            height = height+steplength
+            for pointid in range(0, nvertperpolygon):
+                point = polygon.exterior.coords[pointid]
+                vertices.append(np.array([point[0], point[1], height]))
+        for polygonid in range(0, npolygon):
+            startingid = polygonid*nvertperpolygon
+            for vertid in range(1, nvertperpolygon-1):
+                id0 = startingid
+                id1 = startingid+vertid
+                id2 = startingid+vertid+1
+                if vertid == nvertperpolygon-1:
+                    id1 = startingid
+                triangles.append(np.array([id0, id2, id1]))
+                rawnormal = -np.cross(vertices[id1]-vertices[id0], vertices[id2]-vertices[id1])
+                facenormals.append(rawnormal/np.linalg.norm(rawnormal))
+        polygonnps = []
+        height = -steplength
+        for polygon in polygonlist:
+            height = height+steplength
+            polygonnps.append(self.genPolygonsnp(polygon, height, color=[0,0,0,1], thickness=2)[0])
+
+        cobnp = pg.packpandanp(np.asarray(vertices), np.asarray(facenormals[::-1]), np.asarray(triangles[::-1]))
+        return [cobnp, polygonnps]
 
     def genLinesegsnp(self, verts3d, color = [], thickness = 20.0):
         return pg.genLinesegsnp(verts3d, color, thickness)

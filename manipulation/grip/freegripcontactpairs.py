@@ -60,7 +60,7 @@ class FreegripContactpairs(object):
     def loadObjModel(self, ompath):
         self.objtrimesh=trimesh.load_mesh(ompath)
         # oversegmentation
-        self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.9, segangle = .9)
+        self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.95, segangle = .95)
         # self.facets, self.facetnormals = self.objtrimesh.facets_over(faceangle=.95)
         # conventional approach
         # self.facets = self.objtrimesh.facets()

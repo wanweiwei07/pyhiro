@@ -108,7 +108,7 @@ class Freegrip(fgcp.FreegripContactpairs):
         self.counter = 0
 
         while self.counter < self.facetpairs.shape[0]:
-            # print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
+            print str(self.counter) + "/" + str(self.facetpairs.shape[0]-1)
             # print self.gripcontactpairs_precc
 
             facetpair = self.facetpairs[self.counter]
@@ -591,14 +591,15 @@ if __name__=='__main__':
     # objpath = os.path.join(this_dir, "objects", "planewheel.stl")
     # objpath = os.path.join(this_dir, "objects", "planelowerbody.stl")
     # objpath = os.path.join(this_dir, "objects", "planefrontstay.stl")
-    objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
+    # objpath = os.path.join(this_dir, "objects", "planerearstay.stl")
+    objpath = os.path.join(this_dir, "objects", "planerearstay2.stl")
 
     handpkg = rtq85nm
     freegriptst = Freegrip(objpath, handpkg, readser=False, torqueresist = 50)
 
-    freegriptst.segShow(base, togglesamples=False, togglenormals=False,
-                        togglesamples_ref=False, togglenormals_ref=False,
-                        togglesamples_refcls=False, togglenormals_refcls=False)
+    # freegriptst.segShow(base, togglesamples=False, togglenormals=False,
+    #                     togglesamples_ref=False, togglenormals_ref=False,
+    #                     togglesamples_refcls=False, togglenormals_refcls=False)
 
     # objpath0 = os.path.join(this_dir, "objects", "ttube.stl")
     # objpath1 = os.path.join(this_dir, "objects", "tool.stl")
