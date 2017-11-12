@@ -754,23 +754,23 @@ if __name__=="__main__":
     grids = []
     for x in range(400,401,100):
         for y in [0]:
-            for z in range(400,401,100):
+            for z in range(150,151,100):
                 grids.append([x,y,z])
     fpose.genFPandGs(grids)
     fpose.saveToDB()
     fpose.loadFromDB()
     fpose.updateDBwithFGPairs()
     # nxtrobot = nxt.NxtRobot()
-    hrp5nrobot = hrp5n.Hrp5NRobot()
-    # hrp2k = hrp2k.Hrp2KRobot()
+    # hrp5nrobot = hrp5n.Hrp5NRobot()
+    hrp2k = hrp2k.Hrp2KRobot()
     # fpose.updateDBwithIK(robot=nxtrobot)
-    fpose.updateDBwithIK(robot=hrp5nrobot)
-    # fpose.updateDBwithIK(robot=hrp2k)
+    # fpose.updateDBwithIK(robot=hrp5nrobot)
+    fpose.updateDBwithIK(robot=hrp2k)
     # for i in range(1,len(fpose.gridsfloatingposemat4s),len(fpose.floatingposemat4)):
     #     fpose.plotOneFPandG(base.render, i)
     # fpose.loadIKFeasibleFGPairsFromDB(robot=nxtrobot)
-    fpose.loadIKFeasibleFGPairsFromDB(robot=hrp5nrobot)
-    # fpose.loadIKFeasibleFGPairsFromDB(robot=hrp2k)
+    # fpose.loadIKFeasibleFGPairsFromDB(robot=hrp5nrobot)
+    fpose.loadIKFeasibleFGPairsFromDB(robot=hrp2k)
     # fpose.plotOneFPandG(base.render, 0)4
     fpose.plotOneFPandGPairs(base.render, 0)
 

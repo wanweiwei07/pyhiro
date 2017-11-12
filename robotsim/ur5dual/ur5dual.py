@@ -602,7 +602,7 @@ if __name__=="__main__":
 
     base = pandactrl.World(camp = [3000,0,3000], lookatp = [0,0,700])
 
-    ur5dualrobot = Ur5Dual()
+    ur5dualrobot = Ur5DualRobot()
     ur5dualrobot.goinitpose()
 
     import ur5dualplot
@@ -612,13 +612,13 @@ if __name__=="__main__":
     # handpkg = hrp5threenm
     from manipulation.grip.robotiq85 import rtq85nm
     handpkg = rtq85nm
-    ur5dualmnp = ur5dualplot.genUr5dualmnp(ur5dualrobot, handpkg)
-    ur5dualmnp.reparentTo(base.render)
-    pg.plotAxisSelf(base.render, Vec3(0,0,0))
+    ur5dualmnp = ur5dualplot.genmnp(ur5dualrobot, handpkg)
+    # ur5dualmnp.reparentTo(base.render)
+    # pg.plotAxisSelf(base.render, Vec3(0,0,0))
     #
-    objpos = np.array([500,300,600])
-    objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
-    # objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])
+    objpos = np.array([400,200,400])
+    # objrot = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+    objrot = np.array([[0,-1,0],[0,0,-1],[1,0,0]])
     # objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
     # objrotmat4 = pg.npToMat4(objrot)
     # objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
@@ -642,7 +642,7 @@ if __name__=="__main__":
     if armjntsgoal is not None:
         ur5dualrobot.movearmfk(armjntsgoal, armid)
         # ur5dualplot.plotstick(base.render, ur5dualrobot)
-        ur5mnp = ur5dualplot.genUr5dualmnp(ur5dualrobot, handpkg)
+        ur5mnp = ur5dualplot.genmnp(ur5dualrobot, handpkg)
         ur5mnp.reparentTo(base.render)
 
     # goal hand

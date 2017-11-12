@@ -350,7 +350,7 @@ if __name__ == '__main__':
     tps = TablePlacements(objpath, handpkg)
 
     # plot obj and its convexhull
-    # geom = pandageom.packpandageom(tps.objtrimesh.vertices,
+    # geom = pandageom.packpandageom(tps.objtrimesh-.vertices,
     #                                tps.objtrimesh.face_normals,
     #                                tps.objtrimesh.faces)
     # node = GeomNode('obj')
@@ -385,23 +385,23 @@ if __name__ == '__main__':
     #     return task.cont
 
     # build grid space
-    # grids = []
-    # for x in range(400,551,100):
-    #     for y in range(-300,301,600):
-    #         grids.append([x,y,-55])
     grids = []
-    for x in range(400,401,200):
-        for y in range(-250,251,600):
-            grids.append([x,y,150])
+    for x in range(400,551,100):
+        for y in range(-300,301,600):
+            grids.append([x,y,-55])
+    # grids = []
+    # for x in range(400,401,200):
+    #     for y in range(-250,251,600):
+    #         grids.append([x,y,150])
     gdb = db.GraspDB()
     tps.saveToDB(grids, gdb)
     # # # tps.grpshow(base, gdb)
-    tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
-    tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
+    # tps.updateDBwithIK(gdb, hrp5n, armname = "rgt")
+    # tps.updateDBwithIK(gdb, hrp5n, armname = "lft")
     # tps.updateDBwithIK(gdb, nxtrobot, armname = "rgt")
     # tps.updateDBwithIK(gdb, nxtrobot, armname = "lft")
-    # tps.updateDBwithIK(gdb, hrp2k, armname = "rgt")
-    # tps.updateDBwithIK(gdb, hrp2k, armname = "lft")
+    tps.updateDBwithIK(gdb, hrp2k, armname = "rgt")
+    tps.updateDBwithIK(gdb, hrp2k, armname = "lft")
 
     # bullcldrnp = base.render.attachNewNode("bulletcollider")
     # debugNode = BulletDebugNode('Debug')

@@ -646,7 +646,7 @@ if __name__=="__main__":
     handpkg = rtq85nm
     # handpkg = sdmbs
     hrp2kmnp = hrp2kplot.genmnp(hrp2krobot, handpkg)
-    # hrp2kmnp.reparentTo(base.render)
+    hrp2kmnp.reparentTo(base.render)
 
     objpos = np.array([500,-390,-150])
     objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
@@ -689,12 +689,12 @@ if __name__=="__main__":
     #     # hrp2kmnp_nm.reparentTo(base.render)
 
 
-    startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,305.252044678,-400.073120117,-55.0000038147,1.0)
+    startrotmat4 = Mat4(-1.0,1.22464685259e-16,0.0,0.0,-1.22464685259e-16,-1.0,0.0,0.0,0.0,0.0,1.0,0.0,224.747955322,300.0731293559074,-3.99246982852e-06,1.0)
 
-    startrotmat4 = Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,405.252044678,-199.926864624,-55.0000038147,1.0)
+    # startrotmat4 = Mat4(-0.0176398064941,-0.0176398064941,-0.99968880415,0.0,-0.707106769085,0.707106769085,0.0,0.0,0.706886708736,0.706886708736,-0.0249464549124,0.0,225.010162354,100,-44.9175643921,1.0)
     import os
     this_dir, this_filename = os.path.split(__file__)
-    objpath = os.path.join(os.path.split(this_dir)[0], "../manipulation/grip", "objects", "sandpart.stl")
+    objpath = os.path.join(os.path.split(this_dir)[0], "../manipulation/grip", "objects", "tool2.stl")
     objmnp = pg.genObjmnp(objpath, color = Vec4(.7,0.3,0,1))
     objmnp.setMat(startrotmat4)
     objmnp.reparentTo(base.render)
@@ -725,4 +725,5 @@ if __name__=="__main__":
     # # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot, plotcolor=[1,0,0,1])
     # # nxtmnp.reparentTo(base.render)
 
+    pg.plotAxisSelf(base.render, Vec3(400,0,150), Mat4.identMat())
     base.run()

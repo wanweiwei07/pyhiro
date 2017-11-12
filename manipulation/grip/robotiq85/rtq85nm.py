@@ -298,7 +298,7 @@ class Rtq85NM():
 
         return self.rtq85np.getPos()
 
-    def setMat(self, npmat4):
+    def setMat(self, nodepath = None, pandanpmat4 = Mat4.identMat()):
         """
         set the translation and rotation of a robotiq hand
         changes self.rtq85np
@@ -310,7 +310,7 @@ class Rtq85NM():
         author: weiwei
         """
 
-        self.rtq85np.setMat(npmat4)
+        self.rtq85np.setMat(pandanpmat4)
 
     def getMat(self):
         """
