@@ -185,29 +185,13 @@ if __name__=="__main__":
     [onedcurves_s1g1, polygonxoncurves_s1g1, sppoint1_3d, grppoint1_3d] = \
         mgc.stb.genOneDCurve(polygon, sppoint1, grppoint1, constraindirect = constraindirect_s1g1)
 
-    # # plot cobt
-    # # color of finger 0 => red
-    # mgc.plotCobtDis(base.render, grppoint0, polygon, rgba = [.4,.4,.4,.9])
-    # # color of finger 1 => blue
-    # mgc.plotCobtDis(base.render, grppoint1, polygon, rgba = [.4,.4,.4,.9])
-    # # color of supports => gray
-    # mgc.plotCobtDis(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
-    # mgc.plotCobtDis(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
     # plot cobt
-    # color of finger 0 => red
-    # mgc.plotCobtDis(base.render, grppoint0, polygon, rgba = [.2,.7,.2,.9])
-    # # color of finger 1 => blue
-    # mgc.plotCobtDis(base.render, grppoint1, polygon, rgba = [.2,.7,.2,.9])
-    # color of supports => gray
-    mgc.plotCobtDis(base.render, sppoint0, polygon, rgba = [.96,.96,.96,.9])
-    mgc.plotCobtDis(base.render, sppoint1, polygon, rgba = [.96,.96,.96,.9])
-    # color of finger 0 => red
     # mgc.plotCobt(base.render, grppoint0, polygon, rgba = [.1,.3,.1,.9])
     # # color of finger 1 => blue
     # mgc.plotCobt(base.render, grppoint1, polygon, rgba = [.1,.3,.1,.9])
-    # # color of supports => gray
-    # mgc.plotCobt(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
-    # mgc.plotCobt(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
+    # color of supports => gray
+    mgc.plotCobt(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
+    mgc.plotCobt(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
 
 
     # convert multiple curves (segmented) to a dictionary

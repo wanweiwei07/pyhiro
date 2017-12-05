@@ -177,9 +177,9 @@ if __name__=="__main__":
 
     # plot cobt
     # color of finger 0 => red
-    mgc.plotCobt(base.render, grppoint0, polygon, rgba = [.7,.3,.3,.7])
-    # color of finger 1 => blue
-    mgc.plotCobt(base.render, grppoint1, polygon, rgba = [.3,.3,.7,.7])
+    # mgc.plotCobt(base.render, grppoint0, polygon, rgba = [.7,.3,.3,.7])
+    # # color of finger 1 => blue
+    # mgc.plotCobt(base.render, grppoint1, polygon, rgba = [.3,.3,.7,.7])
     # color of supports => gray
     mgc.plotCobt(base.render, sppoint0, polygon, rgba = [.5,.5,.5,.5])
     mgc.plotCobt(base.render, sppoint1, polygon, rgba = [.5,.5,.5,.5])
