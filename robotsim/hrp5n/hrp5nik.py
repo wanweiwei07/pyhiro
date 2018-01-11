@@ -212,9 +212,11 @@ def numik(hrp5nrobot, tgtpos, tgtrot, armid="rgt"):
             armjntsiter[:] = jntangles[:]
             print jntangles
             hrp5nrobot.movearmfk(jntangles, armid)
+            import hrp5nplot
             hrp5nplot.plotstick(base.render, hrp5nrobot)
         errnormlast = errnorm
         print errnorm
+    import manipulation.grip.hrp5three.hrp5three as handpkg
     hrp5nmnp = hrp5nplot.genmnp(hrp5nrobot, handpkg)
     hrp5nmnp.reparentTo(base.render)
     hrp5nrobot.movearmfk(armjntssave, armid)

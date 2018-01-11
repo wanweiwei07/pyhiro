@@ -641,6 +641,50 @@ class Hrp5NRobot():
 
         return True
 
+    def chkrngdrag(self, armjnts, armid="rgt"):
+        """
+        check if the given armjnts is inside the oeprating range of the speificed armid
+        this function doesn't check the waist
+        The joint angles out of range will be pulled back to their maxima
+
+        :param armjnts: a 1-by-6 numpy ndarray indicating the targejoints of a manipulator
+        :param armid: a string "rgt" or "lft"
+        :return: Two parameters, one is true or false indicating if the joint angles are inside the range or not
+                The other is the joint angles after draggin.
+                If the joints were not dragged, the same joint angles will be returned
+
+        author: weiwei
+        date: 20161205
+        """
+
+        if armid!="rgt" and armid!="lft":
+            raise ep.ValueError
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        counter = 0
+        bdragged = True
+        jntanglesdrag = []
+        for i in self.__targetjoints:
+            if armjnts[counter] < armlj[i]["rngmin"]:
+                # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                # print "Angle is " + str(armjnts[counter])
+                # print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
+                bdragged = True
+                jntanglesdrag.append(armlj[i]["rngmin"])
+            elif armjnts[counter] > armlj[i]["rngmax"]:
+                bdragged = True
+                jntanglesdrag.append(armlj[i]["rngmax"])
+            else:
+                bdragged = False
+                jntanglesdrag.append(armjnts[counter])
+
+            counter += 1
+
+        return bdragged, jntanglesdrag
+
     def numik(self, objpos, objrot, armid="rgt"):
         return hrp5nik.numik(self, objpos, objrot, armid)
 
@@ -713,16 +757,18 @@ if __name__=="__main__":
 
     objpos = np.array([500,-400,305])
     objrot = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
+    # plot goal axis
+    pg.plotAxisSelf(nodepath = base.render, spos = objpos, pandamat4 = pg.cvtMat4(objrot))
 
-    objrot = np.array([[0.125178158283, 0.00399381108582, 0.992126166821], [0.98617619276, -0.109927728772, -0.123984932899], [0.108567006886, 0.993931531906, -0.0176991540939]]).T
-    objrot = np.array([[0,1,0],[0,0,1],[1,0,0]])
-    objrotmat4 = pg.npToMat4(objrot)
-    objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
-    objrot = pg.mat3ToNp(objrotmat4.getUpper3())
-    objpos = np.array([401.67913818,-644.12841797,0])
-    objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
-                        [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
-                        [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
+    # objrot = np.array([[0.125178158283, 0.00399381108582, 0.992126166821], [0.98617619276, -0.109927728772, -0.123984932899], [0.108567006886, 0.993931531906, -0.0176991540939]]).T
+    # objrot = np.array([[0,1,0],[0,0,1],[1,0,0]])
+    # objrotmat4 = pg.npToMat4(objrot)
+    # objrotmat4 = objrotmat4*Mat4.rotateMat(30, Vec3(1,0,0))
+    # objrot = pg.mat3ToNp(objrotmat4.getUpper3())
+    # objpos = np.array([401.67913818,-644.12841797,0])
+    # objrot = np.array([[1.93558640e-06,-8.36298645e-01,5.48274219e-01],
+    #                     [1.93560686e-06,-5.48274219e-01,-8.36298645e-01],
+    #                     [1.00000000e+00,2.67997166e-06,5.57513317e-07]])
     # lfthnd
     # objpos = np.array([180,130,100])
     # objrot = np.array([[0,0,-1],[1,0,0],[0,-1,0]])
