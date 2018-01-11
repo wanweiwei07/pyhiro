@@ -23,8 +23,7 @@ Executing the program for HRP5P
 1. Compute the grasps using freethreegrip.py (under manipulation/grip)
 2. Compute the stable placements using freetabletopplacement.py (under manipulation/grip)
 3. Compute the stable placements and ik-feasible grasps all over a table surface using tableplacements.py (under manipulation/regrasp)
-4. Build the regrasp graph using regriptpp.py (under manipulation/regrasp)
-Step 4 is integrated in regrasp/hrp5plot.py, see the final results by executing this file.
+4. Build the regrasp graph and plan motion sequences hrp5nmixplot_withcd.py (under manipulation/regrasp)
 
 Executing the program for Dual-arm assembly
 

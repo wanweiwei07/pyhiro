@@ -44,7 +44,7 @@ if __name__=="__main__":
     mgc = Mgc(rotrange, scale, steplength)
 
     polygoncenter = [polygon.centroid.x, polygon.centroid.y, rotrange*scale/2.0]
-    base = pc.World(camp=[1000,15000,-12000], lookatp=polygoncenter, up=[0,1,0])
+    base = pc.World(camp=[9000,10000,0], lookatp=polygoncenter, up=[-1,0,0])
 
     # assumption:
     # we assume the object could only escape from the exit formed by grppoint0-grppoint1
@@ -57,12 +57,15 @@ if __name__=="__main__":
     # grppoint0 = Point(-593.0,1105.0)
     # grppoint1 = Point(1333.0,835.0)
     #
+
     # grppoint0 = Point(-486.0,1090.0)
     # grppoint1 = Point(1226.0,850.0)
     #
     # grppoint0 = Point(-379.0,1075.0)
     # grppoint1 = Point(1119.0,865.0)
 
+    # grppoint0 = Point(-907.2644044424603, 1293.091855267518)
+    # grppoint1 = Point(1753.682239390151, 256.793594151529)
     grppoint0 = Point(-907.2644044424603, 1293.091855267518)
     grppoint1 = Point(1753.682239390151, 256.793594151529)
     # exp3
@@ -186,28 +189,14 @@ if __name__=="__main__":
         mgc.stb.genOneDCurve(polygon, sppoint1, grppoint1, constraindirect = constraindirect_s1g1)
 
     # # plot cobt
-    # # color of finger 0 => red
-    # mgc.plotCobtDis(base.render, grppoint0, polygon, rgba = [.4,.4,.4,.9])
-    # # color of finger 1 => blue
-    # mgc.plotCobtDis(base.render, grppoint1, polygon, rgba = [.4,.4,.4,.9])
-    # # color of supports => gray
-    # mgc.plotCobtDis(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
-    # mgc.plotCobtDis(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
-    # plot cobt
-    # color of finger 0 => red
-    # mgc.plotCobtDis(base.render, grppoint0, polygon, rgba = [.2,.7,.2,.9])
-    # # color of finger 1 => blue
-    # mgc.plotCobtDis(base.render, grppoint1, polygon, rgba = [.2,.7,.2,.9])
-    # color of supports => gray
-    mgc.plotCobtDis(base.render, sppoint0, polygon, rgba = [.96,.96,.96,.9])
-    mgc.plotCobtDis(base.render, sppoint1, polygon, rgba = [.96,.96,.96,.9])
-    # color of finger 0 => red
     # mgc.plotCobt(base.render, grppoint0, polygon, rgba = [.1,.3,.1,.9])
-    # # color of finger 1 => blue
+    # # # color of finger 1 => blue
     # mgc.plotCobt(base.render, grppoint1, polygon, rgba = [.1,.3,.1,.9])
     # # color of supports => gray
     # mgc.plotCobt(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
     # mgc.plotCobt(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
+    # mgc.plotCobtDis(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
+    # mgc.plotCobtDis(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
 
 
     # convert multiple curves (segmented) to a dictionary
@@ -319,8 +308,9 @@ if __name__=="__main__":
     for i, polygonxoncurve in enumerate(polygonxoncurves_s0s1):
         for j, polygonx in enumerate(polygonxoncurve):
             # start from the middle point
-            if math.fabs(onedcurves_s0s1[i][j][2]-mgc.heightrange/2.0) < steplength:
+            if math.fabs(onedcurves_s0s1[i][j][2]-mgc.heightrange*3.0/5.0) < steplength:
                 currentkey = onedcurves_s0s1[i][j][2]
+                print currentkey
                 currentpolygon0 = polygonx
                 currentconf = onedcurves_s0s1[i][j]
                 # pg.plotSphere(base.render, onedcurves_s0s1[i][j], radius = 300, rgba=[1,0,0,1])
@@ -354,7 +344,7 @@ if __name__=="__main__":
     breakingmaxima, breakingconfiguration, valleyminima, bottomconfiguration = \
         mgc.lstb.maxmin_oneslice(curvepoint, polylist_onecobtslice, othercurvepoints)
     # pg.plotSphere(base.render, breakingconfiguration, radius = 200, rgba=[.3,0,.3,1])
-    pg.plotSphere(base.render, bottomconfiguration, radius = 300, rgba=[1,0,0,1])
+    pg.plotSphere(base.render, bottomconfiguration, radius = 300, rgba=[1,1,0,1])
     #
     lowestonedcurve = {}
     # for key in range(0, mgc.heightrange, mgc.steplength):
@@ -577,7 +567,7 @@ if __name__=="__main__":
         else:
             startingconf_plus = lowestconfs[i]
     startingconf = min([startingconf_minus, startingconf_plus], key = lambda item:item[1])
-    pg.plotSphere(base.render, startingconf, radius = 300, rgba=[1,1,0,1])
+    pg.plotSphere(base.render, startingconf, radius = 300, rgba=[1,0,0,1])
 
     #
     # currentpolygon1=[]
@@ -600,37 +590,38 @@ if __name__=="__main__":
                 # for polygonnp in polygonsnp:
                 #     polygonnp.reparentTo(base.render)
 
-    # g0s0
+    # # g0s0
     # for i, onedcurve in enumerate(onedcurves_g0s0):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[1.0, 1.0, 1.0, 1], thickness=10)
-    # for i, onedcurve in enumerate(onedcurves_g0s0_cdfree):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[.5, 0.0, 0.5, 1], thickness=150)
+    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0, 0, 0, 1], thickness=100)
     # # pg.plotArrow(base.render, spos = np.array([0,0,0]), epos=np.array([0,0,0])+np.array([constraindirect_g0s0[0], constraindirect_g0s0[1], 0]), length = 10000)
     # # g0s1
     # for i, onedcurve in enumerate(onedcurves_g0s1):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[1.0, 0.0, 1.0, 1], thickness=10)
-    # for i, onedcurve in enumerate(onedcurves_g0s1_cdfree):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[1.0, 0.0, 1.0, 1], thickness=150)
+    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0, 0, 0, 1], thickness=100)
     # # g0g1
     # for i, onedcurve in enumerate(onedcurves_g0g1):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 1.0, 0.0, 1], thickness=10)
-    # for i, onedcurve in enumerate(onedcurves_g0g1_cdfree):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 1.0, 0.0, 1], thickness=150)
+    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0, 0, 0, 1], thickness=100)
     # # s0s1
     # for i, onedcurve in enumerate(onedcurves_s0s1):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 1.0, 1.0, 1], thickness=10)
-    # for i, onedcurve in enumerate(onedcurves_s0s1_cdfree):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[1.0, .6, 0.0, 1], thickness=150)
+    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0, 0, 0, 1], thickness=100)
     # # s0g1
     # for i, onedcurve in enumerate(onedcurves_s0g1):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[1.0, 1.0, 0.0, 1], thickness=10)
-    # for i, onedcurve in enumerate(onedcurves_s0g1_cdfree):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[1.0, 1.0, 0.0, 1], thickness=150)
-    # # s1g1
+    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0, 0, 0, 1], thickness=100)
+    # # # s1g1
     # for i, onedcurve in enumerate(onedcurves_s1g1):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=10)
-    # for i, onedcurve in enumerate(onedcurves_s1g1_cdfree):
-    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0.5, 0.0, 0.5, 1], thickness=150)
+    #     pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=100)
+
+    for i, onedcurve in enumerate(onedcurves_g0s0_cdfree):
+        pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=100)
+    for i, onedcurve in enumerate(onedcurves_g0s1_cdfree):
+        pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=100)
+    for i, onedcurve in enumerate(onedcurves_g0g1_cdfree):
+        pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=100)
+    for i, onedcurve in enumerate(onedcurves_s0s1_cdfree):
+        pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=100)
+    for i, onedcurve in enumerate(onedcurves_s0g1_cdfree):
+        pg.plotLinesegs(base.render, onedcurve, rgba=[0, 0, 0, 1], thickness=100)
+    for i, onedcurve in enumerate(onedcurves_s1g1_cdfree):
+        pg.plotLinesegs(base.render, onedcurve, rgba=[0.0, 0.0, 0.0, 1], thickness=100)
 
     # for i, grp_3d in enumerate(grppoint0_3d):
     #     pg.plotLinesegs(base.render, grp_3d, rgba=[1.0, 0.0, 0.0, 1], thickness=30)
@@ -666,7 +657,7 @@ if __name__=="__main__":
     #     for j, polygonx in enumerate(polygonxoncurve):
     #         # start from the middle point
     #         if math.fabs(onedcurves_s0s1[i][j][2]-mgc.heightrange/2.0) < steplength:
-    #             currentconf = onedcurves_s0s1[i][j+17]
+    #             currentconf = onedcurves_s0s1[i][j]
     # currentpolygon = mgc.stb.genPolygonFromConf(polygon, currentconf)
     # #
     # # # thread.start_new_thread(mgc.plot2d, (polygon, grppoint0, grppoint1, sppoint0, sppoint1))

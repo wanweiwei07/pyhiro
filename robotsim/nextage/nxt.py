@@ -323,6 +323,50 @@ class NxtRobot():
 
         return True
 
+    def chkrngdrag(self, armjnts, armid="rgt"):
+        """
+        check if the given armjnts is inside the oeprating range of the speificed armid
+        this function doesn't check the waist
+        The joint angles out of range will be pulled back to their maxima
+
+        :param armjnts: a 1-by-6 numpy ndarray indicating the targejoints of a manipulator
+        :param armid: a string "rgt" or "lft"
+        :return: Two parameters, one is true or false indicating if the joint angles are inside the range or not
+                The other is the joint angles after draggin.
+                If the joints were not dragged, the same joint angles will be returned
+
+        author: weiwei
+        date: 20161205
+        """
+
+        if armid!="rgt" and armid!="lft":
+            raise ep.ValueError
+
+        armlj = self.rgtarm
+        if armid == "lft":
+            armlj = self.lftarm
+
+        counter = 0
+        bdragged = True
+        jntanglesdrag = []
+        for i in self.__targetjoints:
+            if armjnts[counter] < armlj[i]["rngmin"]:
+                # print "Joint "+ str(i) + " of the " + armid + " arm is out of range"
+                # print "Angle is " + str(armjnts[counter])
+                # print "Range is (" + str(armlj[i]["rngmin"]) + ", " + str(armlj[i]["rngmax"]) + ")"
+                bdragged = True
+                jntanglesdrag.append(armlj[i]["rngmin"])
+            elif armjnts[counter] > armlj[i]["rngmax"]:
+                bdragged = True
+                jntanglesdrag.append(armlj[i]["rngmax"])
+            else:
+                bdragged = False
+                jntanglesdrag.append(armjnts[counter])
+
+            counter += 1
+
+        return bdragged, jntanglesdrag
+
     def __initrgtlj(self):
         '''
         Init the structure of hiro's rgt arm links and joints
@@ -600,6 +644,7 @@ if __name__=="__main__":
 
     from manipulation.grip.robotiq85 import rtq85nm
     from manipulation.grip.hrp5three import hrp5threenm
+    from nxtmesh import NxtMesh
 
     base = pandactrl.World(camp=[1400,0,3000], lookatp=[0,0,0])
 
@@ -608,15 +653,22 @@ if __name__=="__main__":
     # nxtrobot.movewaist(0)
 
     import nxtik
-    objpos = np.array([500,0,300])
-    objrot = np.array([[0,1,0],[1,0,0],[0,0,-1]])
+    objpos = np.array([200,0,300])
+    # objrot = np.array([[0,1,0],[1,0,0],[0,0,-1]])
+    objrot = np.array([[0,1,0],[0,0,-1],[-1,0,0]])
+    # plot goal axis
+    pg.plotAxisSelf(nodepath = base.render, spos = objpos, pandamat4 = pg.cvtMat4(objrot))
 
     import nxtplot
     handpkg = rtq85nm
     # handpkg = hrp5threenm
     # nxtrobot.movewaist(-15)
-    nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
-    nxtmnp.reparentTo(base.render)
+    # nxtmnp = nxtplot.genmnp(nxtrobot, handpkg)
+    # nxtmnp.reparentTo(base.render)
+
+    nmg = NxtMesh(handpkg)
+    nxtmesh = nmg.genmnp(nxtrobot)
+    nxtmesh.reparentTo(base.render)
 
     # nxtplot.plotstick(base.render, nxtrobot)
     #
@@ -632,11 +684,13 @@ if __name__=="__main__":
     # # pandageom.plotAxis(base.render, pandageom.cvtMat4(nxtrobot.rgtarm[6]['rotmat'], nxtrobot.rgtarm[6]['linkpos']))
     # pg.plotDumbbell(base.render, objpos, objpos, rgba = [1,0,1,.51])
     #
-    # armid = "lft"
-    # armjntsgoal7 = nxtrobot.numikr(objpos, objrot, armid)
-    # print armjntsgoal7
-    # if armjntsgoal7 is not None:
-    #     nxtrobot.movearmfkr(armjntsgoal7, armid)
+    armid = "lft"
+    armjntsgoal7 = nxtrobot.numikr(objpos, objrot, armid)
+    print armjntsgoal7
+    if armjntsgoal7 is not None:
+        nxtrobot.movearmfkr(armjntsgoal7, armid)
+    nxtmesh = nmg.genmnp(nxtrobot)
+    nxtmesh.reparentTo(base.render)
     #
     # armid= "rgt"
     # objrot = np.array([[0,-1,0],[-1,0,0],[0,0,-1]])

@@ -131,34 +131,56 @@ def numik(hrp5nrobot, tgtpos, tgtrot, armid="rgt"):
         raise ep.ValueError
 
     # stablizer
-    steplength = 30
-    armjntssave = hrp5nrobot.getarmjnts(armid) 
+    steplength = 5
+    steplengthinc = 10
+    armjntssave = hrp5nrobot.getarmjnts(armid)
     armjntsiter = armjntssave.copy()
-    for i in range(500):
+    errnormlast = 0.0
+    nlocalencountered = 0
+    for i in range(100):
         armjac = jacobian(hrp5nrobot, armid)
         if np.linalg.matrix_rank(armjac) == 6:
             err = tcperror(hrp5nrobot, tgtpos, tgtrot, armid)
-            dq = steplength*(np.linalg.lstsq(armjac, err))[0]
+            dq = steplength * (np.linalg.lstsq(armjac, err))[0]
         else:
             print "The Jacobian Matrix of the specified arm is at singularity"
+            # hrp5nrobot.movearmfk(armjntssave, armid)
+            # return None
+            break
+        print np.linalg.norm(err)
+        # if np.linalg.norm(err)<1e-4:
+        errnorm = np.linalg.norm(err)
+        if errnorm < 1:
+            print 'goal reached', armjntsiter
+            print "number of iteration ", i
+            # if hrp5nrobot.chkrng(armjntsiter, armid):
+            armjntsreturn = hrp5nrobot.getarmjnts(armid)
             hrp5nrobot.movearmfk(armjntssave, armid)
-            return None
-        if np.linalg.norm(err)<1e-4:
-            if hrp5nrobot.chkrng(armjntsiter, armid):
-                armjntsreturn = hrp5nrobot.getarmjnts(armid)
-                hrp5nrobot.movearmfk(armjntssave, armid)
-                return armjntsreturn
-            else:
-                # import hrp5nplot
-                # import manipulation.grip.hrp5three.hrp5three as handpkg
-                # # hrp5nplot.plotstick(base.render, hrp5nrobot)
-                # hrp5nmnp = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
-                # hrp5nmnp.reparentTo(base.render)
-                # print "out of range"
-                hrp5nrobot.movearmfk(armjntssave, armid)
-                return None
+            return armjntsreturn
+            # else:
+            #     # import hrp5nplot
+            #     # import manipulation.grip.hrp5three.hrp5three as handpkg
+            #     # # hrp5nplot.plotstick(base.render, hrp5nrobot)
+            #     # hrp5nmnp = hrp5nplot.genmnp(hrp5nrobot, handpkg)
+            #     # hrp5nmnp.reparentTo(base.render)
+            #     # print "out of range"
+            #     # hrp5nrobot.movearmfk(armjntssave, armid)
+            #     # return None
+            #     break
         else:
             # todo dq definition
+            # judge local minima
+            if abs(errnorm - errnormlast) < 1e-3:
+                nlocalencountered += 1
+                print "local minima at iteration", i
+                print "n local encountered", nlocalencountered
+                steplength = 3
+                steplengthinc = 7
+                if nlocalencountered > 2:
+                    break
+            else:
+                if steplength < 50:
+                    steplength = steplength + steplengthinc
             armjntsiter += dq
             armjntsiter = rm.cvtRngPM180(armjntsiter)
             # print armjntsiter
@@ -167,25 +189,34 @@ def numik(hrp5nrobot, tgtpos, tgtrot, armid="rgt"):
             # print armjntsiter
             # the robot may encounter overrange errors in the first few iterations
             # use i<50 to avoid these errors
-            if hrp5nrobot.chkrng(armjntsiter, armid) or i < 30:
-                # print armjntsiter
-                hrp5nrobot.movearmfk(armjntsiter, armid)
-                # import hrp5plot
-                # hrp5plot.plotstick(base.render, hrp5robot)
-                # hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
-                # hrp5mnp.reparentTo(base.render)
-                # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
-                # nxtmnp.reparentTo(base.render)
-                # import hrp5nplot
-                # import manipulation.grip.hrp5three.hrp5three as handpkg
-                # # hrp5nplot.plotstick(base.render, hrp5nrobot)
-                # hrp5nmnp = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
-                # hrp5nmnp.reparentTo(base.render)
-            else:
-                # import hrp5plot
-                # hrp5plot.plotstick(base.render, hrp5robot)
-                hrp5nrobot.movearmfk(armjntssave, armid)
-                return None
+            # if hrp5nrobot.chkrng(armjntsiter, armid) or i < 30:
+            #     # print armjntsiter
+            #     hrp5nrobot.movearmfk(armjntsiter, armid)
+            #     # import hrp5plot
+            #     # hrp5plot.plotstick(base.render, hrp5robot)
+            #     # hrp5mnp = hrp5plot.genHrp5mnp(hrp5robot)
+            #     # hrp5mnp.reparentTo(base.render)
+            #     # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
+            #     # nxtmnp.reparentTo(base.render)
+            #     # import hrp5nplot
+            #     # import manipulation.grip.hrp5three.hrp5three as handpkg
+            #     # # hrp5nplot.plotstick(base.render, hrp5nrobot)
+            #     # hrp5nmnp = hrp5nplot.genHrp5Nmnp_nm(hrp5nrobot, handpkg)
+            #     # hrp5nmnp.reparentTo(base.render)
+            # else:
+            #     # import hrp5plot
+            #     # hrp5plot.plotstick(base.render, hrp5robot)
+            #     hrp5nrobot.movearmfk(armjntssave, armid)
+            #     return None
+            bdragged, jntangles = hrp5nrobot.chkrngdrag(armjntsiter, armid)
+            armjntsiter[:] = jntangles[:]
+            print jntangles
+            hrp5nrobot.movearmfk(jntangles, armid)
+            hrp5nplot.plotstick(base.render, hrp5nrobot)
+        errnormlast = errnorm
+        print errnorm
+    hrp5nmnp = hrp5nplot.genmnp(hrp5nrobot, handpkg)
+    hrp5nmnp.reparentTo(base.render)
     hrp5nrobot.movearmfk(armjntssave, armid)
     return None
 

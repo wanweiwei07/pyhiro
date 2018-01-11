@@ -392,6 +392,7 @@ if __name__=="__main__":
     # # minus 180
     for i in range(-1, -int(180*scale/float(steplength)), -1):
         nxtangle = i*steplength
+        print currentkey
         key = currentkey+nxtangle
         curvepoint = lowestonedcurve[key]
         if curvepoint[1] > mgc.minusinf+1:

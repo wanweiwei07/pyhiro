@@ -57,12 +57,15 @@ if __name__=="__main__":
     # grppoint0 = Point(-593.0,1105.0)
     # grppoint1 = Point(1333.0,835.0)
     #
+
     # grppoint0 = Point(-486.0,1090.0)
     # grppoint1 = Point(1226.0,850.0)
     #
     # grppoint0 = Point(-379.0,1075.0)
     # grppoint1 = Point(1119.0,865.0)
 
+    # grppoint0 = Point(-907.2644044424603, 1293.091855267518)
+    # grppoint1 = Point(1753.682239390151, 256.793594151529)
     grppoint0 = Point(-907.2644044424603, 1293.091855267518)
     grppoint1 = Point(1753.682239390151, 256.793594151529)
     # exp3
@@ -79,7 +82,7 @@ if __name__=="__main__":
     # grppoint1 = Point(1119.0,710.0)
 
     sppoint0 = Point(0.0, 100.0)
-    sppoint1 = Point(900.0, 0.0)
+    sppoint1 = Point(1400.0, 400.0)
 
     # polygon = Polygon([[185.4,0.0],
     #                    [785.4,0.0],
@@ -192,6 +195,8 @@ if __name__=="__main__":
     # color of supports => gray
     mgc.plotCobt(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
     mgc.plotCobt(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
+    # mgc.plotCobtDis(base.render, sppoint0, polygon, rgba = [.6,.6,.6,.9])
+    # mgc.plotCobtDis(base.render, sppoint1, polygon, rgba = [.6,.6,.6,.9])
 
 
     # convert multiple curves (segmented) to a dictionary
@@ -303,8 +308,9 @@ if __name__=="__main__":
     for i, polygonxoncurve in enumerate(polygonxoncurves_s0s1):
         for j, polygonx in enumerate(polygonxoncurve):
             # start from the middle point
-            if math.fabs(onedcurves_s0s1[i][j][2]-mgc.heightrange/2.0) < steplength:
+            if math.fabs(onedcurves_s0s1[i][j][2]-mgc.heightrange*3.0/5.0) < steplength:
                 currentkey = onedcurves_s0s1[i][j][2]
+                print currentkey
                 currentpolygon0 = polygonx
                 currentconf = onedcurves_s0s1[i][j]
                 # pg.plotSphere(base.render, onedcurves_s0s1[i][j], radius = 300, rgba=[1,0,0,1])

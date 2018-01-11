@@ -55,7 +55,6 @@ class CollisionCheckerBall(object):
             print "arm-body collision"
             return True
 
-
         # dual arm
         collisionnp = NodePath("collision nodepath")
         rgtlowerarmnp = collisionnp.attachNewNode(dualbcnlist[2])

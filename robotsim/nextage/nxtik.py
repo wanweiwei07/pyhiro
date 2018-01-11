@@ -137,38 +137,55 @@ def numik(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     #     armlj = nxtrobot.lftarm
 
     # stablizer
-    steplength = 30
+    steplength = 5
+    steplengthinc = 10
     armjntssave = nxtrobot.getarmjnts(armid)
     armjntsiter = armjntssave.copy()
-    for i in range(500):
+    errnormlast = 0.0
+    nlocalencountered = 0
+    for i in range(100):
         armjac = jacobian(nxtrobot, armid)
-        if abs(np.linalg.det(armjac))>1e-6:
+        if np.linalg.matrix_rank(armjac) == 6:
             err = tcperror(nxtrobot, tgtpos, tgtrot, armid)
-            dq = steplength*(np.linalg.solve(armjac, err))
+            dq = steplength * (np.linalg.lstsq(armjac, err))[0]
         else:
             print "The Jacobian Matrix of the specified arm is at singularity"
-            nxtrobot.movearmfk6(armjntssave, armid)
-            return None
-        if np.linalg.norm(err)<1e-4:
+            break
+        # print np.linalg.norm(err)
+        errnorm = np.linalg.norm(err)
+        if errnorm < 1:
+            # print 'goal reached', armjntsiter
+            # print "number of iteration ", i
             armjntsreturn = nxtrobot.getarmjnts(armid)
             nxtrobot.movearmfk(armjntssave, armid)
             return armjntsreturn
         else:
+            # todo dq definition
+            # judge local minima
+            if abs(errnorm - errnormlast) < 1e-3:
+                nlocalencountered += 1
+                # print "local minima at iteration", i
+                # print "n local encountered", nlocalencountered
+                steplength = 3
+                steplengthinc = 7
+                if nlocalencountered > 2:
+                    break
+            else:
+                if steplength < 50:
+                    steplength = steplength + steplengthinc
             armjntsiter += dq
             armjntsiter = rm.cvtRngPM180(armjntsiter)
-            if nxtrobot.chkrng(armjntsiter) or i < 10:
-                nxtrobot.movearmfk(armjntsiter, armid)
-                import nxtplot
-                # nxtplot.plotstick(base.render, nxtrobot)
-                # nxtmnp = nxtplot.genNxtmnp_nm(nxtrobot,plotcolor=[.5,.5,0.1,.2])
-                # nxtmnp.reparentTo(base.render)
-                # nxtmnp = nxtplot.genNxtmnp(nxtrobot)
-                # nxtmnp.reparentTo(base.render)
-            else:
-                nxtrobot.movearmfk(armjntssave, armid)
-                # print "No feasible IK"
-                return None
+            bdragged, jntangles = nxtrobot.chkrngdrag(armjntsiter, armid)
+            armjntsiter[:] = jntangles[:]
+            nxtrobot.movearmfk(jntangles, armid)
+            # print jntangles
+            # import nxtplot
+            # nxtplot.plotstick(base.render, nxtrobot)
+        errnormlast = errnorm
+        # print errnorm
+    # print "out of max iteration"
     nxtrobot.movearmfk(armjntssave, armid)
+    return None
 
 def numikr(nxtrobot, tgtpos, tgtrot, armid="rgt"):
     """
