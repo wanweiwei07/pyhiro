@@ -815,7 +815,7 @@ def mat4ToNp(pdmat4):
     row2 = pdmat4.getRow(2)
     row3 = pdmat4.getRow(3)
 
-    return np.array([[row0[0], row1[0], row2[0], row3[0]], [row0[1], row1[1], row2[1], row3[2]],
+    return np.array([[row0[0], row1[0], row2[0], row3[0]], [row0[1], row1[1], row2[1], row3[1]],
                      [row0[2], row1[2], row2[2], row3[2]], [row0[3], row1[3], row2[3], row3[3]]])
 
 def v3ToNp(pdv3):
