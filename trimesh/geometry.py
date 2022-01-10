@@ -66,13 +66,15 @@ def align_vectors(vector_start, vector_end, return_angle=False):
             return T, angle
         return T
     if np.array_equal(-vector_start, vector_end):
-        T = np.eye(4)
-        T[:3, 2] *= -1.0
-        T[:3, 1] *= -1.0
-        angle = np.pi
+        a = vector_start[0]
+        b = vector_start[1]
+        c = vector_start[2]
+        rot_ax = unitize(np.array([b - c, -a + c, a - b]))
+        T = rotation_matrix(np.pi, rot_ax)
         if return_angle:
-            return T, angle
+            return T, np.pi
         return T
+
 
     vector_start = unitize(vector_start)
     vector_end   = unitize(vector_end)
